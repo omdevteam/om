@@ -30,14 +30,14 @@ from om.lib.exceptions import OmInvalidZmqUrl, OmMissingDependencyError
 from om.lib.logging import log
 
 try:
-    from PyQt5 import QtCore
+    from PyQt5 import QtCore  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 
-class ZmqDataListener(QtCore.QObject):
+class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
     """
     See documentation for the `__init__` function.
     """

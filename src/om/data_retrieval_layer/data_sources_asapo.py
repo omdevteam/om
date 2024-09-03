@@ -21,7 +21,7 @@ ASAP::O-related data sources.
 This module contains Data Source classes that deal with data retrieved from the ASAP::O
 software framework (used at the PETRA III facility).
 """
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -37,11 +37,20 @@ except ImportError:
         "The following required module cannot be imported: seedee"
     )
 
+T = TypeVar("T")
 
-class DetectorDataAsapo(OmDataSourceProtocol):
+
+class OmBaseAsapoDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        if cls is OmBaseAsapoDataSourceMixin:
+            raise TypeError(
+                f"{cls.__name__} is a Mixin class and should not be instantiated"
+            )
+        return object.__new__(cls, *args, **kwargs)
 
     def __init__(
         self,
@@ -50,10 +59,10 @@ class DetectorDataAsapo(OmDataSourceProtocol):
         parameters: Dict[str, Any],
     ):
         """
-        Detector data frames from ASAP::O at the PETRA III facility.
+        Detector data frames from Pilatus single-frame CBF files.
 
-        This class deals with the retrieval of detector data frames from the ASAP::O
-        software framework, as used at the PETRA III facility.
+        This class deals with the retrieval of Pilatus detector data frames from
+        single-frame files written by the detector in CBF format.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -67,20 +76,26 @@ class DetectorDataAsapo(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        del data_source_name
         del parameters
-        self._data_source_name = data_source_name
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAP::O detector data frame source.
+        Initializes CBF file-based Pilatus detector data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve detector data frames from ASAP::O, so
-        this function actually does nothing.
+        No initialization is needed to retrieve detector data frames from single-frame
+        CBF files, so this function actually does nothing.
         """
         pass
+
+
+class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
 
     def get_data(
         self, *, event: Dict[str, Any]
@@ -112,49 +127,10 @@ class DetectorDataAsapo(OmDataSourceProtocol):
         )
 
 
-class TimestampAsapo(OmDataSourceProtocol):
+class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Timestamp information from ASAP::O at the PETRA III facility.
-
-        This class deals with the retrieval of timestamp information from the ASAP::O
-        software framework. ASAP::O provides this information for each event.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the ASAP::O timestamp data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve timestamp information from ASAP::O,
-        so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
@@ -177,49 +153,10 @@ class TimestampAsapo(OmDataSourceProtocol):
         return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
 
 
-class EventIdAsapo(OmDataSourceProtocol):
+class EventIdAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Data event identifiers from ASAP::O at the PETRA III facility.
-
-        This class deals with the retrieval of unique event identifiers for
-        ASAP::O-based data events.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the ASAP::O event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is required to retrieve event identifiers for ASAP::O, so
-        this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
@@ -251,49 +188,10 @@ class EventIdAsapo(OmDataSourceProtocol):
         )
 
 
-class BeamEnergyAsapo(OmDataSourceProtocol):
+class BeamEnergyAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Beam energy information from ASAP::O at the PETRA III facility.
-
-        This class deals with the retrieval of beam energy information from ASAP::O.
-        ASAP::O provides this information for each event.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        del data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the ASAP::O beam energy data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is required to retrieve beam energy information from ASAP::O,
-        so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
@@ -322,49 +220,10 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
         return cast(float, constants.h * constants.c / (wavelength * constants.e))
 
 
-class DetectorDistanceAsapo(OmDataSourceProtocol):
+class DetectorDistanceAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Detector distance information from ASAP::O at the PETRA III facility.
-
-        This class deals with the retrieval of detector distance information from
-        ASAP::O. ASAP::O provides this information for each event.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        del data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the ASAP::O detector distance data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is required to retrieve detector distance information from
-        ASAP::O, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """

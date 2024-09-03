@@ -20,18 +20,17 @@ Retrieval of data from a ZMQ stream.
 
 This module contains Data Retrieval classes that deal with ZMQ data streams.
 """
-from typing import Dict
+from typing import Any, Dict
 
 from om.data_retrieval_layer.data_event_handlers_zmq import (
     Jungfrau1MZmqDataEventHandler,
 )
-from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
+from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.data_retrieval_layer.data_sources_zmq import (
     EventIdJungfrau1MZmq,
     Jungfrau1MZmq,
     TimestampJungfrau1MZmq,
 )
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -44,7 +43,7 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval for Jungfrau 1M's ZMQ stream.
 
@@ -80,28 +79,28 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampJungfrau1MZmq(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdJungfrau1MZmq(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": Jungfrau1MZmq(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             Jungfrau1MZmqDataEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )

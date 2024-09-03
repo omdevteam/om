@@ -25,17 +25,89 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 
 import pathlib
 import time
-from typing import Any, Dict, List, NamedTuple, Set, TextIO, Tuple, TypedDict, Union
+from enum import Enum
+from typing import Any, Dict, List, NamedTuple, Set, TextIO, Tuple, Union, cast
 
 import h5py  # type: ignore
-import hdf5plugin
+import hdf5plugin  # type: ignore
 import numpy
-from numpy.typing import DTypeLike, NDArray
+from numpy.typing import NDArray
+from pydantic import BaseModel, Field, ValidationError, model_validator
+from typing_extensions import Self
 
-from om.lib.exceptions import OmHdf5UnsupportedDataFormat
+from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
+    OmHdf5UnsupportedDataFormat,
+)
 from om.lib.logging import log
-from om.lib.parameters import get_parameter_from_parameter_group
 from om.typing import TypeClassSumData, TypePeakList
+
+
+class _Hdf5Compression(str, Enum):
+    gzip = "gzip"
+    bitshuffle_with_zstd = "bitshuffle_with_zstd"
+    none = "none"
+
+
+class _CheetahFileWriterParameters(BaseModel):
+    processed_directory: str
+
+
+class _MonitorFileWriterParameters(BaseModel):
+    cheetah: _CheetahFileWriterParameters
+
+
+class _CheetahSumsAccumulatorParameters(BaseModel):
+    class_sums_sending_interval: int = Field(default=-1)
+
+
+class _MonitorSumsAccumulatorParameters(BaseModel):
+    cheetah: _CheetahSumsAccumulatorParameters
+
+
+class _CheetahClassSumsCollectorParameters(BaseModel):
+    write_class_sums: bool
+    class_sums_update_interval: int
+
+    @model_validator(mode="after")
+    def check_sums_update_interval(self) -> Self:
+        if self.write_class_sums and self.class_sums_update_interval is None:
+            raise ValueError(
+                "If writing of the class sums is requested from Cheetah, the following"
+                "entry must be present in the cheetah section of the configuration"
+                "file:  class_sums_update_interval "
+            )
+        return self
+
+
+class _MonitorClassSumsCollectorParameters(BaseModel):
+    cheetah: _CheetahClassSumsCollectorParameters
+
+
+class _CheetahHdf5WriterParameters(BaseModel):
+    processed_directory: str
+    processed_filename_prefix: str = Field(default="processed")
+    processed_filename_extension: str = Field(default="h5")
+    hdf5_fields: dict[str, str]
+    hdf5_file_data_type: str
+    hdf5_file_compression: _Hdf5Compression = Field(default="none")
+    hdf5_file_gzip_compression_level: int = Field(default=4)
+    hdf5_file_zstd_compression_level: int = Field(default=3)
+    hdf5_file_compression_shuffle: bool = Field(default=False)
+    hdf5_file_max_num_peaks: int = Field(default=1024)
+
+
+class _MonitorHdf5WriterParameters(BaseModel):
+    cheetah: _CheetahHdf5WriterParameters
+
+
+class _CheetahSumHDF5WriterParameters(BaseModel):
+    processed_directory: str
+    processed_filename_prefix: str = Field(default="processed")
+
+
+class _MonitorSumHDF5WriterParameters(BaseModel):
+    cheetah: _CheetahSumHDF5WriterParameters
 
 
 class TypeFrameListData(NamedTuple):
@@ -104,15 +176,18 @@ class CheetahStatusFileWriter:
                   directory where the output files are to be written.
 
         """
-        directory_for_processed_data: str = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
-        )
+        try:
+            self._parameters = _MonitorFileWriterParameters.model_validate(parameters)
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
+
         self._status_filename: pathlib.Path = (
-            pathlib.Path(directory_for_processed_data).resolve() / "status.txt"
+            pathlib.Path(self._parameters.cheetah.processed_directory).resolve()
+            / "status.txt"
         )
+
         self._start_time: float = time.time()
 
     def update_status(
@@ -164,7 +239,7 @@ class CheetahListFilesWriter:
     def __init__(
         self,
         *,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Cheetah list files writer.
@@ -198,13 +273,20 @@ class CheetahListFilesWriter:
 
             cheetah_parameters: An object storing Cheetah's configuration parameters.
         """
-        processed_directory: pathlib.Path = pathlib.Path(
-            get_parameter_from_parameter_group(
-                group=cheetah_parameters,
-                parameter="processed_directory",
-                parameter_type=str,
-                required=True,
+        try:
+            self._parameters = _MonitorFileWriterParameters.model_validate(parameters)
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
             )
+
+        self._status_filename: pathlib.Path = (
+            pathlib.Path(self._parameters.cheetah.processed_directory).resolve()
+            / "status.txt"
+        )
+
+        processed_directory: pathlib.Path = pathlib.Path(
+            self._parameters.cheetah.processed_directory
         ).resolve()
 
         self._frames_filename: pathlib.Path = processed_directory / "frames.txt"
@@ -347,7 +429,7 @@ class CheetahClassSumsAccumulator:
     def __init__(
         self,
         *,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
         num_classes: int,
     ) -> None:
         """
@@ -374,12 +456,16 @@ class CheetahClassSumsAccumulator:
 
             num_classes: The total number of data classes currently managed by Cheetah.
         """
-        self._sum_sending_interval: int = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="class_sums_sending_interval",
-            parameter_type=int,
-            default=-1,
-        )
+
+        try:
+            self._parameters = _MonitorSumsAccumulatorParameters.model_validate(
+                parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
+
         self._sum_sending_counter: int = 0
         self._num_classes: int = num_classes
 
@@ -405,7 +491,7 @@ class CheetahClassSumsAccumulator:
             peak_list: The list of peaks detected in the frame being added to the
                 accumulator.
         """
-        if self._sum_sending_interval == -1:
+        if self._parameters.cheetah.class_sums_sending_interval == -1:
             return
         if self._sum_sending_counter == 0:
             self._sums: List[TypeClassSumData] = [
@@ -425,7 +511,7 @@ class CheetahClassSumsAccumulator:
         for peak_fs, peak_ss, peak_value in zip(
             peak_list["fs"], peak_list["ss"], peak_list["intensity"]
         ):
-            self._sums[class_number]["peak_powder"][
+            cast(h5py.Dataset, self._sums[class_number]["peak_powder"])[
                 int(round(peak_ss)), int(round(peak_fs))
             ] += peak_value
 
@@ -451,9 +537,10 @@ class CheetahClassSumsAccumulator:
 
             The sum and virtual powder plot stored by the accumulator, or None.
         """
-        if self._sum_sending_counter >= self._sum_sending_interval or (
-            self._sum_sending_counter > 0 and disregard_counter
-        ):
+        if (
+            self._sum_sending_counter
+            >= self._parameters.cheetah.class_sums_sending_interval
+        ) or (self._sum_sending_counter > 0 and disregard_counter):
             self._sum_sending_counter = 0
             return self._sums
         else:
@@ -468,7 +555,7 @@ class CheetahClassSumsCollector:
     def __init__(
         self,
         *,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
         num_classes: int,
     ) -> None:
         """
@@ -499,27 +586,23 @@ class CheetahClassSumsCollector:
         """
         self._num_classes: int = num_classes
 
-        # Sum HDF5 writers
-        self._write_class_sums: bool = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="write_class_sums",
-            parameter_type=bool,
-            required=True,
-        )
-        if self._write_class_sums:
+        try:
+            self._parameters = _MonitorClassSumsCollectorParameters.model_validate(
+                parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
+
+        if self._parameters.cheetah.write_class_sums:
             self._sum_writers: Dict[int, SumHDF5Writer] = {
                 class_number: SumHDF5Writer(
                     powder_class=class_number,
-                    cheetah_parameters=cheetah_parameters,
+                    parameters=parameters,
                 )
                 for class_number in range(self._num_classes)
             }
-            self._class_sum_update_interval: int = get_parameter_from_parameter_group(
-                group=cheetah_parameters,
-                parameter="class_sums_update_interval",
-                parameter_type=int,
-                required=True,
-            )
             self._class_sum_update_counter: int = 0
 
     def add_sums(
@@ -544,13 +627,22 @@ class CheetahClassSumsCollector:
         else:
             class_number: int
             for class_number in range(len(class_sums)):
-                key: str
-                for key in class_sums[0]:
-                    # TODO: fix mypy error:
-                    self._sums[class_number][key] += class_sums[class_number][key]  # type: ignore  # noqa: E501
+                self._sums[class_number]["num_frames"] += class_sums[class_number][
+                    "num_frames"
+                ]
+                self._sums[class_number]["sum_frames"] += class_sums[class_number][
+                    "sum_frames"
+                ]
+                self._sums[class_number]["peak_powder"] += class_sums[class_number][
+                    "peak_powder"
+                ]
 
         self._class_sum_update_counter += 1
-        if self._class_sum_update_counter % self._class_sum_update_interval == 0:
+        if (
+            self._class_sum_update_counter
+            % self._parameters.cheetah.class_sums_update_interval
+            == 0
+        ):
             self.save_sums()
 
     def save_sums(self) -> None:
@@ -561,7 +653,10 @@ class CheetahClassSumsCollector:
         called automatically by the collector when required, but can also be called
         manually.
         """
-        if self._write_class_sums and self._class_sum_update_counter > 0:
+        if (
+            self._parameters.cheetah.write_class_sums
+            and self._class_sum_update_counter > 0
+        ):
             class_number: int
             for class_number in range(self._num_classes):
                 self._sum_writers[class_number].write_sums(
@@ -578,7 +673,7 @@ class HDF5Writer:
         self,
         *,
         node_rank: int,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Event data writer.
@@ -637,106 +732,53 @@ class HDF5Writer:
             node_rank: The rank of the OM node that writes the data in the output
                 files.
         """
-        # Output file
-        directory_for_processed_data: str = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
-        )
-        processed_filename_prefix: Union[
-            str, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_filename_prefix",
-            parameter_type=str,
-        )
-        if processed_filename_prefix is None:
-            processed_filename_prefix = "processed"
+
+        try:
+            self._parameters = _MonitorHdf5WriterParameters.model_validate(parameters)
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
+
         self._processed_filename: pathlib.Path = (
-            pathlib.Path(directory_for_processed_data).resolve()
-            / f"{processed_filename_prefix}_{node_rank}.inprogress"
-        )
-        processed_filename_extension: Union[
-            str, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_filename_extension",
-            parameter_type=str,
-        )
-        if processed_filename_extension is None:
-            processed_filename_extension = "h5"
-        self._processed_filename_extension: str = f".{processed_filename_extension}"
-
-        # HDF5 fields
-        self._hdf5_fields = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_fields",
-            parameter_type=dict,
+            pathlib.Path(self._parameters.cheetah.processed_directory).resolve()
+            / f"{self._parameters.cheetah.processed_filename_prefix}_"
+            "{node_rank}.inprogress"
         )
 
-        # Data format
-        self._data_type: Union[
-            str, DTypeLike, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_file_data_type",
-            parameter_type=str,
+        self._processed_filename_extension: str = (
+            f".{self._parameters.cheetah.processed_filename_extension}"
         )
 
         # Compression
-        compression: Union[str, None] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_file_compression",
-            parameter_type=str,
-        )
-        if compression not in ("gzip", "bitshuffle_with_zstd"):
-            # TODO: print a warning or an error for unsupported compression type
-            # If a warning say no compression will be applied
-            compression = None
-        if compression == "gzip":
-            compression_level: int = get_parameter_from_parameter_group(
-                group=cheetah_parameters,
-                parameter="hdf5_file_gzip_compression_level",
-                parameter_type=int,
-                default=4,
-            )
+        if self._parameters.cheetah.hdf5_file_compression == "gzip":
             self._compression_kwargs: Dict[str, Any] = {
                 "compression": "gzip",
-                "compression_opts": compression_level,
+                "compression_opts": (
+                    self._parameters.cheetah.hdf5_file_gzip_compression_level,
+                ),
             }
-        elif compression == "bitshuffle_with_zstd":
-            compression_level: int = get_parameter_from_parameter_group(
-                group=cheetah_parameters,
-                parameter="hdf5_file_zstd_compression_level",
-                parameter_type=int,
-                default=3,
-            )
+        elif self._parameters.cheetah.hdf5_file_compression == "bitshuffle_with_zstd":
             self._compression_kwargs = dict(
-                hdf5plugin.Bitshuffle(cname="zstd", clevel=compression_level)
+                hdf5plugin.Bitshuffle(
+                    cname="zstd",
+                    clevel=(self._parameters.cheetah.hdf5_file_zstd_compression_level),
+                )
             )
         else:
             self._compression_kwargs = {}
-        self._compression_kwargs["shuffle"] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_file_compression_shuffle",
-            parameter_type=bool,
-            default=False,
+
+        self._compression_kwargs["shuffle"] = (
+            self._parameters.cheetah.hdf5_file_compression_shuffle
         )
         # TODO: Check
-
-        # Max number of peaks
-        self._max_num_peaks: int = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_file_max_num_peaks",
-            parameter_type=int,
-            default=1024,
-        )
 
         self._h5file: Any = None
         self._resizable_datasets: Dict[str, Any] = {}
         self._extra_groups: Dict[str, Any] = {}
-        self._requested_datasets: Set[str] = set(self._hdf5_fields.keys())
+        self._requested_datasets: Set[str] = set(
+            self._parameters.cheetah.hdf5_fields.keys()
+        )
         self._num_frames: int = 0
 
     def _create_file_and_datasets(self, *, processed_data: Dict[str, Any]) -> None:
@@ -747,87 +789,112 @@ class HDF5Writer:
             "detector_data" in processed_data
             and "detector_data" in self._requested_datasets
         ):
-            if self._data_type is None:
+            if self._parameters.cheetah.hdf5_file_data_type is None:
                 self._data_type = processed_data["detector_data"].dtype
             self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
-                name=self._hdf5_fields["detector_data"],
+                name=self._parameters.cheetah.hdf5_fields["detector_data"],
                 shape=(0,) + processed_data["detector_data"].shape,
                 maxshape=(None,) + processed_data["detector_data"].shape,
-                dtype=self._data_type,
+                dtype=self._parameters.cheetah.hdf5_file_data_type,
                 chunks=(1,) + processed_data["detector_data"].shape,
                 **self._compression_kwargs,
             )
 
-        if "event_id" in self._hdf5_fields.keys():
+        if "event_id" in self._parameters.cheetah.hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
-                name=self._hdf5_fields["event_id"],
+                name=self._parameters.cheetah.hdf5_fields["event_id"],
                 shape=(0,),
                 maxshape=(None,),
                 dtype=h5py.special_dtype(vlen=str),
             )
-        if "optical_laser_active" in self._hdf5_fields.keys():
-            self._resizable_datasets[
-                "optical_laser_active"
-            ] = self._h5file.create_dataset(
-                name=self._hdf5_fields["optical_laser_active"],
-                shape=(0,),
-                maxshape=(None,),
-                dtype=numpy.bool_,
+        if "optical_laser_active" in self._parameters.cheetah.hdf5_fields.keys():
+            self._resizable_datasets["optical_laser_active"] = (
+                self._h5file.create_dataset(
+                    name=self._parameters.cheetah.hdf5_fields["optical_laser_active"],
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=numpy.bool_,
+                )
             )
 
         # Creating all requested 1D float64 datasets:
         key: str
         for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance"):
-            if key in self._hdf5_fields.keys():
+            if key in self._parameters.cheetah.hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
-                    name=self._hdf5_fields[key],
+                    name=self._parameters.cheetah.hdf5_fields[key],
                     shape=(0,),
                     maxshape=(None,),
                     dtype=numpy.float64,
                 )
-        if "peak_list" in self._hdf5_fields.keys():
+        if "peak_list" in self._parameters.cheetah.hdf5_fields.keys():
             self._resizable_datasets.update(
                 {
                     "npeaks": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/nPeaks",
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/nPeaks",
                         shape=(0,),
                         maxshape=(None,),
                         dtype=numpy.int64,
                     ),
                     "fs": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakXPosRaw",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakXPosRaw",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                     "ss": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakYPosRaw",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakYPosRaw",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                     "intensity": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakTotalIntensity",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakTotalIntensity",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                     "num_pixels": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakNPixels",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakNPixels",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                     "max_pixel_intensity": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakMaximumValue",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakMaximumValue",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                     "snr": self._h5file.create_dataset(
-                        name=self._hdf5_fields["peak_list"] + "/peakSNR",
-                        shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        name=self._parameters.cheetah.hdf5_fields["peak_list"]
+                        + "/peakSNR",
+                        shape=(0, self._parameters.cheetah.hdf5_file_max_num_peaks),
+                        maxshape=(
+                            None,
+                            self._parameters.cheetah.hdf5_file_max_num_peaks,
+                        ),
                         dtype=numpy.float32,
                     ),
                 }
@@ -836,7 +903,7 @@ class HDF5Writer:
         for key in self._requested_datasets:
             if key.endswith("_extra"):
                 self._extra_groups[key] = self._h5file.create_group(
-                    self._hdf5_fields[key]
+                    self._parameters.cheetah.hdf5_fields[key]
                 )
 
         extra_group_name: str
@@ -940,7 +1007,9 @@ class HDF5Writer:
 
         if "peak_list" in fields:
             peak_list: TypePeakList = processed_data["peak_list"]
-            n_peaks: int = min(peak_list["num_peaks"], self._max_num_peaks)
+            n_peaks: int = min(
+                peak_list["num_peaks"], self._parameters.cheetah.hdf5_file_max_num_peaks
+            )
             self._resizable_datasets["npeaks"][frame_num] = n_peaks
             peak_dict_key: str
             for peak_dict_key in (
@@ -951,9 +1020,9 @@ class HDF5Writer:
                 "max_pixel_intensity",
                 "snr",
             ):
-                self._resizable_datasets[peak_dict_key][
-                    frame_num, :n_peaks
-                ] = peak_list[peak_dict_key][:n_peaks]
+                self._resizable_datasets[peak_dict_key][frame_num, :n_peaks] = (
+                    peak_list[peak_dict_key][:n_peaks]
+                )
 
         for extra_group_name in self._extra_groups:
             if extra_group_name in fields:
@@ -1020,7 +1089,7 @@ class SumHDF5Writer:
         self,
         *,
         powder_class: int,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Frame sum writer.
@@ -1039,22 +1108,17 @@ class SumHDF5Writer:
             cheetah_parameters: A dictionary containing Cheetah's configuration
                 parameters.
         """
-        sum_filename_prefix: str = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="class_sum_filename_prefix",
-            parameter_type=str,
-            default="processed",
-        )
-        directory_for_processed_data: str = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
+
+        cheetah_sum_hdf5_writer_parameters = (
+            _MonitorHdf5WriterParameters.model_validate(parameters)
         )
 
         self._filename: pathlib.Path = (
-            pathlib.Path(directory_for_processed_data).resolve()
-            / f"{sum_filename_prefix}-detector0-class{powder_class}-sum.h5"
+            pathlib.Path(
+                cheetah_sum_hdf5_writer_parameters.cheetah.processed_directory
+            ).resolve()
+            / f"{cheetah_sum_hdf5_writer_parameters.cheetah.processed_filename_prefix}"
+            "-detector0-class{powder_class}-sum.h5"
         )
 
     def _create_hdf5_file_and_datasets(self, *, data_shape: Tuple[int, ...]) -> None:
@@ -1111,25 +1175,3 @@ class SumHDF5Writer:
             f'Another application is reading the file "{self._filename} exclusively. '
             "Five attempts to open the files failed. Cannot update the file."
         )
-
-
-class TypeClassSumData(TypedDict):
-    """
-    Cheetah data class sum data.
-
-    A dictionary storing the number of detector frames belonging to a specific data
-    class, their sum, and the virtual powder pattern generated from the Bragg peaks
-    detected in them.
-
-    Attributes:
-
-        num_frames: The number of detector frames belonging to the data class.
-
-        sum_frames: The sum of the detector frames belonging to the class.
-
-        peak_powder: The virtual powder pattern for the data class.
-    """
-
-    num_frames: int
-    sum_frames: NDArray[numpy.float_]
-    peak_powder: NDArray[numpy.float_]

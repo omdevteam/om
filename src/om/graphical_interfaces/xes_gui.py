@@ -26,13 +26,14 @@ import sys
 import time
 from typing import Any
 
-import click
+import typer
+from typing_extensions import Annotated
 
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 
 try:
-    from PyQt5 import QtWidgets
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -183,10 +184,26 @@ class XesGui(OmGuiBase):
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
 
-@click.command()
-@click.argument("url", type=str, required=False)
-@click.argument("time_resolved", type=bool, required=False)
-def main(url: str, time_resolved: bool) -> None:
+# @click.command()
+# @click.argument("url", type=str, required=False)
+# @click.argument("time_resolved", type=bool, required=False)
+
+
+def main(
+    *,
+    url: Annotated[
+        str,
+        typer.Argument(help="Experiment identifier"),
+    ] = "tcp://127.0.0.1:12321",
+    time_resolved: Annotated[
+        bool,
+        typer.Option(
+            "--time-resolved",
+            "-t",
+            help="Whether the GUI should display time resolved data",
+        ),
+    ],
+) -> None:
     """
     OM Graphical User Interface for X-ray Emission Spectroscopy. This program must
     connect to a running OnDA Monitor for X-ray Emission Spectroscopy. If the monitor
@@ -203,10 +220,6 @@ def main(url: str, time_resolved: bool) -> None:
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if url is None:
-        url = "tcp://127.0.0.1:12321"
-    if time_resolved is None:
-        time_resolved = False
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = XesGui(url, time_resolved)
     sys.exit(app.exec_())

@@ -20,16 +20,13 @@ File-based data sources.
 
 This module contains Data Source classes that deal with data stored in files.
 """
-from typing import Any, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import Field, create_model, model_validator
-from typing_extensions import Self
 
-from om.algorithms.calibration import Jungfrau1MCalibration
+from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMixin
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.parameters import validate_parameters
 from om.typing import OmDataSourceProtocol
 
 try:
@@ -39,11 +36,20 @@ except ImportError:
         "The following required module cannot be imported: PIL.Image"
     )
 
+T = TypeVar("T")
 
-class PilatusSingleFrameFiles(OmDataSourceProtocol):
+
+class OmBaseFileDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        if cls is OmBaseFileDataSourceMixin:
+            raise TypeError(
+                f"{cls.__name__} is a Mixin class and should not be instantiated"
+            )
+        return object.__new__(cls, *args, **kwargs)
 
     def __init__(
         self,
@@ -69,8 +75,8 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        del data_source_name
         del parameters
-        self._data_source_name = data_source_name
 
     def initialize_data_source(self) -> None:
         """
@@ -84,9 +90,15 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
         """
         pass
 
+
+class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
         """
-        Retrieves a Pilatus detector data frame from a file-based event.
+        Retrieves an Eiger 16M detector data frame from files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -101,201 +113,15 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            A detector data frame.
         """
         return cast(NDArray[numpy.float_], event["data"].data)
 
 
-class Jungfrau1MFiles(OmDataSourceProtocol):
+class Eiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Detector data frames from Jungfrau 1M HDF5 files.
-
-        This class deals with the retrieval of Jungfrau 1M detector data frame from
-        files written by the detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-
-        def check_calibration_parameters(self, *, data_source_name: str) -> Self:
-            if self._calibration and (
-                self._dark_filenames is None
-                or self._gain_filenames is None
-                or self._photon_energy_kev is None
-            ):
-                raise ValueError(
-                    "If calibration is requested for detector {data_source_name}, the "
-                    "following entries must be present in the [data retrieval_layer] "
-                    "section, and cannot have values of None: "
-                    f"{data_source_name}_dark_filenames, "
-                    f"{data_source_name}_gain_filenames, "
-                    f"{data_source_name}_photon_energy_kev"
-                )
-            return self
-
-        param_dict: Dict[str, Tuple[Any, Any]] = {
-            "calibration": (
-                bool,
-                Field(default=True, validation_alias=f"{data_source_name}_calibration"),
-            ),
-            "dark_filenames": (
-                Union[List[str], None],
-                Field(
-                    default=None, validation_alias=f"{data_source_name}_dark_filenames"
-                ),
-            ),
-            "gain_filenames": (
-                Union[List[str], None],
-                Field(
-                    default=None, validation_alias=f"{data_source_name}_gain_filenames"
-                ),
-            ),
-            "photon_energy_kev": (
-                Union[float, None],
-                Field(
-                    default=None,
-                    validation_alias=f"{data_source_name}_photon_energy_kev",
-                ),
-            ),
-        }
-
-        Jungfrau1MFilesDynamicParameters = create_model(
-            "Jungfrau1MFilesParameters",
-            **param_dict,
-            __validators__={
-                "check_calibration_parameters": model_validator(mode="after")(
-                    check_calibration_parameters
-                )
-            },
-        )
-
-        calibration_parameters: Jungfrau1MCalibration = validate_parameters(
-            model=Jungfrau1MFilesDynamicParameters, parameter_group=parameters
-        )
-
-        self._calibrated_data_required = calibration_parameters.calibration
-        self._dark_filenames = calibration_parameters.dark_filenames
-        self._gain_filenames = calibration_parameters.gain_filenames
-        self._photon_energy_kev = calibration_parameters.photon_energy_kev
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the HDF5 file-based Jungfrau 1M detector data frame source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        This function retrieves from OM's configuration parameters all the information
-        needed to initialize the data source. It looks at the
-        `{data_source_name}_calibration` entry in OM's `data retrieval layer`
-        configuration parameter group to determine if calibrated data needs to be
-        retrieved. In the affirmative case, it reads the names of the files containing
-        the required calibration constants from the entries `dark_filenames` and
-        `gain_filenames` in the `calibration` parameter group.
-        """
-        if self._calibrated_data_required:
-
-            self._calibration = Jungfrau1MCalibration(
-                dark_filenames=self._dark_filenames,
-                gain_filenames=self._gain_filenames,
-                photon_energy_kev=self._photon_energy_kev,
-            )
-
-    def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
-        """
-        Retrieves a Jungfrau 1M detector data frame from a file-based event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        This function retrieves the detector data frame associated with the provided
-        file-based event, and returns the detector frame as a 2D array storing pixel
-        information. The data is retrieved in calibrated or non-calibrated form
-        depending on the value of the `{source_protocols_name}_calibration` entry in
-        OM's `data_retrieval_layer` configuration parameter group.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-
-        Returns:
-
-            One detector data frame.
-        """
-        data: NDArray[numpy.int_] = event["additional_info"]["h5file"][
-            "/entry/data/data"
-        ][event["additional_info"]["index"]]
-
-        if self._calibrated_data_required:
-            return self._calibration.apply_calibration(data=data)
-        else:
-            return data
-
-
-class Eiger16MFiles(OmDataSourceProtocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Detector data frames from Eiger 16M HDF5 files.
-
-        This class deals with the retrieval of Eiger 16M detector data frames from
-        files written by the detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the HDF5 file-based Eiger 16M detector data frame source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve detector data frames from files
-        written by the Eiger 16M detector, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
@@ -324,49 +150,10 @@ class Eiger16MFiles(OmDataSourceProtocol):
         )
 
 
-class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
+class RayonixMccdSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Detector data frames from Rayonix MX340-HS single-frame mccd files.
-
-        This class deals with the retrieval of Rayonix detector data frames from
-        single-frame files written by the detector in MCCD format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the mccd file-based Rayonix MX340-HS detector data frame source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve detector data frames from single-frame
-        mccd files, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
@@ -393,48 +180,10 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
         return data
 
 
-class Lambda1M5Files(OmDataSourceProtocol):
+class Lambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Detector data frames from Lambda 1.5M HDF5 files.
-
-        This class deals with the retrieval of Lambda 1.5M detector data frames from
-        files written by the detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters."""
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the HDF5 file-based Lambda 1.5M detector data frame source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve detector data frames from files
-        written by the Lambda 1.5M detector, so this function actually does nothing.
-        """
-        pass
 
     def get_data(
         self, *, event: Dict[str, Any]
@@ -470,50 +219,10 @@ class Lambda1M5Files(OmDataSourceProtocol):
         )
 
 
-class TimestampFromFileModificationTime(OmDataSourceProtocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Timestamp information from the modification date of files.
-
-        This class deals with the retrieval of timestamp information for file-based
-        data events which do not provide any information of this kind. It assumes that
-        the last modification date of a file is a good first approximation of the
-        timestamp of the data stored in it.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters."""
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the file modification date timestamp data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve timestamp information from the
-        modification date of files, so this function actually does nothing.
-        """
-        pass
+class TimestampFromFileModificationTime(
+    OmBaseFileDataSourceMixin, OmDataSourceProtocol
+):
+    """ """
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
@@ -537,54 +246,10 @@ class TimestampFromFileModificationTime(OmDataSourceProtocol):
         return cast(numpy.float64, event["additional_info"]["file_modification_time"])
 
 
-class TimestampJungfrau1MFiles(OmDataSourceProtocol):
+class TimestampJungfrau1MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        parameters: Dict[str, Any],
-    ):
-        """
-        Timestamp information for Jungfrau 1M detector data events.
-
-        This class deals with the retrieval of timestamp information for Jungfrau 1M
-        data events. The files written by this detector do not record any absolute
-        timestamp information. However, they store the readout of the internal detector
-        clock for every frame they contain. As a first approximation, this class takes
-        the modification time of a data file as the timestamp of the first frame stored
-        in it, and computes the timestamp of all other frames according to the recorded
-        internal clock time difference.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        del parameters
-        self._data_source_name = data_source_name
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Jungfrau 1M timestamp data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve timestamp information for Jungfrau 1M
-        data events, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
@@ -621,49 +286,10 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
         return file_timestamp + jf_clock_value / jf_clock_frequency
 
 
-class EventIdFromFilePath(OmDataSourceProtocol):
+class EventIdFromFilePath(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Event identifiers from full path of files.
-
-        This class deals with the retrieval of unique event identifiers for file-based
-        data events that do not provide this information in any other way. It takes the
-        full path to the data file as event identifier.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters."""
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the full file path event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve an event identifier from a full file
-        path, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
@@ -686,49 +312,10 @@ class EventIdFromFilePath(OmDataSourceProtocol):
         return cast(str, event["additional_info"]["full_path"])
 
 
-class EventIdJungfrau1MFiles(OmDataSourceProtocol):
+class EventIdJungfrau1MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Event identifiers for Jungfrau 1M data events.
-
-        This class deals with the retrieval of unique event identifiers for Jungfrau 1M
-        file-based data events.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Jungfrau 1M event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve event identifiers for Jungfrau 1M
-        data events, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
@@ -758,48 +345,10 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         return f"{filename} // {index:05d}"
 
 
-class EventIdEiger16MFiles(OmDataSourceProtocol):
+class EventIdEiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Event identifiers for Eiger 16M data events.
-
-        This class deals with the retrieval of unique event identifiers for an Eiger
-        16M file-based data events.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters."""
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Eiger 16M event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed retrieve event identifiers for Eiger 16M data
-        events, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
@@ -829,49 +378,10 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         return f"{filename} // {index:04d}"
 
 
-class EventIdLambda1M5Files(OmDataSourceProtocol):
+class EventIdLambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Event identifiers for Lambda 1.5M data events.
-
-        This class deals with the retrieval of unique event identifiers for a Lambda
-        1.5M data events.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Lambda 1.5M event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve event identifiers for Lambda 1.5M
-        data events, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
@@ -900,3 +410,41 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         filename: str = event["additional_info"]["full_path"]
         index: str = event["additional_info"]["index"][0]
         return f"{filename} // {index:05d}"
+
+
+class Jungfrau1MFiles(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        """
+        Retrieves a Jungfrau 1M detector data frame from a file-based event.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves the detector data frame associated with the provided
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information. The data is retrieved in calibrated or non-calibrated form
+        depending on the value of the `{source_protocols_name}_calibration` entry in
+        OM's `data_retrieval_layer` configuration parameter group.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One detector data frame.
+        """
+        data: NDArray[numpy.int_] = event["additional_info"]["h5file"][
+            "/entry/data/data"
+        ][event["additional_info"]["index"]]
+
+        if self._calibrated_data_required:
+            return self._calibration.apply_calibration(data=data)
+        else:
+            return data

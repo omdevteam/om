@@ -67,9 +67,9 @@ class XesAnalysisAndPlots:
         ] = None
         self._spectra_cumulative_sum_smoothed: Union[NDArray[numpy.float_], None] = None
 
-        self._cumulative_2d: Union[
-            NDArray[numpy.float_], NDArray[numpy.int_], None
-        ] = None
+        self._cumulative_2d: Union[NDArray[numpy.float_], NDArray[numpy.int_], None] = (
+            None
+        )
         self._cumulative_2d_pumped: Union[
             NDArray[numpy.float_], NDArray[numpy.int_], None
         ] = None
@@ -156,9 +156,9 @@ class XesAnalysisAndPlots:
             )
 
         # Calculate normalized spectrum from cumulative 2D images.
-        cumulative_xes: Dict[
-            str, NDArray[numpy.float_]
-        ] = self._energy_spectrum_retrieval.calculate_spectrum(data=self._cumulative_2d)
+        cumulative_xes: Dict[str, NDArray[numpy.float_]] = (
+            self._energy_spectrum_retrieval.calculate_spectrum(data=self._cumulative_2d)
+        )
 
         self._spectra_cumulative_sum = cumulative_xes["spectrum"]
         self._spectra_cumulative_sum_smoothed = cumulative_xes["spectrum_smoothed"]
@@ -198,18 +198,18 @@ class XesAnalysisAndPlots:
                 )
 
             # Calculate spectrum from cumulative 2D images
-            cumulative_xes_pumped: Dict[
-                str, NDArray[numpy.float_]
-            ] = self._energy_spectrum_retrieval.calculate_spectrum(
-                data=self._cumulative_2d_pumped
+            cumulative_xes_pumped: Dict[str, NDArray[numpy.float_]] = (
+                self._energy_spectrum_retrieval.calculate_spectrum(
+                    data=self._cumulative_2d_pumped
+                )
             )
             spectra_cumulative_sum_pumped = cumulative_xes_pumped["spectrum"]
 
             # calculate spectrum from cumulative 2D images
-            cumulative_xes_dark: Dict[
-                str, NDArray[numpy.float_]
-            ] = self._energy_spectrum_retrieval.calculate_spectrum(
-                data=self._cumulative_2d_dark
+            cumulative_xes_dark: Dict[str, NDArray[numpy.float_]] = (
+                self._energy_spectrum_retrieval.calculate_spectrum(
+                    data=self._cumulative_2d_dark
+                )
             )
             spectra_cumulative_sum_dark = cumulative_xes_dark["spectrum"]
 

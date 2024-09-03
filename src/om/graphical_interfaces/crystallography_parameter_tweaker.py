@@ -26,21 +26,27 @@ import copy
 import signal
 import sys
 import time
+from pathlib import Path
 from typing import Any, Deque, Dict, List, Tuple, Union
 
-import click
 import numpy
+import typer
 from numpy.typing import NDArray
+from pydantic import BaseModel
+from typing_extensions import Annotated
 
-from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
+from om.algorithms.crystallography import Peakfinder8PeakDetection
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
+from om.lib.files import load_configuration_parameters
 from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
+from om.typing import TypePeakList
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets
+    from PyQt5 import QtCore  # type: ignore
+    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -59,7 +65,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, url: str, monitor_parameters: MonitorParameters):
+    def __init__(self, *, url: str, parameters: Dict[str, Any]):
         """
         OM Parameter Tweaker for Crystallography.
 
@@ -86,37 +92,50 @@ class CrystallographyParameterTweaker(OmGuiBase):
             tag="omtweakingdata",
         )
 
+        class _ParameterTweakerParameters(BaseModel):
+            geometry_file: str
+
+        if "crystallography" not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                "crystallography"
+            )
+
+        if "peakfinder8_peak_detection" not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                "peakfinder8_peak_detection"
+            )
+
+        parameter_tweaker_parameters: _ParameterTweakerParameters = (
+            _ParameterTweakerParameters.model_validate(parameters["crystallography"])
+        )
+
         self._img: Union[NDArray[numpy.float_], None] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
-        self._monitor_params = monitor_parameters
 
         self._received_data: Dict[str, Any] = {}
 
-        crystallography_parameters = self._monitor_params.get_parameter_group(
-            group="crystallography"
-        )
+        # crystallography_parameters = self._monitor_params.get_parameter_group(
+        #     group="crystallography"
+        # )
 
         # Geometry
         geometry_information: GeometryInformation = GeometryInformation.from_file(
-            geometry_filename=get_parameter_from_parameter_group(
-                group=crystallography_parameters,
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            ),
+            geometry_filename=parameter_tweaker_parameters.geometry_file
         )
 
         self._data_visualizer: DataVisualizer = DataVisualizer(
             pixel_maps=geometry_information.get_pixel_maps()
         )
 
-        self._visual_pixel_map_x: NDArray[
-            numpy.int_
-        ] = self._data_visualizer.get_visualization_pixel_maps()["x"].ravel()
-        self._visual_pixel_map_y: NDArray[
-            numpy.int_
-        ] = self._data_visualizer.get_visualization_pixel_maps()["y"].ravel()
+        self._visual_pixel_map_x: NDArray[numpy.int_] = (
+            self._data_visualizer.get_visualization_pixel_maps()["x"].ravel()
+        )
+        self._visual_pixel_map_y: NDArray[numpy.int_] = (
+            self._data_visualizer.get_visualization_pixel_maps()["y"].ravel()
+        )
 
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
             shape=self._data_visualizer.get_min_array_shape_for_visualization(),
@@ -124,9 +143,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-            crystallography_parameters=monitor_parameters.get_parameter_group(
-                group="peakfinder8_peak_detection"
-            ),
+            parameters=parameters["peakfinder8_peak_detection"],
             radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
             layout_info=geometry_information.get_layout_info(),
         )
@@ -470,17 +487,22 @@ class CrystallographyParameterTweaker(OmGuiBase):
             self._start_stream()
 
 
-@click.command()
-@click.option(
-    "--config",
-    "-c",
-    default="monitor.yaml",
-    type=click.Path(),
-    help="configuration file (default: monitor.yaml file in the current working "
-    "directory",
-)
-@click.argument("url", type=str, required=False)
-def main(*, url: str, config: str) -> None:
+def main(
+    *,
+    url: Annotated[
+        str,
+        typer.Argument(help="Experiment identifier"),
+    ] = "tcp://127.0.0.1:12321",
+    config: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            "-c",
+            help="configuration file (default: monitor.yaml file in the current "
+            "working directory",
+        ),
+    ] = Path("monitor.yaml"),
+) -> None:
     """
     OM Parameter Tweaker for Crystallography. This program must connect to a running
     OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
@@ -497,15 +519,13 @@ def main(*, url: str, config: str) -> None:
     defaults to "tcp://127.0.0.1:12321": the GUI connects, using the tcp protocol, to a
     monitor running on the local machine at port 12321.
     """
-    # This function is turned into a script by the Click library. The docstring
-    # above becomes the help string for the script.
+    if not config.exists():
+        raise RuntimeError(f"The following file cannot be found: {config}")
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if url is None:
-        url = "tcp://127.0.0.1:12321"
-
-    monitor_parameters: MonitorParameters = MonitorParameters(config=config)
+    parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(config=config)
 
     app: Any = QtWidgets.QApplication(sys.argv)
-    _ = CrystallographyParameterTweaker(url=url, monitor_parameters=monitor_parameters)
+    _ = CrystallographyParameterTweaker(url=url, parameters=parameters)
     sys.exit(app.exec_())

@@ -25,15 +25,20 @@ import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
 from typing import Any, Dict, List, Tuple, Union
 
+from pydantic import BaseModel
+
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
+
+
+class _MultiProcessingParallelizationParameters(BaseModel):
+    node_pool_size: int
 
 
 def _om_processing_node(
@@ -44,7 +49,6 @@ def _om_processing_node(
     message_pipe: connection.Connection,
     data_event_handler: OmDataEventHandlerProtocol,
     processing_layer: OmProcessingProtocol,
-    monitor_params: MonitorParameters,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
     # subprocess.
@@ -88,10 +92,10 @@ def _om_processing_node(
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it
     # to the processing node.
-    final_data: Union[
-        Dict[str, Any], None
-    ] = processing_layer.end_processing_on_processing_node(
-        node_rank=rank, node_pool_size=node_pool_size
+    final_data: Union[Dict[str, Any], None] = (
+        processing_layer.end_processing_on_processing_node(
+            node_rank=rank, node_pool_size=node_pool_size
+        )
     )
     if final_data is not None:
         data_queue.put((final_data, rank))
@@ -113,7 +117,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         *,
         data_retrieval_layer: OmDataRetrievalProtocol,
         processing_layer: OmProcessingProtocol,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -135,22 +139,24 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
         self._data_event_handler: OmDataEventHandlerProtocol = (
             data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
-        self._monitor_params: MonitorParameters = monitor_parameters
 
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=int,
-        )
+        if "om" not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: " "om"
+            )
 
-        self._node_pool_size: int = self._monitor_params.get_parameter(
-            group="om", parameter="node_pool_size", parameter_type=int, required=True
+        multiprocessing_parallelization_parameters: (
+            _MultiProcessingParallelizationParameters
+        ) = _MultiProcessingParallelizationParameters.model_validate(parameters)
+
+        self._node_pool_size: int = (
+            multiprocessing_parallelization_parameters.node_pool_size
         )
 
         self._processing_nodes: List[Process] = []
@@ -173,7 +179,6 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                     "message_pipe": message_pipe[0],
                     "data_event_handler": self._data_event_handler,
                     "processing_layer": self._processing_layer,
-                    "monitor_params": self._monitor_params,
                 },
             )
             self._processing_nodes.append(processing_node)
@@ -209,9 +214,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         while True:
             try:
                 try:
-                    received_data: Tuple[
-                        Dict[str, Any], int
-                    ] = self._data_queue.get_nowait()
+                    received_data: Tuple[Dict[str, Any], int] = (
+                        self._data_queue.get_nowait()
+                    )
                     if "end" in received_data[0]:
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
@@ -232,12 +237,12 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Union[
-                        Dict[int, Dict[str, Any]], None
-                    ] = self._processing_layer.collect_data(
-                        node_rank=self._rank,
-                        node_pool_size=self._node_pool_size,
-                        processed_data=received_data,
+                    feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                        self._processing_layer.collect_data(
+                            node_rank=self._rank,
+                            node_pool_size=self._node_pool_size,
+                            processed_data=received_data,
+                        )
                     )
                     self._num_collected_events += 1
                     if feedback_data is not None:

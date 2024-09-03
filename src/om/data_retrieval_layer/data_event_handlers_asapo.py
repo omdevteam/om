@@ -27,11 +27,14 @@ from typing import Any, Dict, Generator, List, NamedTuple, Union
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
-from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
+    OmDataExtractionError,
+    OmMissingDependencyError,
+)
 from om.lib.layer_management import filter_data_sources
-from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -105,38 +108,26 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-
-        asapo_data_event_handler_parameters: _AsapoDataEventHandlerParameters = (
-            validate_parameters(
-                model=_AsapoDataEventHandlerParameters, parameter_group=parameters
+        try:
+            self._parameters: _AsapoDataEventHandlerParameters = (
+                _AsapoDataEventHandlerParameters.model_validate(parameters)
             )
-        )
-
-        self._asapo_url: str = asapo_data_event_handler_parameters.asapo_url
-        self._asapo_path: str = asapo_data_event_handler_parameters.asapo_path
-        self._asapo_data_source: str = (
-            asapo_data_event_handler_parameters.asapo_data_source
-        )
-        self._asapo_has_filesystem: bool = (
-            asapo_data_event_handler_parameters.asapo_has_filesystem
-        )
-        self._asapo_token: str = asapo_data_event_handler_parameters.asapo_token
-        self._asapo_group_id: str = asapo_data_event_handler_parameters.asapo_group_id
-        self._required_data: List[
-            str
-        ] = asapo_data_event_handler_parameters.required_data
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
+            )
 
         self._source: str = source
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
         consumer: Any = asapo_consumer.create_consumer(
-            self._asapo_url,
-            self._asapo_path,
-            self._asapo_has_filesystem,
+            self._parameters.asapo_url,
+            self._parameters.asapo_path,
+            self._parameters.asapo_has_filesystem,
             self._source.split(":")[0],
-            self._asapo_data_source,
-            self._asapo_token,
+            self._parameters.asapo_data_source,
+            self._parameters.asapo_token,
             3000,
             instance_id="auto",
             pipeline_step="onda_monitor",
@@ -242,7 +233,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
         self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=self._required_data,
+            required_data=self._parameters.required_data,
         )
 
     def event_generator(
@@ -281,13 +272,17 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         source_items: List[str] = self._source.split(":")
         if len(source_items) > 1:
             stream_name: str = ":".join(source_items[1:])
-            asapo_events: Generator[
-                _TypeAsapoEvent, None, None
-            ] = self._offline_event_generator(
-                consumer, self._asapo_group_id, stream_name
+            asapo_events: Generator[_TypeAsapoEvent, None, None] = (
+                self._offline_event_generator(
+                    consumer,
+                    self._parameters.asapo_group_id,
+                    stream_name,
+                )
             )
         else:
-            asapo_events = self._online_event_generator(consumer, self._asapo_group_id)
+            asapo_events = self._online_event_generator(
+                consumer, self._parameters.asapo_group_id
+            )
 
         asapo_event: _TypeAsapoEvent
         for asapo_event in asapo_events:
@@ -364,9 +359,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
         """
 
-        self._required_data_sources: List[str] = filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=self._required_data,
+            required_data=self._parameters.required_data,
         )
         self._consumer: Any = self._initialize_asapo_consumer()
 

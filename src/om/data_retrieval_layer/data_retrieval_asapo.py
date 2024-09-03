@@ -31,7 +31,7 @@ from om.data_retrieval_layer.data_sources_asapo import (
     EventIdAsapo,
     TimestampAsapo,
 )
-from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
+from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -164,11 +164,11 @@ class PilatusAsapoDataRetrieval(OmDataRetrievalProtocol):
             "detector_data": DetectorDataAsapo(
                 data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 parameters=parameters,
             ),

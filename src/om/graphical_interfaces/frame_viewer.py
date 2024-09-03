@@ -26,10 +26,10 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, Tuple, Union
+from typing import Annotated, Any, Deque, Dict, Tuple, Union
 
-import click
 import numpy
+import typer
 from numpy.typing import NDArray
 
 from om.graphical_interfaces.common import OmGuiBase
@@ -37,7 +37,9 @@ from om.lib.exceptions import OmMissingDependencyError
 from om.lib.logging import log
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets
+    from PyQt5 import QtCore  # type: ignore
+    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -280,9 +282,13 @@ class FrameViewer(OmGuiBase):
             self._start_stream()
 
 
-@click.command()
-@click.argument("url", type=str, required=False)
-def main(*, url: str) -> None:
+def main(
+    *,
+    url: Annotated[
+        str,
+        typer.Argument(help="Experiment identifier"),
+    ] = "tcp://127.0.0.1:12321",
+) -> None:
     """
     OM Frame Viewer. This program must connect to a running OnDA Monitor. If the
     monitor broadcasts the necessary information, the program displays the most
@@ -301,8 +307,6 @@ def main(*, url: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if url is None:
-        url = "tcp://127.0.0.1:12321"
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = FrameViewer(url=url)
     sys.exit(app.exec_())

@@ -4,17 +4,19 @@ import json
 import threading
 import time
 from collections import deque
+from pathlib import Path
 from typing import Any, Deque, Dict, List
 
-import click
+import typer
 import zmq
+from typing_extensions import Annotated
 
 from om.lib.logging import log
 
 
 def listen(
     url: str, data_buffer: List[Dict[str, Any]], max_buffer_len: int, panel_id: int
-):
+) -> None:
     # Connect to socket
     context: Any = zmq.Context()
     socket: Any = context.socket(zmq.SUB)
@@ -74,20 +76,10 @@ def listen(
         msg = socket.recv_multipart()
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.argument(
-    "input_url",
-    nargs=2,
-    type=str,
-    metavar="INPUT_URL0 INPUT_URL1",
-)
-@click.argument(
-    "output_url",
-    nargs=1,
-    type=str,
-    required=False,
-)
-def main(input_url: str, output_url: str) -> None:
+def main(
+    input_url: Annotated[List[Path], typer.Argument(help="input_url")],
+    output_url: Annotated[str, typer.Argument(help="output_url")],
+) -> None:
     """
     JUNGFRAU 1M ZMQ receiver. This script reads data from two ZMQ streams at INPUT_URL0
     and INPUT_URL1 produced by Jungfrau 1M detector (one stream for each detector
@@ -119,7 +111,7 @@ def main(input_url: str, output_url: str) -> None:
     p0.start()
     p1.start()
 
-    matched: Deque = deque(maxlen=1000)
+    matched: Deque[Dict[str, Any]] = deque(maxlen=1000)
     i: int = 0
     while True:
         time.sleep(0.05)
@@ -145,4 +137,4 @@ def main(input_url: str, output_url: str) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

@@ -29,12 +29,16 @@ import numpy
 
 # import scipy  # type: ignore
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
+from typing_extensions import Self
 
-from om.lib.geometry import TypeDetectorLayoutInformation
-from om.lib.hdf5 import load_hdf5_data
-from om.lib.parameters import validate_parameters
-from om.typing import TypePeakList
+from om.lib.exceptions import OmConfigurationFileSyntaxError
+from om.lib.files import load_hdf5_data
+from om.typing import (
+    OmPeakDetectionProtocol,
+    TypeDetectorLayoutInformation,
+    TypePeakList,
+)
 
 from ._crystallography_cython import peakfinder_8  # type: ignore
 
@@ -49,12 +53,12 @@ class _Peakfinder8PeakDetectionParameters(BaseModel):
     min_res: int
     max_res: int
     fast_mode: bool = Field(default=False)
-    number_of_pixel_per_bin_in_radial_statistics: int = Field(default=100)
+    num_pixel_per_bin_in_radial_statistics: int = Field(default=100)
     bad_pixel_map_filename: Union[str, None] = Field(default=None)
     bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
 
     @model_validator(mode="after")
-    def check_hd5_path(self) -> "_Peakfinder8PeakDetectionParameters":
+    def check_hd5_path(self) -> Self:
         if (
             self.bad_pixel_map_filename is not None
             and self.bad_pixel_map_hdf5_path is None
@@ -66,7 +70,7 @@ class _Peakfinder8PeakDetectionParameters(BaseModel):
         return self
 
 
-class Peakfinder8PeakDetection:
+class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -159,34 +163,38 @@ class Peakfinder8PeakDetection:
                       ignored.
 
         """
-        peakfinder8_parameters: _Peakfinder8PeakDetectionParameters = (
-            validate_parameters(
-                model=_Peakfinder8PeakDetectionParameters, parameter_group=parameters
+        try:
+            self._peakfinder8_parameters: _Peakfinder8PeakDetectionParameters = (
+                _Peakfinder8PeakDetectionParameters.model_validate(parameters)
             )
-        )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing parameters for the Peakfinder8PeakDetection algorithm: "
+                f"{exception}"
+            )
 
         self._asic_nx: int = layout_info["asic_nx"]
         self._asic_ny: int = layout_info["asic_ny"]
         self._nasics_x: int = layout_info["nasics_x"]
         self._nasics_y: int = layout_info["nasics_y"]
-        self._max_num_peaks: float = peakfinder8_parameters.max_num_peaks
-        self._adc_thresh: float = peakfinder8_parameters.adc_thresh
-        self._minimum_snr: float = peakfinder8_parameters.minimum_snr
-        self._min_pixel_count: int = peakfinder8_parameters.min_pixel_count
-        self._max_pixel_count: int = peakfinder8_parameters.max_pixel_count
-        self._local_bg_radius: int = peakfinder8_parameters.local_bg_radius
-        self._min_res: int = peakfinder8_parameters.min_res
-        self._max_res: int = peakfinder8_parameters.max_res
+        self._max_num_peaks: float = self._peakfinder8_parameters.max_num_peaks
+        self._adc_thresh: float = self._peakfinder8_parameters.adc_thresh
+        self._minimum_snr: float = self._peakfinder8_parameters.minimum_snr
+        self._min_pixel_count: int = self._peakfinder8_parameters.min_pixel_count
+        self._max_pixel_count: int = self._peakfinder8_parameters.max_pixel_count
+        self._local_bg_radius: int = self._peakfinder8_parameters.local_bg_radius
+        self._min_res: int = self._peakfinder8_parameters.min_res
+        self._max_res: int = self._peakfinder8_parameters.max_res
 
         if (
-            peakfinder8_parameters.bad_pixel_map_filename is not None
-            and peakfinder8_parameters.bad_pixel_map_hdf5_path is not None
+            self._peakfinder8_parameters.bad_pixel_map_filename is not None
+            and self._peakfinder8_parameters.bad_pixel_map_hdf5_path is not None
         ):
             self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
                 Union[NDArray[numpy.int_], None],
                 load_hdf5_data(
-                    hdf5_filename=peakfinder8_parameters.bad_pixel_map_filename,
-                    hdf5_path=peakfinder8_parameters.bad_pixel_map_hdf5_path,
+                    hdf5_filename=self._peakfinder8_parameters.bad_pixel_map_filename,
+                    hdf5_path=self._peakfinder8_parameters.bad_pixel_map_hdf5_path,
                 ),
             )
         else:
@@ -199,10 +207,9 @@ class Peakfinder8PeakDetection:
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
 
-        self._fast_mode: bool = peakfinder8_parameters.fast_mode
-        if peakfinder8_parameters.fast_mode is True:
+        if self._peakfinder8_parameters.fast_mode is True:
             self._num_pixels_per_bin = (
-                peakfinder8_parameters.number_of_pixel_per_bin_in_radial_statistics
+                self._peakfinder8_parameters.num_pixel_per_bin_in_radial_statistics
             )
 
     def _compute_radial_stats_pixels(self, *, num_pixels_per_bin: int) -> None:
@@ -243,7 +250,7 @@ class Peakfinder8PeakDetection:
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
-        if self._fast_mode is True:
+        if self._peakfinder8_parameters.fast_mode is True:
             self._compute_radial_stats_pixels(
                 num_pixels_per_bin=self._num_pixels_per_bin
             )
@@ -490,7 +497,7 @@ class Peakfinder8PeakDetection:
             self._radial_stats_num_pixels,
             self._radial_stats_pixel_index,
             self._radial_stats_radius,
-            int(self._fast_mode),
+            int(self._peakfinder8_parameters.fast_mode),
             self._asic_nx,
             self._asic_ny,
             self._nasics_x,

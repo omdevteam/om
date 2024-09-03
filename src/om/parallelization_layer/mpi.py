@@ -21,6 +21,7 @@ MPI-based Parallelization Layer for OM.
 This module contains a Parallelization Layer based on the MPI protocol.
 """
 import sys
+from enum import Enum
 from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI
@@ -34,11 +35,15 @@ from om.typing import (
     OmProcessingProtocol,
 )
 
+
+class MpiTags(int, Enum):
+    die = 999
+    dead = 1000
+    data = 1001
+    feedback = 1002
+
+
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_DIE_TAG: int = 999
-_DEAD_TAG: int = 1000
-_DATA_TAG: int = 1001
-_FEEDBACK_TAG: int = 1002
 
 
 class MpiParallelization(OmParallelizationProtocol):
@@ -118,9 +123,9 @@ class MpiParallelization(OmParallelizationProtocol):
 
             while True:
                 try:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATA_TAG):
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.data):
                         received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
-                            source=MPI.ANY_SOURCE, tag=_DATA_TAG
+                            source=MPI.ANY_SOURCE, tag=MpiTags.data
                         )
                         if "end" in received_data[0].keys():
                             # If the received message announces that a processing node
@@ -141,12 +146,12 @@ class MpiParallelization(OmParallelizationProtocol):
                                 exit(0)
                             else:
                                 continue
-                        feedback_data: Union[
-                            Dict[int, Dict[str, Any]], None
-                        ] = self._processing_layer.collect_data(
-                            node_rank=self._rank,
-                            node_pool_size=self._mpi_size,
-                            processed_data=received_data,
+                        feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                            self._processing_layer.collect_data(
+                                node_rank=self._rank,
+                                node_pool_size=self._mpi_size,
+                                processed_data=received_data,
+                            )
                         )
                         self._num_collected_events += 1
                         if feedback_data is not None:
@@ -160,7 +165,7 @@ class MpiParallelization(OmParallelizationProtocol):
                                         req = MPI.COMM_WORLD.isend(
                                             feedback_data[0],
                                             dest=target_rank,
-                                            tag=_FEEDBACK_TAG,
+                                            tag=MpiTags.feedback,
                                         )
                                 else:
                                     if req:
@@ -168,7 +173,7 @@ class MpiParallelization(OmParallelizationProtocol):
                                     req = MPI.COMM_WORLD.isend(
                                         feedback_data[receiving_rank],
                                         dest=receiving_rank,
-                                        tag=_FEEDBACK_TAG,
+                                        tag=MpiTags.feedback,
                                     )
                     else:
                         self._processing_layer.wait_for_data(
@@ -197,12 +202,12 @@ class MpiParallelization(OmParallelizationProtocol):
             event: Dict[str, Any]
             for event in events:
                 # Listens for requests to shut down.
-                if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIE_TAG):
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=MpiTags.die):
                     self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
 
                 feedback_dict: Dict[str, Any] = {}
-                if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACK_TAG):
-                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACK_TAG)
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=MpiTags.feedback):
+                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=MpiTags.feedback)
 
                 try:
                     data: Dict[str, Any] = self._data_event_handler.extract_data(
@@ -213,14 +218,14 @@ class MpiParallelization(OmParallelizationProtocol):
                     log.warning("Skipping event...")
                     continue
                 data.update(feedback_dict)
-                processed_data: Tuple[
-                    Dict[str, Any], int
-                ] = self._processing_layer.process_data(
-                    node_rank=self._rank, node_pool_size=self._mpi_size, data=data
+                processed_data: Tuple[Dict[str, Any], int] = (
+                    self._processing_layer.process_data(
+                        node_rank=self._rank, node_pool_size=self._mpi_size, data=data
+                    )
                 )
                 if req:
                     req.Wait()
-                req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=_DATA_TAG)
+                req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=MpiTags.data)
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
@@ -228,16 +233,16 @@ class MpiParallelization(OmParallelizationProtocol):
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it
             # to the processing node.
-            final_data: Union[
-                Dict[str, Any], None
-            ] = self._processing_layer.end_processing_on_processing_node(
-                node_rank=self._rank, node_pool_size=self._mpi_size
+            final_data: Union[Dict[str, Any], None] = (
+                self._processing_layer.end_processing_on_processing_node(
+                    node_rank=self._rank, node_pool_size=self._mpi_size
+                )
             )
             if final_data is not None:
                 if req:
                     req.Wait()
                 req = MPI.COMM_WORLD.isend(
-                    (final_data, self._rank), dest=0, tag=_DATA_TAG
+                    (final_data, self._rank), dest=0, tag=MpiTags.data
                 )
                 if req:
                     req.Wait()
@@ -247,7 +252,7 @@ class MpiParallelization(OmParallelizationProtocol):
             end_dict = {"end": True}
             if req:
                 req.Wait()
-            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=_DATA_TAG)
+            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=MpiTags.data)
             if req:
                 req.Wait()
             MPI.Finalize()
@@ -277,12 +282,12 @@ class MpiParallelization(OmParallelizationProtocol):
             try:
                 node_num: int
                 for node_num in range(1, self._mpi_size):
-                    MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIE_TAG)
+                    MPI.COMM_WORLD.isend(0, dest=node_num, tag=MpiTags.die)
                 num_shutdown_confirm = 0
                 while True:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATA_TAG):
-                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=_DATA_TAG)
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEAD_TAG):
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.data):
+                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=MpiTags.data)
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.data):
                         num_shutdown_confirm += 1
                     if num_shutdown_confirm == self._mpi_size - 1:
                         break
@@ -295,6 +300,6 @@ class MpiParallelization(OmParallelizationProtocol):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            MPI.COMM_WORLD.send(None, dest=0, tag=_DEAD_TAG)
+            MPI.COMM_WORLD.send(None, dest=0, tag=MpiTags.dead)
             MPI.Finalize()
             exit(0)

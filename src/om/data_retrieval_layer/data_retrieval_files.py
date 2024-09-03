@@ -20,7 +20,7 @@ Data retrieval from files.
 
 This module contains Data Retrieval classes that deal with files.
 """
-from typing import Dict
+from typing import Any, Dict
 
 from om.data_retrieval_layer.data_event_handlers_files import (
     EigerFilesDataEventHandler,
@@ -29,6 +29,7 @@ from om.data_retrieval_layer.data_event_handlers_files import (
     PilatusFilesEventHandler,
     RayonixMccdFilesEventHandler,
 )
+from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.data_retrieval_layer.data_sources_files import (
     Eiger16MFiles,
     EventIdEiger16MFiles,
@@ -42,8 +43,6 @@ from om.data_retrieval_layer.data_sources_files import (
     TimestampFromFileModificationTime,
     TimestampJungfrau1MFiles,
 )
-from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -56,7 +55,7 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data retrieval for Pilatus' single-frame CBF files.
 
@@ -94,27 +93,27 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdFromFilePath(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": PilatusSingleFrameFiles(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PilatusFilesEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -137,7 +136,7 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval for Jungfrau 1M's HDF5 files.
 
@@ -180,28 +179,28 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampJungfrau1MFiles(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdJungfrau1MFiles(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": Jungfrau1MFiles(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             Jungfrau1MFilesDataEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )
@@ -225,7 +224,7 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval for Eiger's HDF5 files.
 
@@ -265,28 +264,28 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdEiger16MFiles(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": Eiger16MFiles(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             EigerFilesDataEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )
@@ -310,7 +309,7 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval for Rayonix MX340-HS's single-frame mccd files.
 
@@ -348,28 +347,28 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdFromFilePath(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": RayonixMccdSingleFrameFiles(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             RayonixMccdFilesEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )
@@ -393,7 +392,7 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval for Lambda 1.5M's HDF5 files.
 
@@ -437,28 +436,27 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdLambda1M5Files(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": Lambda1M5Files(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+            "beam_energy": FloatValueFromConfiguration(
+                data_source_name="fallback_beam_energy_in_eV", parameters=parameters
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             Lambda1M5FilesDataEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )

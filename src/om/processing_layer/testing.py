@@ -23,10 +23,23 @@ This module contains an OnDA Monitor that can be used for testing.
 import time
 from typing import Any, Dict, Tuple, Union
 
+from pydantic import BaseModel, Field, ValidationError
+
+from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
+
+
+class _CrystallographyParameters(BaseModel):
+    speed_report_interval: int
+    data_broadcast_interval: int
+    data_broadcast_url: Union[str, None] = Field(default=None)
+    responding_url: Union[str, None] = Field(default=None)
+
+
+class _MonitorParameters(BaseModel):
+    crystallography: _CrystallographyParameters
 
 
 class TestProcessing(OmProcessingProtocol):
@@ -34,7 +47,7 @@ class TestProcessing(OmProcessingProtocol):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+    def __init__(self, *, parameters: Dict[str, Any]) -> None:
         """
         OnDA Test Monitor.
 
@@ -50,7 +63,16 @@ class TestProcessing(OmProcessingProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._monitor_params = monitor_parameters
+        self._monitor_parameters: Dict[str, Any] = parameters
+
+        try:
+            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
+                self._monitor_parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -93,26 +115,13 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="speed_report_interval",
-            parameter_type=int,
-            required=True,
-        )
-
-        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="data_broadcast_interval",
-            parameter_type=int,
-            required=True,
-        )
 
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+            data_broadcast_url=self._parameters.crystallography.data_broadcast_url
         )
 
         self._responding_socket: ZmqResponder = ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+            responding_url=self._parameters.crystallography.responding_url
         )
 
         self._num_events: int = 0
@@ -228,7 +237,10 @@ class TestProcessing(OmProcessingProtocol):
         log.info("Collecting Node - Received data")
         log.info(f"Timestamp: {received_data['timestamp']}")
 
-        if self._num_events % self._data_broadcast_interval == 0:
+        if (
+            self._num_events % self._parameters.crystallography.data_broadcast_interval
+            == 0
+        ):
             self._data_broadcast_socket.send_data(
                 tag="omdata",
                 message={
@@ -237,12 +249,15 @@ class TestProcessing(OmProcessingProtocol):
                 },
             )
 
-        if self._num_events % self._speed_report_interval == 0:
+        if (
+            self._num_events % self._parameters.crystallography.speed_report_interval
+            == 0
+        ):
             now_time: float = time.time()
             time_diff: float = now_time - self._old_time
-            events_per_second: float = float(self._speed_report_interval) / float(
-                now_time - self._old_time
-            )
+            events_per_second: float = float(
+                self._parameters.crystallography.speed_report_interval
+            ) / float(now_time - self._old_time)
             log.info(
                 f"Processed: {self._num_events} in "
                 f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"

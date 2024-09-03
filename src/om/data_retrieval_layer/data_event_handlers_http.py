@@ -27,11 +27,14 @@ from io import BytesIO
 from typing import Any, Dict, Generator, List, Literal, Union, cast
 
 import requests  # type: ignore
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
-from om.lib.exceptions import OmDataExtractionError, OmHttpInterfaceInitializationError
+from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
+    OmDataExtractionError,
+    OmHttpInterfaceInitializationError,
+)
 from om.lib.layer_management import filter_data_sources
-from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
@@ -85,20 +88,23 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        eiger_http_event_handler_parameters: _HttpDataEventHandlerParameters = (
-            validate_parameters(
-                model=_HttpDataEventHandlerParameters, parameter_group=parameters
+
+        try:
+            self._parameters: _HttpDataEventHandlerParameters = (
+                _HttpDataEventHandlerParameters.model_validate(parameters)
             )
-        )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
+            )
+
         self._source: str = source
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=eiger_http_event_handler_parameters.required_data,
+            required_data=self._parameters.required_data,
         )
-
-        self._buffer_size: int = eiger_http_event_handler_parameters.buffer_size
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
@@ -166,7 +172,8 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         response = requests.put(
-            f"{self._source}/config/buffer_size", json={"value": self._buffer_size}
+            f"{self._source}/config/buffer_size",
+            json={"value": self._parameters.buffer_size},
         )
         if not response.status_code == 200:
             raise OmHttpInterfaceInitializationError(

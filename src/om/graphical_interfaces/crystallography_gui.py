@@ -26,17 +26,20 @@ import sys
 import time
 from typing import Any, Dict, List, Tuple, Union
 
-import click
 import numpy
+import typer
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
+from typing_extensions import Annotated
 
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.logging import log
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets
+    from PyQt5 import QtCore  # type: ignore
+    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -398,9 +401,13 @@ class CrystallographyGui(OmGuiBase):
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
 
 
-@click.command()
-@click.argument("url", type=str, required=False)
-def main(*, url: str) -> None:
+def main(
+    *,
+    url: Annotated[
+        str,
+        typer.Argument(help="Experiment identifier"),
+    ] = "tcp://127.0.0.1:12321",
+) -> None:
     """
     OM Graphical User Interface for Crystallography. This program must connect to a
     running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
@@ -418,8 +425,6 @@ def main(*, url: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if url is None:
-        url = "tcp://127.0.0.1:12321"
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyGui(url=url)
     sys.exit(app.exec_())

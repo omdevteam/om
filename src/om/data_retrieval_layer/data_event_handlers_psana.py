@@ -22,19 +22,19 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana software framework (used at the LCLS facility).
 """
 import sys
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Generator, List, Union
 
 import numpy
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError
 
 from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -47,7 +47,7 @@ except ImportError:
 
 class _PsanaDataEventHandlerParameters(BaseModel):
     required_data: List[str]
-    psana_calibration_directory: str
+    psana_calibration_directory: Union[str, None] = Field(default=None)
 
 
 def _psana_offline_event_generator(
@@ -113,25 +113,22 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        psana_event_handler_parameters: _PsanaDataEventHandlerParameters = (
-            validate_parameters(
-                model=_PsanaDataEventHandlerParameters, parameter_group=parameters
-            )
-        )
 
-        self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+        try:
+            self._parameters: _PsanaDataEventHandlerParameters = (
+                _PsanaDataEventHandlerParameters.model_validate(parameters)
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
+            )
 
         self._source: str = source
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=psana_event_handler_parameters.required_data,
-        )
-
-        self._psana_calib_dir: str = (
-            psana_event_handler_parameters.psana_calibration_directory
+            required_data=self._parameters.required_data,
         )
 
     def _initialize_psana_data_source(self) -> Any:
@@ -141,11 +138,14 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana before the DataSource is set.
 
-        if self._psana_calib_dir is not None:
-            psana.setOption("psana.calib-dir", self._psana_calib_dir)
-        else:
+        if self._parameters.psana_calibration_directory is not None:
+            psana.setOption(
+                "psana.calib-dir",
+                self._parameters.psana_calibration_directory,
+            )
             log.warning(
-                "OM Warning: Calibration directory not provided or not found.",
+                "OM Warning: Using the following calibration directory: "
+                f"{self._parameters.psana_calibration_directory}"
             )
 
         psana_source: Any = psana.DataSource(self._source)
@@ -363,8 +363,10 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = psana.EventTime(  # pyright: ignore[reportGeneralTypeIssues]
-            int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
+        event_time: Any = (
+            psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
+                int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
+            )
         )
         retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:

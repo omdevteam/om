@@ -1,45 +1,42 @@
 #!/usr/bin/env python
 
 import re
+from pathlib import Path
 from typing import Any, List, TextIO, Tuple
 
-import click
 import h5py  # type: ignore
 import numpy
+import typer
 from numpy.typing import NDArray
+from typing_extensions import Annotated
 
 from om.lib.exceptions import OmInvalidSourceError
 from om.lib.logging import log
 
+app = typer.Typer()
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.argument(
-    "input",
-    nargs=1,
-    type=click.Path(exists=True),
-)
-@click.argument(
-    "output",
-    nargs=1,
-    type=click.Path(),
-)
-@click.option(
-    "--start-from",
-    "-s",
-    "s",
-    default=100,
-    show_default=True,
-    type=int,
-    metavar="i",
-    help="skip first i images in the file",
-)
-def main(input: str, output: str, s: int) -> None:
+
+def main(
+    input: Annotated[Path, typer.Argument(help="input")],
+    output: Annotated[Path, typer.Argument(help="input")],
+    s: Annotated[
+        int,
+        typer.Option(
+            "--start-time",
+            "-s",
+            help="skip first images in the file",
+        ),
+    ] = 100,
+) -> None:
     """
     Make dark calibration files from raw Jungfrau data.
 
     INPUT: text file containing list of dark files for one panel \n
     OUTPUT: output .h5 file
     """
+    if not input.exists():
+        raise RuntimeError(f"The following file cannot be found: {input}")
+
     const_dark: Tuple[int, int, int] = (0, 0, 0)
     fn: str
     try:
@@ -77,7 +74,7 @@ def main(input: str, output: str, s: int) -> None:
     if numpy.any(nd == 0):
         log.warning("Some pixels don't have data in all gains")
         for i in range(3):
-            where: List[Tuple[NDArray[numpy.int_], ...]] = numpy.where(nd[i] == 0)
+            where: Tuple[NDArray[numpy.int_], ...] = numpy.where(nd[i] == 0)
             dark[i][where] = const_dark[i]
             log.warning(
                 f"{len(where[0])} pixels in gain {i} are set to {const_dark[i]}",
@@ -90,4 +87,4 @@ def main(input: str, output: str, s: int) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)

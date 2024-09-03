@@ -22,13 +22,19 @@ This module contains classes and functions that allow OM to load data from files
 HDF5 format.
 """
 import sys
-from typing import Any, Dict, Union
+from pathlib import Path
+from typing import Any, Dict, TextIO, Union
 
 import h5py  # type: ignore
 import numpy
+import yaml  # type: ignore
 from numpy.typing import NDArray
 
-from om.lib.exceptions import OmHdf5FileReadingError
+from om.lib.exceptions import (
+    OmConfigurationFileReadingError,
+    OmConfigurationFileSyntaxError,
+    OmHdf5FileReadingError,
+)
 
 
 def load_hdf5_data(
@@ -70,6 +76,41 @@ def load_hdf5_data(
         raise OmHdf5FileReadingError(
             "The following error occurred while reading "  # type: ignore
             f"the {hdf5_path} field from the {hdf5_filename} dark "
-            f"data HDF5 file: {exc_type.__name__}: {exc_value}"
+            f"data HDF5 file: "
+            f"{exc_type.__name__}: "  # pyright: ignore[reportOptionalMemberAccess]
+            f"{exc_value}"
         ) from exc
     return data
+
+
+def load_configuration_parameters(
+    *,
+    config: Path,
+) -> Dict[str, Dict[str, Any]]:
+    """
+    #TODO: Documentation
+    """
+
+    try:
+        open_file: TextIO
+        with open(config, "r") as open_file:
+            monitor_params: Dict[str, Dict[str, Any]] = yaml.safe_load(open_file)
+    except OSError:
+        raise OmConfigurationFileReadingError(
+            f"Cannot open or read the following configuration file: {config}."
+        )
+    except (
+        yaml.parser.ParserError  # pyright: ignore[reportAttributeAccessIssue]
+    ) as exc:
+        raise OmConfigurationFileSyntaxError(
+            f"Syntax error in the configuration file: {exc}."
+        ) from exc
+
+    # Store group name within the group
+    for group in monitor_params:
+        monitor_params[group]["name"] = group
+
+    # Add configuration file path to the om group
+    monitor_params["om"]["configuration_file"] = str(config.absolute())
+
+    return monitor_params

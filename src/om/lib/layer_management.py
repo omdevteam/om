@@ -43,6 +43,7 @@ from om.typing import (
 def import_class_from_layer(
     *, layer_name: Literal["processing_layer"], class_name: str
 ) -> Type[OmProcessingProtocol]:
+    """ """
     ...
 
 
@@ -50,6 +51,7 @@ def import_class_from_layer(
 def import_class_from_layer(
     *, layer_name: Literal["data_retrieval_layer"], class_name: str
 ) -> Type[OmDataRetrievalProtocol]:
+    """ """
     ...
 
 
@@ -57,6 +59,7 @@ def import_class_from_layer(
 def import_class_from_layer(
     *, layer_name: Literal["parallelization_layer"], class_name: str
 ) -> Type[OmParallelizationProtocol]:
+    """ """
     ...
 
 
@@ -107,15 +110,6 @@ def import_class_from_layer(
     except ImportError:
         try:
             imported_layer = importlib.import_module(f"om.{layer_name}")
-            try:
-                imported_class: Type[OmParallelizationProtocol] = getattr(
-                    imported_layer, class_name
-                )
-                return imported_class
-            except AttributeError:
-                raise OmMissingLayerClassError(
-                    f"The {class_name} class cannot be found in the {layer_name} file."
-                )
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
@@ -125,6 +119,17 @@ def import_class_from_layer(
                     f"due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
+    try:
+        imported_class: Union[
+            Type[OmParallelizationProtocol],
+            Type[OmDataRetrievalProtocol],
+            Type[OmProcessingProtocol],
+        ] = getattr(imported_layer, class_name)
+        return imported_class
+    except AttributeError:
+        raise OmMissingLayerClassError(
+            f"The {class_name} class cannot be found in the {layer_name} file."
+        )
 
 
 def filter_data_sources(

@@ -19,20 +19,20 @@
 #TODO: Docstring
 """
 
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Tuple, Union, cast
 
 import numpy
 import torch
 from numpy.typing import NDArray
-from peaknet import app_om as app
-from peaknet.plugins import apply_mask
-from pydantic import BaseModel, Field, model_validator
+from peaknet import app_om as app  # type: ignore
+from peaknet.plugins import apply_mask  # type: ignore
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from ruamel.yaml import YAML
+from typing_extensions import Self
 
-from om.lib.hdf5 import load_hdf5_data
-from om.lib.parameters import validate_parameters
-
-from .crystallography import TypePeakList
+from om.lib.exceptions import OmConfigurationFileSyntaxError
+from om.lib.files import load_hdf5_data
+from om.typing import OmPeakDetectionProtocol, TypePeakList
 
 
 class _PeakNetPeakDetectionParameters(BaseModel):
@@ -44,7 +44,7 @@ class _PeakNetPeakDetectionParameters(BaseModel):
     bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
 
     @model_validator(mode="after")
-    def check_hd5_path(self) -> "_PeakNetPeakDetectionParameters":
+    def check_hd5_path(self) -> Self:
         if (
             self.bad_pixel_map_filename is not None
             and self.bad_pixel_map_hdf5_path is None
@@ -56,7 +56,7 @@ class _PeakNetPeakDetectionParameters(BaseModel):
         return self
 
 
-class PeakNetPeakDetection:
+class PeakNetPeakDetection(OmPeakDetectionProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -72,30 +72,34 @@ class PeakNetPeakDetection:
         - path_model_weight
         - path_config
         """
-
-        peaknet_parameters: _PeakNetPeakDetectionParameters = validate_parameters(
-            model=_PeakNetPeakDetectionParameters,
-            parameter_group=parameters,
-        )
+        try:
+            self._peaknet_parameters: _PeakNetPeakDetectionParameters = (
+                _PeakNetPeakDetectionParameters.model_validate(parameters)
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing parameters for the PeakNetPeakDetection algorithm: "
+                f"{exception}"
+            )
 
         # Attempt to load the yaml config...
         self.peaknet_config = app.PeakFinder.get_default_config()
-        if peaknet_parameters.path_config is not None:
-            with open(peaknet_parameters.path_config, "r") as fh:
+        if self._peaknet_parameters.path_config is not None:
+            with open(self._peaknet_parameters.path_config, "r") as fh:
                 yaml_content = YAML(typ="safe")
                 yaml_content.load(fh)
                 self.peaknet_config = yaml_content
 
         # Load param: bad pixel map
         if (
-            peaknet_parameters.bad_pixel_map_filename is not None
-            and peaknet_parameters.bad_pixel_map_hdf5_path is not None
+            self._peaknet_parameters.bad_pixel_map_filename is not None
+            and self._peaknet_parameters.bad_pixel_map_hdf5_path is not None
         ):
             self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
                 Union[NDArray[numpy.int_], None],
                 load_hdf5_data(
-                    hdf5_filename=peaknet_parameters.bad_pixel_map_filename,
-                    hdf5_path=peaknet_parameters.bad_pixel_map_hdf5_path,
+                    hdf5_filename=self._peaknet_parameters.bad_pixel_map_filename,
+                    hdf5_path=self._peaknet_parameters.bad_pixel_map_hdf5_path,
                 ),
             )
         else:
@@ -103,7 +107,8 @@ class PeakNetPeakDetection:
 
         # Initialize peak finder
         self.peak_finder = app.PeakFinder(
-            path_chkpt=peaknet_parameters.path_model_weight, config=self.peaknet_config
+            path_chkpt=self._peaknet_parameters.path_model_weight,
+            config=self.peaknet_config,
         )
         self.device = self.peak_finder.device
 
@@ -137,33 +142,35 @@ class PeakNetPeakDetection:
 
         # Use peaknet peak finding...
         # TODO: What's the type of peak list here?
-        peak_list = self.peak_finder.find_peak_w_softmax(
-            tensor_data,
-            min_num_peaks=10,
-            uses_geom=False,
-            returns_prediction_map=False,
-            uses_mixed_precision=True,
+        peaknet_peak_list: Tuple[List[float], ...] = (
+            self.peak_finder.find_peak_w_softmax(
+                tensor_data,
+                min_num_peaks=10,
+                uses_geom=False,
+                returns_prediction_map=False,
+                uses_mixed_precision=True,
+            )
         )
 
         # Adapt the peak array to the Cheetah convention...
-        x = [entry[1] for entry in peak_list]
-        y = [entry[2] for entry in peak_list]
-        peak_list: List[float] = [
+        x = [entry[1] for entry in peaknet_peak_list]
+        y = [entry[2] for entry in peaknet_peak_list]
+        cheetah_peak_list: Tuple[List[float], ...] = (
             y,
             x,
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-        ]
+            [0.0] * len(y),
+            [0.0] * len(y),
+            [0.0] * len(y),
+            [0.0] * len(y),
+            [0.0] * len(y),
+        )
 
         return {
-            "num_peaks": len(peak_list[0]),
-            "fs": peak_list[0],
-            "ss": peak_list[1],
-            "intensity": peak_list[2],
-            "num_pixels": peak_list[4],
-            "max_pixel_intensity": peak_list[5],
-            "snr": peak_list[6],
+            "num_peaks": len(cheetah_peak_list[0]),
+            "fs": cheetah_peak_list[0],
+            "ss": cheetah_peak_list[1],
+            "intensity": cheetah_peak_list[2],
+            "num_pixels": cheetah_peak_list[4],
+            "max_pixel_intensity": cheetah_peak_list[5],
+            "snr": cheetah_peak_list[6],
         }

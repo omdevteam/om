@@ -25,12 +25,15 @@ import sys
 from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
-from om.lib.exceptions import OmDataExtractionError, OmInvalidZmqUrl
+from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
+    OmDataExtractionError,
+    OmInvalidZmqUrl,
+)
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
@@ -81,18 +84,22 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        zmq_event_handler_parameters: _ZmqDataEventHandlerParameters = (
-            validate_parameters(
-                model=_ZmqDataEventHandlerParameters, parameter_group=parameters
+
+        try:
+            self._parameters: _ZmqDataEventHandlerParameters = (
+                _ZmqDataEventHandlerParameters.model_validate(parameters)
             )
-        )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
+            )
 
         self._source: str = source
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=zmq_event_handler_parameters.required_data,
+            required_data=self._parameters.required_data,
         )
 
     def initialize_event_handling_on_collecting_node(

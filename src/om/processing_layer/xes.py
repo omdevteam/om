@@ -26,13 +26,13 @@ from typing import Any, Dict, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError
 
 from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
+from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import GeometryInformation
 from om.lib.logging import log
-from om.lib.parameters import validate_parameters
 from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
@@ -41,6 +41,16 @@ from om.typing import OmProcessingProtocol
 class _XesProcessingParameters(BaseModel):
     geometry_file: str
     time_resolved: bool
+    data_broadcast_url: Union[str, None] = Field(default=None)
+    responding_url: Union[str, None] = Field(default=None)
+    speed_report_interval: int
+    data_broadcast_interval: int
+    hit_frame_sending_interval: Union[int, None] = Field(default=None)
+    non_hit_frame_sending_interval: Union[int, None] = Field(default=None)
+
+
+class _MonitorParameters(BaseModel):
+    xes: _XesProcessingParameters
 
 
 class XesProcessing(OmProcessingProtocol):
@@ -72,18 +82,21 @@ class XesProcessing(OmProcessingProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        # Parameters
-        xes_processing_parameters = validate_parameters(
-            model=_XesProcessingParameters, parameter_group=parameters
-        )
+        self._monitor_parameters: Dict[str, Any] = parameters
+
+        try:
+            self._parameters = _MonitorParameters.model_validate(
+                self._monitor_parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=xes_processing_parameters.geometry_file
+            geometry_filename=self._parameters.xes.geometry_file
         )
-
-        # Pump probe
-        self._time_resolved: bool = xes_processing_parameters.time_resolved
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -110,7 +123,7 @@ class XesProcessing(OmProcessingProtocol):
 
         self._energy_spectrum_retrieval: EnergySpectrumRetrieval = (
             EnergySpectrumRetrieval(
-                parameters=self._monitor_params.get_parameter_group(group="xes"),
+                parameters=self._monitor_parameters["xes"],
             )
         )
 
@@ -141,23 +154,28 @@ class XesProcessing(OmProcessingProtocol):
 
         # Plots
         self._xes_analysis_and_plots = XesAnalysisAndPlots(
-            parameters=self._monitor_params.get_parameter_group(group="xes"),
-            time_resolved=self._time_resolved,
+            parameters=self._monitor_parameters["xes"],
+            time_resolved=self._parameters.xes.time_resolved,
         )
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
+            data_broadcast_url=self._parameters.xes.data_broadcast_url
         )
 
         # Responding socket
         self._responding_socket: ZmqResponder = ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
+            responding_url=self._parameters.xes.responding_url
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(group="xes"),
+            speed_report_interval=self._parameters.xes.speed_report_interval,
+            data_broadcast_interval=self._parameters.xes.data_broadcast_interval,
+            hit_frame_sending_interval=self._parameters.xes.hit_frame_sending_interval,
+            non_hit_frame_sending_interval=(
+                self._parameters.xes.non_hit_frame_sending_interval
+            ),
             node_pool_size=node_pool_size,
         )
 
@@ -210,16 +228,16 @@ class XesProcessing(OmProcessingProtocol):
             camera_data.shape[1] // 2 - 1 : camera_data.shape[1] // 2 + 1,
         ] = 0
 
-        xes: Dict[
-            str, NDArray[numpy.float_]
-        ] = self._energy_spectrum_retrieval.calculate_spectrum(data=camera_data)
+        xes: Dict[str, NDArray[numpy.float_]] = (
+            self._energy_spectrum_retrieval.calculate_spectrum(data=camera_data)
+        )
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["spectrum"] = xes["spectrum"]
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["data_shape"] = data["detector_data"].shape
         processed_data["detector_data"] = camera_data
-        if self._time_resolved:
+        if self._parameters.xes.time_resolved:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
         else:
             processed_data["optical_laser_active"] = False
@@ -319,7 +337,7 @@ class XesProcessing(OmProcessingProtocol):
                 "spectra_sum_smoothed": spectra_cumulative_sum_smoothed,
                 "beam_energy": received_data["beam_energy"],
             }
-            if self._time_resolved:
+            if self._parameters.xes.time_resolved:
                 message["spectra_sum_pumped"] = spectra_cumulative_sum_pumped
                 message["spectra_sum_dark"] = spectra_cumulative_sum_dark
                 message["spectra_sum_difference"] = spectra_cumulative_sum_difference

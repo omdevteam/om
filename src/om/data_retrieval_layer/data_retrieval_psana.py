@@ -21,25 +21,22 @@ Retrieval of data from psana.
 This module contains Data Retrieval classes that deal with the psana software framework
 (used at the LCLS facility).
 """
-from typing import Dict
+from typing import Any, Dict
 
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
 from om.data_retrieval_layer.data_sources_psana import (
+    AreaDetectorPsana,
     BeamEnergyFromEpicsVariablePsana,
     BeamEnergyPsana,
     CspadPsana,
     DiodeTotalIntensityPsana,
     EpicsVariablePsana,
-    Epix10kaPsana,
-    Epix100Psana,
     EventIdPsana,
     EvrCodesPsana,
-    Jungfrau4MPsana,
     LclsExtraPsana,
     RayonixPsana,
     TimestampPsana,
 )
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -52,7 +49,7 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from psana at the CXI beamline of the LCLS facility.
 
@@ -87,45 +84,39 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdPsana(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "detector_data": Jungfrau4MPsana(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+            "event_id": EventIdPsana(data_source_name="eventid", parameters=parameters),
+            "detector_data": AreaDetectorPsana(
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyFromEpicsVariablePsana(
-                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+                data_source_name="beam_energy", parameters=parameters
             ),
             "detector_distance": EpicsVariablePsana(
                 data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "timetool_data": EpicsVariablePsana(
-                data_source_name="timetool", monitor_parameters=monitor_parameters
+                data_source_name="timetool", parameters=parameters
             ),
             "optical_laser_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
-                monitor_parameters=monitor_parameters,
+                data_source_name="active_optical_laser", parameters=parameters
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_xrays",
-                monitor_parameters=monitor_parameters,
+                data_source_name="active_xrays", parameters=parameters
             ),
             "post_sample_intensity": DiodeTotalIntensityPsana(
-                data_source_name="post_sample_intensity",
-                monitor_parameters=monitor_parameters,
+                data_source_name="post_sample_intensity", parameters=parameters
             ),
             "lcls_extra": LclsExtraPsana(
-                data_source_name="lcls_extra",
-                monitor_parameters=monitor_parameters,
+                data_source_name="lcls_extra", parameters=parameters
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -148,7 +139,7 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from psana at the CXI beamline of the LCLS facility (CSPAD).
 
@@ -183,41 +174,35 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdPsana(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
+            "event_id": EventIdPsana(data_source_name="eventid", parameters=parameters),
             "detector_data": CspadPsana(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyPsana(
-                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+                data_source_name="beam_energy", parameters=parameters
             ),
             "detector_distance": EpicsVariablePsana(
-                data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                data_source_name="detector_distance", parameters=parameters
             ),
             "timetool_data": EpicsVariablePsana(
-                data_source_name="timetool", monitor_parameters=monitor_parameters
+                data_source_name="timetool", parameters=parameters
             ),
             "optical_laser_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
-                monitor_parameters=monitor_parameters,
+                data_source_name="active_optical_laser", parameters=parameters
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_xrays",
-                monitor_parameters=monitor_parameters,
+                data_source_name="active_xrays", parameters=parameters
             ),
             "lcls_extra": LclsExtraPsana(
-                data_source_name="lcls_extra",
-                monitor_parameters=monitor_parameters,
+                data_source_name="lcls_extra", parameters=parameters
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -240,7 +225,7 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from psana at the CXI beamline of the LCLS facility (ePix100).
 
@@ -275,41 +260,39 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdPsana(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "detector_data": Epix100Psana(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+            "event_id": EventIdPsana(data_source_name="eventid", parameters=parameters),
+            "detector_data": AreaDetectorPsana(
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyPsana(
-                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+                data_source_name="beam_energy", parameters=parameters
             ),
             "detector_distance": EpicsVariablePsana(
                 data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "timetool_data": EpicsVariablePsana(
-                data_source_name="timetool", monitor_parameters=monitor_parameters
+                data_source_name="timetool", parameters=parameters
             ),
             "optical_laser_active": EvrCodesPsana(
                 data_source_name="active_optical_laser",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "xrays_active": EvrCodesPsana(
                 data_source_name="active_xrays",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -332,7 +315,7 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from psana at the MFX beamline of the LCLS facility.
 
@@ -367,41 +350,39 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdPsana(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "detector_data": Epix10kaPsana(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+            "event_id": EventIdPsana(data_source_name="eventid", parameters=parameters),
+            "detector_data": AreaDetectorPsana(
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyFromEpicsVariablePsana(
-                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+                data_source_name="beam_energy", parameters=parameters
             ),
             "detector_distance": EpicsVariablePsana(
                 data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "timetool_data": EpicsVariablePsana(
-                data_source_name="timetool", monitor_parameters=monitor_parameters
+                data_source_name="timetool", parameters=parameters
             ),
             "optical_laser_active": EvrCodesPsana(
                 data_source_name="active_optical_laser",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "xrays_active": EvrCodesPsana(
                 data_source_name="active_xrays",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -424,7 +405,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from psana at MFX beamline of the LCLS facility (Rayonix).
 
@@ -458,41 +439,39 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
         """
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdPsana(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
+            "event_id": EventIdPsana(data_source_name="eventid", parameters=parameters),
             "detector_data": RayonixPsana(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyPsana(
-                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+                data_source_name="beam_energy", parameters=parameters
             ),
             "detector_distance": EpicsVariablePsana(
                 data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "timetool_data": EpicsVariablePsana(
-                data_source_name="timetool", monitor_parameters=monitor_parameters
+                data_source_name="timetool", parameters=parameters
             ),
             "optical_laser_active": EvrCodesPsana(
                 data_source_name="active_optical_laser",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "xrays_active": EvrCodesPsana(
                 data_source_name="active_xrays",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 

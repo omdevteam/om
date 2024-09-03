@@ -24,10 +24,11 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ValidationError
 from scipy import ndimage  # type: ignore
+from scipy.ndimage import gaussian_filter1d  # type: ignore
 
-from om.lib.parameters import validate_parameters
+from om.lib.exceptions import OmConfigurationFileSyntaxError
 
 
 class _EnergySpectrumRetrievalParameters(BaseModel):
@@ -84,22 +85,15 @@ class EnergySpectrumRetrieval:
                     information (pixels outside this area are ignored).
         """
 
-        energy_spectrum_retrieval_parameters: _EnergySpectrumRetrievalParameters = (
-            validate_parameters(
-                model=_EnergySpectrumRetrievalParameters, parameter_group=parameters
+        try:
+            self._energy_spectrum_retrieval_parameters: (
+                _EnergySpectrumRetrievalParameters
+            ) = _EnergySpectrumRetrievalParameters.model_validate(parameters)
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing parameters for the EnergySpectrumRetrieval algorithm: "
+                f"{exception}"
             )
-        )
-
-        self._intensity_threshold: float = (
-            energy_spectrum_retrieval_parameters.intensity_threshold
-        )
-        self._rotation: float = energy_spectrum_retrieval_parameters.rotation_in_degrees
-        self._min_row: int = (
-            energy_spectrum_retrieval_parameters.min_row_in_pix_for_integration
-        )
-        self._max_row: int = (
-            energy_spectrum_retrieval_parameters.max_row_in_pix_for_integration
-        )
 
     # TODO: Enforce return dict content for the function below
 
@@ -142,19 +136,33 @@ class EnergySpectrumRetrieval:
         # Apply a threshold
 
         # TODO: Perhaps better type hints can be found for this
-        if self._intensity_threshold:
-            data[data < self._intensity_threshold] = 0
+        if self._energy_spectrum_retrieval_parameters.intensity_threshold:
+            data[
+                data < self._energy_spectrum_retrieval_parameters.intensity_threshold
+            ] = 0
         imr: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = cast(
             Union[NDArray[numpy.float_], NDArray[numpy.int_]],
-            ndimage.rotate(data, self._rotation, order=0),
+            ndimage.rotate(
+                data,
+                self._energy_spectrum_retrieval_parameters.rotation_in_degrees,
+                order=0,
+            ),
+        )
+        min_row: int = (
+            self._energy_spectrum_retrieval_parameters.min_row_in_pix_for_integration
+        )
+        max_row: int = (
+            self._energy_spectrum_retrieval_parameters.max_row_in_pix_for_integration
         )
         spectrum: NDArray[numpy.float_] = numpy.mean(
-            imr[:, self._min_row : self._max_row], axis=1
-        )
-        spectrum_smoothed: NDArray[numpy.float_] = ndimage.filters.gaussian_filter1d(
-            spectrum, 2
+            imr[
+                :,
+                min_row:max_row,
+            ],
+            axis=1,
         )
 
+        spectrum_smoothed: NDArray[numpy.float_] = gaussian_filter1d(spectrum, 2)
         return {
             "spectrum": spectrum,
             "spectrum_smoothed": spectrum_smoothed,

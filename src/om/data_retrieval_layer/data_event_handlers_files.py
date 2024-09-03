@@ -24,20 +24,20 @@ import pathlib
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, Generator, List, TextIO, Tuple
+from typing import Any, Dict, Generator, List, TextIO, Tuple, Type, TypeVar, cast
 
 import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from om.lib.exceptions import (
+    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmInvalidSourceError,
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
-from om.lib.parameters import validate_parameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataSourceProtocol,
@@ -51,15 +51,24 @@ except ImportError:
         "The following required module cannot be imported: fabio"
     )
 
+T = TypeVar("T")
+
 
 class _FileDataEventHandlerParameters(BaseModel):
     required_data: List[str]
 
 
-class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
+class OmBaseFileDataEventHandlerMixin:
     """
     See documentation of the `__init__` function.
     """
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        if cls is OmBaseFileDataEventHandlerMixin:
+            raise TypeError(
+                f"{cls.__name__} is a Mixin class and should not be instantiated"
+            )
+        return object.__new__(cls, *args, **kwargs)
 
     def __init__(
         self,
@@ -99,18 +108,21 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        pilatus_file_event_handler_parameters: _FileDataEventHandlerParameters = (
-            validate_parameters(
-                model=_FileDataEventHandlerParameters, parameter_group=parameters
+        try:
+            self._parameters: _FileDataEventHandlerParameters = (
+                _FileDataEventHandlerParameters.model_validate(parameters)
             )
-        )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
+            )
 
         self._source: str = source
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
-            required_data=pilatus_file_event_handler_parameters.required_data,
+            required_data=self._parameters.required_data,
         )
 
     def initialize_event_handling_on_collecting_node(
@@ -153,6 +165,14 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
         pass
+
+
+class PilatusFilesEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
+    """
+    See documentation of the `__init__` function.
+    """
 
     def event_generator(
         self,
@@ -326,104 +346,12 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         return self.extract_data(event=data_event)
 
 
-class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
+class Jungfrau1MFilesDataEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
-        parameters: Dict[str, Any],
-    ) -> None:
-        """
-        Data Event Handler for Jungfrau 1M files.
-
-        This class handles data events retrieved from files written by a Jungfrau 1M
-        detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        * For this Event Handler, a data event corresponds to all the information
-          associated with an individual frame stored in an HDF5 file.
-
-        * The source string required by this Data Event Handler is the path to a file
-          containing a list of master HDF5 files to process, one per line, with their
-          absolute or relative path. Each file can store more than one detector data
-          frame, and each frame in the file is processed as a separate event.
-
-        Arguments:
-
-            source: A string describing the data event source.
-
-            data_sources: A dictionary containing a set of Data Source class instances.
-
-                * Each dictionary key must define the name of a data source.
-
-                * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        jungfrau1m_files_event_handler_parameters: _FileDataEventHandlerParameters = (
-            validate_parameters(
-                model=_FileDataEventHandlerParameters, parameter_group=parameters
-            )
-        )
-
-        self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
-
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=jungfrau1m_files_event_handler_parameters.required_data,
-        )
-
-    def initialize_event_handling_on_collecting_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Jungfrau 1M file event handling on the collecting node.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        There is usually no need to initialize Jungfrau 1M file-based event handling on
-        the collecting node, so this function actually does nothing.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
-
-    def initialize_event_handling_on_processing_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Jungfrau 1M file event handling on the processing nodes.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
 
     def event_generator(  # noqa: C901
         self,
@@ -651,104 +579,12 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         return extracted_data
 
 
-class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
+class EigerFilesDataEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
-        parameters: Dict[str, Any],
-    ) -> None:
-        """
-        Data Event Handler for Eiger files.
-
-        This Data Event Handler deals with events originating from files written by an
-        Eiger detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        * For this Event Handler, a data event corresponds to all the information
-          associated with an individual frame stored in an HDF5 file.
-
-        * The source string required by this Data Event Handler is the path to a file
-          containing a list of HDF5 files to process, one per line, with their absolute
-          or relative path. Each file can store more than one detector data frame, and
-          each frame in the file is processed as a separate event.
-
-        Arguments:
-
-            source: A string describing the data event source.
-
-            data_sources: A dictionary containing a set of Data Source class instances.
-
-                * Each dictionary key must define the name of a data source.
-
-                * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        eiger_files_event_handler_parameters: _FileDataEventHandlerParameters = (
-            validate_parameters(
-                model=_FileDataEventHandlerParameters, parameter_group=parameters
-            )
-        )
-
-        self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
-
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=eiger_files_event_handler_parameters.required_data,
-        )
-
-    def initialize_event_handling_on_collecting_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Eiger file event handling on the collecting node.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        There is usually no need to initialize Eiger's file-based data handling on the
-        collecting node, so this function actually does nothing.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
-
-    def initialize_event_handling_on_processing_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Eiger file event handling on the processing nodes.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
 
     def event_generator(
         self,
@@ -934,103 +770,12 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         return extracted_data
 
 
-class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
+class RayonixMccdFilesEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
-        parameters: Dict[str, Any],
-    ) -> None:
-        """
-        Data Event Handler for Rayonix MX340-HS single-frame files.
-
-        This class handles data events originating from single-frame mccd files written
-        by a Rayonix MX340-HS detector.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        * For this Event Handler, a data event corresponds to the content of an
-          individual single-frame mccd file.
-
-        * The source string required by this Data Event Handler is the path to a file
-          containing a list of mccd files to process, one per line, with their
-          absolute or relative path.
-
-        Arguments:
-
-            source: A string describing the data event source.
-
-            data_sources: A dictionary containing a set of Data Source class instances.
-
-                * Each dictionary key must define the name of a data source.
-
-                * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        rayonix_mccd_files_event_handler_parameters: _FileDataEventHandlerParameters = (
-            validate_parameters(
-                model=_FileDataEventHandlerParameters, parameter_group=parameters
-            )
-        )
-
-        self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
-
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=rayonix_mccd_files_event_handler_parameters.required_data,
-        )
-
-    def initialize_event_handling_on_collecting_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Rayonix MX340-HS file-based event handling on the collecting node.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        There is usually no need to initialize Rayonix MX340-HS file-based data
-        event handling on the collecting node, so this function actually does nothing.
-
-        Arguments:
-
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
-
-    def initialize_event_handling_on_processing_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Rayonix MX340-HS file-based event handling on the processing nodes.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
 
     def event_generator(
         self,
@@ -1201,106 +946,12 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         return self.extract_data(event=data_event)
 
 
-class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
+class Lambda1M5FilesDataEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
-        parameters: Dict[str, Any],
-    ) -> None:
-        """
-        Data Event Handler for Lambda 1.5M files.
-
-        This Data Event Handler deals with events originating from files written by a
-        Lambda 1.5M detector in HDF5 format.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        * For this Event Handler, a data event corresponds to all the information
-          associated with an individual frame stored in two separate HDF5 files written
-          by two detector modules.
-
-        * The source string required by this Data Event Handler is the path to a file
-          containing a list of HDF5 files written by the first detector module
-          ("*_m01*.nxs"), one per line, with their absolute or relative path. Each file
-          can store more than one detector data frame, and each frame in the file is
-          processed as a separate event.
-
-        Arguments:
-
-            source: A string describing the data event source.
-
-            data_sources: A dictionary containing a set of Data Source class instances.
-
-                * Each dictionary key must define the name of a data source.
-
-                * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
-
-            parameters: An object storing OM's configuration parameters.
-        """
-        lambda1m5f_files_event_handler_parameters: _FileDataEventHandlerParameters = (
-            validate_parameters(
-                model=_FileDataEventHandlerParameters, parameter_group=parameters
-            )
-        )
-
-        self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
-
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=lambda1m5f_files_event_handler_parameters.required_data,
-        )
-
-    def initialize_event_handling_on_collecting_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Lambda 1.5M file event handling on the collecting node.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        There is usually no need to initialize Lambda 1.5M file-based event handling on
-        the collecting node, so this function actually does nothing.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
-
-    def initialize_event_handling_on_processing_node(
-        self, *, node_rank: int, node_pool_size: int
-    ) -> None:
-        """
-        Initializes Lambda 1.5M file event handling on the processing nodes.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Arguments:
-
-            node_rank: The OM rank of the current node int the OM node pool. The rank
-                is an integer that unambiguously identifies the node in the pool.
-
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
-        """
-        pass
 
     def event_generator(  # noqa: C901
         self,
@@ -1361,12 +1012,14 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         data_event: Dict[str, Dict[str, Any]] = {}
 
         for filename in files_curr_node:
-            h5files: Tuple[Any, Any] = (
+            h5files: Tuple[h5py.File, h5py.File] = (
                 h5py.File(filename, "r"),
                 h5py.File(re.sub(r"_m01(_.+)?\.nxs", r"_m02\1.nxs", filename), "r"),
             )
             frame_numbers: List[NDArray[numpy.int_]] = [
-                h5file["/entry/instrument/detector/sequence_number"][:]
+                cast(
+                    h5py.Dataset, h5file["/entry/instrument/detector/sequence_number"]
+                )[:]
                 for h5file in h5files
             ]
             index_m1: int
@@ -1482,11 +1135,22 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
             h5py.File(filename, "r"),
             h5py.File(re.sub(r"(_m01.nxs)", r"_m02.nxs", filename), "r"),
         )
-        frame_number: int = h5files[0]["/entry/instrument/detector/sequence_number"][
-            index_m1
-        ]
+
+        frame_number: int = cast(
+            int,
+            h5files[0][
+                "/entry/instrument/detector/sequence_number"
+            ][  # pyright: ignore[reportIndexIssue]
+                index_m1
+            ],
+        )
         index_m2: int = numpy.where(
-            h5files[1]["/entry/instrument/detector/sequence_number"][:] == frame_number
+            h5files[1][
+                "/entry/instrument/detector/sequence_number"
+            ][  # pyright: ignore[reportIndexIssue]
+                :
+            ]
+            == frame_number
         )[0][0]
 
         data_event: Dict[str, Any] = {}

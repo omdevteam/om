@@ -29,7 +29,6 @@ import zmq
 
 from om.lib.exceptions import OmInvalidZmqUrl
 from om.lib.logging import log
-from om.lib.parameters import get_parameter_from_parameter_group
 
 
 def get_current_machine_ip() -> str:
@@ -60,11 +59,7 @@ class ZmqDataBroadcaster:
     See documentation of the `__init__` function.
     """
 
-    def __init__(
-        self,
-        *,
-        parameters: Dict[str, Any],
-    ) -> None:
+    def __init__(self, *, data_broadcast_url: Union[str, None]) -> None:
         """
         Data-broadcasting socket for OnDA Monitors.
 
@@ -92,12 +87,9 @@ class ZmqDataBroadcaster:
                 auto-detected, and the socket is opened at port 12321 using the
                 'tcp://' protocol. Defaults to None.
         """
-        url: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="data_broadcast_url", parameter_type=str
-        )
-        if url is None:
-            current_machine_ip: str = get_current_machine_ip()
-            url = f"tcp://{current_machine_ip}:12321"
+
+        if data_broadcast_url is None:
+            data_broadcast_url = get_current_machine_ip()
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -106,7 +98,7 @@ class ZmqDataBroadcaster:
         self._sock: Any = self._context.socket(zmq.PUB)
         self._sock.set_hwm(1)
         try:
-            self._sock.bind(url)
+            self._sock.bind(data_broadcast_url)
         except zmq.error.ZMQError as exc:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
@@ -116,7 +108,7 @@ class ZmqDataBroadcaster:
                     "URL is not valid due to the following reason: "
                     f"{exc_type.__name__}: {exc_value}."
                 ) from exc
-        log.info(f"Broadcasting data at {url}")
+        log.info(f"Broadcasting data at {data_broadcast_url}")
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
         """
@@ -150,7 +142,7 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        parameters: Dict[str, Any],
+        responding_url: Union[str, Any],
         blocking: bool = False,
     ) -> None:
         """
@@ -184,23 +176,18 @@ class ZmqResponder:
 
             blocking: whether the socket should be of blocking type. Defaults to False.
         """
-        url: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="responding_url", parameter_type=str
-        )
-        if url is None:
-            current_machine_ip: str = get_current_machine_ip()
-            url = f"tcp://{current_machine_ip}:12322"
-        # TODO: Fix types
 
-        self._blocking = blocking
+        if responding_url is None:
+            responding_url = get_current_machine_ip()
 
+        self._blocking: bool = blocking
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.ROUTER)
         self._sock.set_hwm(1)
         try:
-            self._sock.bind(url)
+            self._sock.bind(responding_url)
         except zmq.error.ZMQError as exc:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
@@ -213,7 +200,7 @@ class ZmqResponder:
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        log.info(f"Answering requests at {url}")
+        log.info(f"Answering requests at {responding_url}")
 
     def get_request(self) -> Union[Tuple[bytes, bytes], None]:
         """

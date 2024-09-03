@@ -770,7 +770,7 @@ class OmProcessingProtocol(Protocol):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+    def __init__(self, *, parameters: Dict[str, Any]) -> None:
         """
         Protocol for OM's Processing classes.
 
@@ -1089,4 +1089,23 @@ class OmParallelizationProtocol(Protocol):
 
             msg: Reason for shutting down. Defaults to "Reason not provided".
         """
+        ...
+
+
+class OmPeakDetectionProtocol(Protocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        parameters: Dict[str, Any],
+    ) -> None:
+        """ """
+        ...
+
+    def find_peaks(
+        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+    ) -> TypePeakList:
+        """ """
         ...

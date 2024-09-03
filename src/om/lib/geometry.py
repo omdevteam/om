@@ -1046,10 +1046,8 @@ class DataVisualizer:
         self,
         *,
         data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
-        array_for_visualization: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_], None
-        ] = None,
-    ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+        array_for_visualization: Union[NDArray[numpy.float_], None] = None,
+    ) -> NDArray[numpy.float_]:
         """
         Applies geometry information to a detector data frame.
 
@@ -1084,9 +1082,9 @@ class DataVisualizer:
                 cannot be used to store the pixel information.
         """
         if array_for_visualization is None:
-            visualization_array: Union[
-                NDArray[numpy.float_], NDArray[numpy.int_]
-            ] = numpy.zeros(self._min_array_shape, dtype=float)
+            visualization_array: NDArray[numpy.float_] = numpy.zeros(
+                self._min_array_shape, dtype=numpy.float32
+            )
         else:
             if array_for_visualization.shape != self._min_array_shape:
                 raise OmWrongArrayShape(

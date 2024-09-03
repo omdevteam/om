@@ -22,26 +22,34 @@ This module contains Data Source classes that deal with data retrieved from the
 HTTP/REST interface of detectors manufactured by the company Dectris.
 """
 import datetime
-from typing import Any, Dict, Union
+from typing import Any, Dict, Type, TypeVar, Union
 
 import numpy
 from numpy.typing import NDArray
 from PIL import Image  # type: ignore
 
-from om.lib.parameters import MonitorParameters
 from om.typing import OmDataSourceProtocol
 
 
-class Eiger16MHttp(OmDataSourceProtocol):
+class OmBaseGenericDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
+
+    T = TypeVar("T")
+
+    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        if cls is OmBaseGenericDataSourceMixin:
+            raise TypeError(
+                f"{cls.__name__} is a Mixin class and should not be instantiated"
+            )
+        return object.__new__(cls, *args, **kwargs)
 
     def __init__(
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Eiger 16M's HTTP/REST interface.
@@ -59,10 +67,10 @@ class Eiger16MHttp(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters
+            parameters: An object storing OM's configuration parameters
         """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
+        del parameters
+        del data_source_name
 
     def initialize_data_source(self) -> None:
         """
@@ -75,6 +83,12 @@ class Eiger16MHttp(OmDataSourceProtocol):
         16M'S HTTP/REST- interface, so this function actually does nothing.
         """
         pass
+
+
+class Eiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
 
     def get_data(
         self, *, event: Dict[str, Any]
@@ -101,49 +115,10 @@ class Eiger16MHttp(OmDataSourceProtocol):
         return numpy.asarray(image, dtype=int)
 
 
-class TimestampEiger16MHttp(OmDataSourceProtocol):
+class TimestampEiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Timestamp information from Eiger's 16M HTTP/REST interface.
-
-        This class deals with the retrieval of timestamp information for data events
-        originating from an Eiger 16M's HTTPS/REST interface.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Eiger 16M's HTTP/REST interface timestamp data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve timestamp information from the Eiger
-        16M's HTTP/REST interface, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
@@ -173,8 +148,8 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
             )
         except ValueError:
             event["additional_info"]["image_file"].seek(35)
-            time_str: str = event["additional_info"]["image_file"].read(32).decode()
-            timestamp: numpy.float64 = numpy.float64(
+            time_str = event["additional_info"]["image_file"].read(32).decode()
+            timestamp = numpy.float64(
                 datetime.datetime.strptime(
                     time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
                 ).timestamp()
@@ -183,49 +158,10 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
         return timestamp
 
 
-class EventIdEiger16MHttp(OmDataSourceProtocol):
+class EventIdEiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Event identifier from Eiger 16M's HTTP/REST interface.
-
-        This class deals with the retrieval of unique event identifiers for events
-        originating from an Eiger 16M's HTTP/REST interface.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, in communications with the user or for the retrieval
-                of a sensor's initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the Eiger 16M's HTTP/REST interface event identifier data source.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        No initialization is needed to retrieve event identifiers for Eiger 16M data
-        events, so this function actually does nothing.
-        """
-        pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """

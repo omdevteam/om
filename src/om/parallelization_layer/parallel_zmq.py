@@ -25,10 +25,10 @@ import sys
 from typing import Any, Dict, List, Tuple, Union
 
 import zmq
+from pydantic import BaseModel, ValidationError
 
-from om.lib.exceptions import OmDataExtractionError
+from om.lib.exceptions import OmConfigurationFileSyntaxError, OmDataExtractionError
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
 from om.lib.zmq import get_current_machine_ip
 from om.typing import (
     OmDataEventHandlerProtocol,
@@ -38,15 +38,20 @@ from om.typing import (
 )
 
 
+class _OmParameters(BaseModel):
+    node_pool_size: int
+
+
+class _MonitorParameters(BaseModel):
+    om: _OmParameters
+
+
 def _om_processing_node(
     *,
     rank: int,
     node_pool_size: int,
-    # data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
-    # message_pipe: multiprocessing.connection.Connection,
     data_event_handler: OmDataEventHandlerProtocol,
     processing_layer: OmProcessingProtocol,
-    monitor_params: MonitorParameters,
 ) -> None:
     context = zmq.Context()
 
@@ -106,10 +111,10 @@ def _om_processing_node(
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it
     # to the processing node.
-    final_data: Union[
-        Dict[str, Any], None
-    ] = processing_layer.end_processing_on_processing_node(
-        node_rank=rank, node_pool_size=node_pool_size
+    final_data: Union[Dict[str, Any], None] = (
+        processing_layer.end_processing_on_processing_node(
+            node_rank=rank, node_pool_size=node_pool_size
+        )
     )
     if final_data is not None:
         sender_push.send_pyobj((final_data, rank))
@@ -131,7 +136,7 @@ class ZmqParallelization(OmParallelizationProtocol):
         *,
         data_retrieval_layer: OmDataRetrievalProtocol,
         processing_layer: OmProcessingProtocol,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -171,37 +176,36 @@ class ZmqParallelization(OmParallelizationProtocol):
             data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
-        self._monitor_params: MonitorParameters = monitor_parameters
 
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=int,
-        )
-
-        self._node_pool_size: int = self._monitor_params.get_parameter(
-            group="om", parameter="node_pool_size", parameter_type=int, required=True
-        )
+        try:
+            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
+                parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section OM's configuration parameters: "
+                f"om"
+                f"{exception}"
+            )
 
         self._processing_nodes: List[multiprocessing.Process] = []
 
         processing_node_rank: int
-        for processing_node_rank in range(1, self._node_pool_size):
+        for processing_node_rank in range(1, self._parameters.om.node_pool_size):
             processing_node = multiprocessing.Process(
                 target=_om_processing_node,
                 kwargs={
                     "rank": processing_node_rank,
-                    "node_pool_size": self._node_pool_size,
+                    "node_pool_size": self._parameters.om.node_pool_size,
                     "data_event_handler": self._data_event_handler,
                     "processing_layer": self._processing_layer,
-                    "monitor_params": self._monitor_params,
                 },
             )
             self._processing_nodes.append(processing_node)
 
         self._rank: int = 0
         self._data_event_handler.initialize_event_handling_on_collecting_node(
-            node_rank=self._rank, node_pool_size=self._node_pool_size
+            node_rank=self._rank, node_pool_size=self._parameters.om.node_pool_size
         )
         self._num_no_more: int = 0
         self._num_collected_events: int = 0
@@ -225,7 +229,7 @@ class ZmqParallelization(OmParallelizationProtocol):
             processing_node.start()
 
         self._processing_layer.initialize_collecting_node(
-            node_rank=self._rank, node_pool_size=self._node_pool_size
+            node_rank=self._rank, node_pool_size=self._parameters.om.node_pool_size
         )
 
         while True:
@@ -235,9 +239,9 @@ class ZmqParallelization(OmParallelizationProtocol):
                     self._receiver_pull in socks
                     and socks[self._receiver_pull] == zmq.POLLIN
                 ):
-                    received_data: Tuple[
-                        Dict[str, Any], int
-                    ] = self._receiver_pull.recv_pyobj()
+                    received_data: Tuple[Dict[str, Any], int] = (
+                        self._receiver_pull.recv_pyobj()
+                    )
 
                     if "end" in received_data[0]:
                         # If the received message announces that a processing node has
@@ -247,12 +251,12 @@ class ZmqParallelization(OmParallelizationProtocol):
                         self._num_no_more += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
-                        if self._num_no_more == self._node_pool_size - 1:
+                        if self._num_no_more == self._parameters.om.node_pool_size - 1:
                             log.info("All processing nodes have run out of events.")
                             log.info("Shutting down.")
                             self._processing_layer.end_processing_on_collecting_node(
                                 node_rank=self._rank,
-                                node_pool_size=self._node_pool_size,
+                                node_pool_size=self._parameters.om.node_pool_size,
                             )
                             for processing_node in self._processing_nodes:
                                 processing_node.join()
@@ -261,12 +265,12 @@ class ZmqParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Union[
-                        Dict[int, Dict[str, Any]], None
-                    ] = self._processing_layer.collect_data(
-                        node_rank=self._rank,
-                        node_pool_size=self._node_pool_size,
-                        processed_data=received_data,
+                    feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                        self._processing_layer.collect_data(
+                            node_rank=self._rank,
+                            node_pool_size=self._parameters.om.node_pool_size,
+                            processed_data=received_data,
+                        )
                     )
                     self._num_collected_events += 1
                     if feedback_data is not None:
@@ -285,7 +289,7 @@ class ZmqParallelization(OmParallelizationProtocol):
                 else:
                     self._processing_layer.wait_for_data(
                         node_rank=self._rank,
-                        node_pool_size=self._node_pool_size,
+                        node_pool_size=self._parameters.om.node_pool_size,
                     )
 
             except KeyboardInterrupt as exc:
@@ -326,12 +330,12 @@ class ZmqParallelization(OmParallelizationProtocol):
                 num_shutdown_confirm = 0
                 while True:
                     # message: Tuple[Dict[str, Any], int] = self._data_queue.get()
-                    message: Tuple[
-                        Dict[str, Any], int
-                    ] = self._receiver_pull.recv_pyobj()
+                    message: Tuple[Dict[str, Any], int] = (
+                        self._receiver_pull.recv_pyobj()
+                    )
                     if "stopped" in message[0]:
                         num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self._node_pool_size - 1:
+                    if num_shutdown_confirm == self._parameters.om.node_pool_size - 1:
                         break
                 # When all the processing nodes have confirmed, shuts down the
                 # collecting node.

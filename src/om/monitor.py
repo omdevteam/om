@@ -23,18 +23,17 @@ This module contains the main function that tarts an OnDA Monitor.
 
 import signal
 import sys
+from pathlib import Path
 from typing import Any, Dict, Type
 
-import click
-from pydantic import BaseModel
+import typer
+from pydantic import BaseModel, ValidationError
+from typing_extensions import Annotated
 
+from om.lib.exceptions import OmConfigurationFileSyntaxError
+from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
 from om.lib.logging import log
-from om.lib.parameters import (
-    get_parameter_group,
-    load_configuration_parameters,
-    validate_parameters,
-)
 from om.typing import (
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
@@ -42,33 +41,44 @@ from om.typing import (
 )
 
 
-class _MonitorParameters(BaseModel):
+class _OmParameters(BaseModel):
     parallelization_layer: str
     data_retrieval_layer: str
     processing_layer: str
 
 
-@click.command()
-@click.option(
-    "--config",
-    "-c",
-    default="monitor.yaml",
-    type=click.Path(),
-    help="The path to a configuration file (default: monitor.yaml file in the current "
-    "working directory)",
-)
-@click.option(
-    "--node-pool-size",
-    "-n",
-    default=0,
-    type=int,
-    help=(
-        "The total number of nodes in the OM pool, including all the processing nodes "
-        "and the collecting node."
-    ),
-)
-@click.argument("source", type=str)
-def main(*, source: str, node_pool_size: int, config: str) -> None:
+class _MonitorParameters(BaseModel):
+    om: _OmParameters
+    data_retrieval_layer: Dict[str, Any]
+
+
+def main(
+    *,
+    source: Annotated[
+        str,
+        typer.Argument(help="Data source string"),
+    ],
+    node_pool_size: Annotated[
+        int,
+        typer.Option(
+            "--node-pool-size",
+            "-n",
+            help=(
+                "The total number of nodes in the OM pool, including all the "
+                "processing nodes and the collecting node."
+            ),
+        ),
+    ] = 0,
+    config: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            "-c",
+            help="configuration file (default: monitor.yaml file in the current "
+            "working directory",
+        ),
+    ] = Path("monitor.yaml"),
+) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
     configuration parameters read from a provided file. The monitor retrieves data
@@ -82,25 +92,23 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    configuration_parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(
+    if not config.exists():
+        raise RuntimeError(f"The following file cannot be found: {config}")
+
+    monitor_parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(
         config=config
     )
 
-    om_parameter_group: Dict[str, Any] = get_parameter_group(
-        configuration_parameters=configuration_parameters, group_name="om"
-    )
+    try:
+        parameters: _MonitorParameters = _MonitorParameters.model_validate(
+            monitor_parameters
+        )
+    except ValidationError as exception:
+        raise OmConfigurationFileSyntaxError(
+            "Error parsing monitor parameters: " f"{exception}"
+        )
 
-    data_retrieval_layer_parameter_group: Dict[str, Any] = get_parameter_group(
-        configuration_parameters=configuration_parameters,
-        group_name="data_retrieval_layer",
-    )
-
-    monitor_parameters: _MonitorParameters = validate_parameters(
-        model=_MonitorParameters,
-        parameter_group=om_parameter_group,
-    )
-
-    if monitor_parameters.parallelization_layer == "MpiParallelization":
+    if parameters.om.parallelization_layer == "MpiParallelization":
         try:
             from mpi4py import MPI
 
@@ -131,34 +139,34 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
             )
             sys.exit(1)
 
-    configuration_parameters["om"]["source"] = source
-    configuration_parameters["om"]["node_pool_size"] = node_pool_size
+    parameters.om.source = source
+    parameters.om.node_pool_size = node_pool_size
 
-    parallelization_layer_class: Type[
-        OmParallelizationProtocol
-    ] = import_class_from_layer(
-        layer_name="parallelization_layer",
-        class_name=monitor_parameters.parallelization_layer,
+    parallelization_layer_class: Type[OmParallelizationProtocol] = (
+        import_class_from_layer(
+            layer_name="parallelization_layer",
+            class_name=parameters.om.parallelization_layer,
+        )
     )
     data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = import_class_from_layer(
         layer_name="data_retrieval_layer",
-        class_name=monitor_parameters.data_retrieval_layer,
+        class_name=parameters.om.data_retrieval_layer,
     )
     processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
-        layer_name="processing_layer", class_name=monitor_parameters.processing_layer
+        layer_name="processing_layer", class_name=parameters.om.processing_layer
     )
 
     processing_layer: OmProcessingProtocol = processing_layer_class(
-        monitor_parameters=configuration_parameters
+        parameters=parameters.model_dump()
     )
     data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-        parameters=data_retrieval_layer_parameter_group,
+        parameters=monitor_parameters["data_retrieval_layer"],
         source=source,
     )
     parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
-        monitor_parameters=configuration_parameters,
+        parameters=monitor_parameters["data_retrieval_layer"],
     )
 
     parallelization_layer.start()

@@ -21,16 +21,15 @@ Retrieval and handling of data from the http/REST interface.
 This module contains Data Retrieval classes that deal with the HTTP/REST interface
 used by detectors manufactured by the company Dectris.
 """
-from typing import Dict
+from typing import Any, Dict
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler
-from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
+from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.data_retrieval_layer.data_sources_http import (
     Eiger16MHttp,
     EventIdEiger16MHttp,
     TimestampEiger16MHttp,
 )
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -43,7 +42,7 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data Retrieval from Eiger's HTTP/REST interface.
 
@@ -81,28 +80,28 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampEiger16MHttp(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
             "event_id": EventIdEiger16MHttp(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
+                data_source_name="eventid", parameters=parameters
             ),
             "detector_data": Eiger16MHttp(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
-            "beam_energy": FloatEntryFromConfiguration(
+            "beam_energy": FloatValueFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
+            "detector_distance": FloatValueFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             EigerHttpDataEventHandler(
                 source=source,
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
                 data_sources=data_sources,
             )
         )

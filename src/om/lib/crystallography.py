@@ -27,12 +27,18 @@ from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
+from pydantic import BaseModel, Field, ValidationError, model_validator
+from typing_extensions import Self
 
 from om.algorithms.crystallography import Peakfinder8PeakDetection
-from om.lib.exceptions import OmMissingDependencyError
+from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import DataVisualizer, GeometryInformation
-from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
-from om.typing import TypePeakList, TypePixelMaps, TypeVisualizationPixelMaps
+from om.typing import (
+    OmPeakDetectionProtocol,
+    TypePeakList,
+    TypePixelMaps,
+    TypeVisualizationPixelMaps,
+)
 
 try:
     from om.algorithms.crystallography_ml import PeakNetPeakDetection
@@ -40,6 +46,47 @@ try:
     ml_available: bool = True
 except ImportError:
     ml_available = False
+
+
+class _CrystallographyParameters(BaseModel):
+    peakfinding_algorithm: str = Field(default="peakfinder8")
+    min_num_peaks_for_hit: int
+    max_num_peaks_for_hit: int
+    peakogram_intensity_bin_size: float = Field(default=100.0)
+    peakogram_radius_bin_size: float = Field(default=5.0)
+    running_average_window_size: int
+
+
+class _MonitorParameters(BaseModel):
+    crystallography: _CrystallographyParameters
+    peakfinder8_peak_detection: Dict[str, Any]
+    peaknet_peak_detection: Dict[str, Any]
+
+    @model_validator(mode="after")
+    def check_peakfinder8_peak_detection_parameters(self) -> Self:
+        if (
+            self.crystallography.peakfinding_algorithm == "peakfinder8"
+            and self.peakfinder8_peak_detection is None
+        ):
+            raise ValueError(
+                "When using peakfinder8 crystallography peak detection, the following "
+                "section must be present in OM's configuration parameters: "
+                "peakfinder8_peak_detection"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_peaknet_peak_detection_parameters(self) -> Self:
+        if (
+            self.crystallography.peakfinding_algorithm == "peaknet"
+            and self.peaknet_peak_detection is None
+        ):
+            raise ValueError(
+                "When using peaknet crystallography peak detection, the following "
+                "section must be present in OM's configuration parameters: "
+                "peaknet_peak_detection"
+            )
+        return self
 
 
 class CrystallographyPeakFinding:
@@ -50,7 +97,7 @@ class CrystallographyPeakFinding:
     def __init__(
         self,
         *,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
         geometry_information: GeometryInformation,
     ) -> None:
         """
@@ -99,56 +146,33 @@ class CrystallographyPeakFinding:
                   identified in a detector data frame for the related data event to be
                   considered a hit.
         """
-        crystallography_parameters = monitor_parameters.get_parameter_group(
-            group="crystallography"
-        )
 
-        peakfinder_algorithm: str = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="peakfinding_algorithm",
-            parameter_type=str,
-            default="peakfinder8",
-        )
+        try:
+            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
+                parameters["crystallography"]
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section OM's configuration parameters: "
+                f"crystallography"
+                f"{exception}"
+            )
 
-        if peakfinder_algorithm == "peakfinder8":
-            # TODO: Type self._peak_detection
-            self._peak_detection = Peakfinder8PeakDetection(
-                crystallography_parameters=monitor_parameters.get_parameter_group(
-                    group="peakfinder8_peak_detection"
-                ),
+        if self._parameters.crystallography.peakfinding_algorithm == "peakfinder8":
+            self._peak_detection: OmPeakDetectionProtocol = Peakfinder8PeakDetection(
+                parameters=parameters["peakfinder8_peak_detection"],
                 radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
                 layout_info=geometry_information.get_layout_info(),
             )
-        elif peakfinder_algorithm == "peaknet":
-            if not ml_available:
-                raise OmMissingDependencyError(
-                    "Some dependencies needed to run the Peaknet peak detection "
-                    "algorithm are not installed"
-                )
-
+        elif self._parameters.crystallography.peakfinding_algorithm == "peaknet":
             self._peak_detection = PeakNetPeakDetection(
-                parameters=monitor_parameters.get_parameter_group(
-                    group="peaknet_peak_detection"
-                ),
+                parameters=parameters["peaknet_peak_detection"],
             )
         else:
             raise RuntimeError(
-                f"Unrecognized peak finding algorithm: {peakfinder_algorithm}"
+                "Unrecognized peak finding algorithm: "
+                f"{self._parameters.crystallography.peakfinding_algorithm}"
             )
-
-        self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="min_num_peaks_for_hit",
-            parameter_type=int,
-            required=True,
-        )
-
-        self._max_num_peaks_for_hit: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="max_num_peaks_for_hit",
-            parameter_type=int,
-            required=True,
-        )
 
     def find_peaks(
         self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
@@ -223,9 +247,9 @@ class CrystallographyPlots:
         visualization_pixel_maps: TypeVisualizationPixelMaps = (
             data_visualizer.get_visualization_pixel_maps()
         )
-        plot_shape: Tuple[
-            int, int
-        ] = data_visualizer.get_min_array_shape_for_visualization()
+        plot_shape: Tuple[int, int] = (
+            data_visualizer.get_min_array_shape_for_visualization()
+        )
 
         self._flattened_visualization_pixel_map_y = visualization_pixel_maps[
             "y"
@@ -236,40 +260,32 @@ class CrystallographyPlots:
         self._radius_pixel_map = pixel_maps["radius"]
         self._data_shape: Tuple[int, ...] = self._radius_pixel_map.shape
 
-        self._peakogram_intensity_bin_size: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="peakogram_intensity_bin_size",
-            parameter_type=float,
-            default=100,
-        )
+        try:
+            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
+                parameters
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section OM's configuration parameters: "
+                f"crystallography"
+                f"{exception}"
+            )
+
         peakogram_num_bins_intensity: int = 300
 
-        self._peakogram_radius_bin_size: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="peakogram_radius_bin_size",
-            parameter_type=float,
-            default=5,
-        )
         peakogram_num_bins_radius: int = int(
             self._radius_pixel_map.max()
             * self._bin_size
-            / self._peakogram_radius_bin_size
+            / self._parameters.crystallography.peakogram_radius_bin_size
         )
 
         self._peakogram: NDArray[numpy.float_] = numpy.zeros(
             (peakogram_num_bins_radius, peakogram_num_bins_intensity)
         )
 
-        self._running_average_window_size: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="running_average_window_size",
-            parameter_type=int,
-            required=True,
-        )
-
         self._hit_rate_running_window: Deque[float] = deque(
-            [0.0] * self._running_average_window_size,
-            maxlen=self._running_average_window_size,
+            [0.0] * self._parameters.crystallography.running_average_window_size,
+            maxlen=self._parameters.crystallography.running_average_window_size,
         )
         self._avg_hit_rate: int = 0
         self._num_hits: int = 0
@@ -285,8 +301,8 @@ class CrystallographyPlots:
 
         if self._pump_probe_experiment:
             self._hit_rate_running_window_dark = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._parameters.crystallography.running_average_window_size,
+                maxlen=self._parameters.crystallography.running_average_window_size,
             )
             self._avg_hit_rate_dark = 0
             self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
@@ -384,7 +400,7 @@ class CrystallographyPlots:
                 self._hit_rate_running_window.append(float(frame_is_hit))
                 avg_hit_rate: float = (
                     sum(self._hit_rate_running_window)
-                    / self._running_average_window_size
+                    / self._parameters.crystallography.running_average_window_size
                 )
                 self._hit_rate_timestamp_history.append(timestamp)
                 self._hit_rate_history.append(avg_hit_rate * 100.0)
@@ -392,22 +408,28 @@ class CrystallographyPlots:
                 self._hit_rate_running_window_dark.append(float(frame_is_hit))
                 avg_hit_rate_dark: float = (
                     sum(self._hit_rate_running_window_dark)
-                    / self._running_average_window_size
+                    / self._parameters.crystallography.running_average_window_size
                 )
                 self._hit_rate_timestamp_history_dark.append(timestamp)
                 self._hit_rate_history_dark.append(avg_hit_rate_dark * 100.0)
         else:
             self._hit_rate_running_window.append(float(frame_is_hit))
             avg_hit_rate = (
-                sum(self._hit_rate_running_window) / self._running_average_window_size
+                sum(self._hit_rate_running_window)
+                / self._parameters.crystallography.running_average_window_size
             )
             self._hit_rate_timestamp_history.append(timestamp)
             self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         if frame_is_hit:
-            peakogram_max_intensity: float = (
-                self._peakogram.shape[1] * self._peakogram_intensity_bin_size
+            peakogram_intensity_bin_size: float = (
+                self._parameters.crystallography.peakogram_intensity_bin_size
             )
+
+            peakogram_max_intensity: float = (
+                self._peakogram.shape[1] * peakogram_intensity_bin_size
+            )
+
             peaks_max_intensity: float = max(peak_list["max_pixel_intensity"])
             if peaks_max_intensity > peakogram_max_intensity:
                 self._peakogram = numpy.concatenate(
@@ -418,7 +440,7 @@ class CrystallographyPlots:
                                 self._peakogram.shape[0],
                                 int(
                                     (peaks_max_intensity - peakogram_max_intensity)
-                                    // self._peakogram_intensity_bin_size
+                                    // peakogram_intensity_bin_size
                                     + 1
                                 ),
                             )
@@ -459,9 +481,13 @@ class CrystallographyPlots:
                     int(round(peak_ss)), int(round(peak_fs))
                 ]
             )
-            radius_index: int = int(peak_radius // self._peakogram_radius_bin_size)
+            radius_index: int = int(
+                peak_radius
+                // self._parameters.crystallography.peakogram_radius_bin_size
+            )
             intensity_index: int = int(
-                peak_max_pixel_intensity // self._peakogram_intensity_bin_size
+                peak_max_pixel_intensity
+                // self._parameters.crystallography.peakogram_intensity_bin_size
             )
             if (
                 radius_index < self._peakogram.shape[0]
@@ -476,8 +502,8 @@ class CrystallographyPlots:
             self._hit_rate_history_dark,
             self._virtual_powder_plot_img,
             self._peakogram,
-            self._peakogram_radius_bin_size,
-            self._peakogram_intensity_bin_size,
+            self._parameters.crystallography.peakogram_radius_bin_size,
+            self._parameters.crystallography.peakogram_intensity_bin_size,
             peak_list_x_in_frame,
             peak_list_y_in_frame,
         )
@@ -489,8 +515,8 @@ class CrystallographyPlots:
         This function resets all the plot information stored by this class.
         """
         self._hit_rate_running_window = deque(
-            [0.0] * self._running_average_window_size,
-            maxlen=self._running_average_window_size,
+            [0.0] * self._parameters.crystallography.running_average_window_size,
+            maxlen=self._parameters.crystallography.running_average_window_size,
         )
         self._avg_hit_rate = 0
         self._num_hits = 0
@@ -499,8 +525,8 @@ class CrystallographyPlots:
 
         if self._pump_probe_experiment is True:
             self._hit_rate_running_window_dark = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._parameters.crystallography.running_average_window_size,
+                maxlen=self._parameters.crystallography.running_average_window_size,
             )
             self._avg_hit_rate_dark = 0
             self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)

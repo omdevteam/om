@@ -26,7 +26,6 @@ from itertools import cycle
 from typing import Any, Dict, Iterator, Union
 
 from om.lib.logging import log
-from om.lib.parameters import get_parameter_from_parameter_group
 
 
 class EventCounter:
@@ -34,7 +33,15 @@ class EventCounter:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, om_parameters: Dict[str, Any], node_pool_size: int) -> None:
+    def __init__(
+        self,
+        *,
+        speed_report_interval: int,
+        data_broadcast_interval: int,
+        hit_frame_sending_interval: Union[int, None],
+        non_hit_frame_sending_interval: Union[int, None],
+        node_pool_size: int,
+    ) -> None:
         """
         Event count and management.
 
@@ -75,33 +82,15 @@ class EventCounter:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = get_parameter_from_parameter_group(
-            group=om_parameters,
-            parameter="speed_report_interval",
-            parameter_type=int,
-        )
+        self._speed_report_interval: int = speed_report_interval
 
-        self._data_broadcast_interval: int = get_parameter_from_parameter_group(
-            group=om_parameters,
-            parameter="data_broadcast_interval",
-            parameter_type=int,
-        )
+        self._data_broadcast_interval: int = data_broadcast_interval
 
-        self._hit_frame_sending_interval: Union[
-            int, None
-        ] = get_parameter_from_parameter_group(
-            group=om_parameters,
-            parameter="hit_frame_sending_interval",
-            parameter_type=int,
-        )
-        self._non_hit_frame_sending_interval: Union[
-            int, None
-        ] = get_parameter_from_parameter_group(
-            group=om_parameters,
-            parameter="non_hit_frame_sending_interval",
-            parameter_type=int,
-        )
+        self._hit_frame_sending_interval: Union[int, None] = hit_frame_sending_interval
 
+        self._non_hit_frame_sending_interval: Union[int, None] = (
+            non_hit_frame_sending_interval
+        )
         self._start_timestamp: float = time.time()
         self._num_events: int = 0
         self._num_hits: int = 0

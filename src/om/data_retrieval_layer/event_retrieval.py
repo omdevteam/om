@@ -18,11 +18,22 @@
 """
 This module contains classes that deals with the retrieval of single standalone events.
 """
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, Type
 
+from pydantic import BaseModel, ValidationError
+
+from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.layer_management import import_class_from_layer
-from om.lib.parameters import MonitorParameters
 from om.typing import OmDataEventHandlerProtocol, OmDataRetrievalProtocol
+
+
+class _OmParameters(BaseModel):
+    data_retrieval_layer: str
+
+
+class _MonitorParameters(BaseModel):
+    om: _OmParameters
+    data_retrieval_layer: Dict[str, Any]
 
 
 class OmEventDataRetrieval:
@@ -30,7 +41,7 @@ class OmEventDataRetrieval:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str) -> None:
+    def __init__(self, *, parameters: Dict[str, Any], source: str) -> None:
         """
         Retrieval of single standalone data events.
 
@@ -43,23 +54,23 @@ class OmEventDataRetrieval:
 
             source: A string describing the data event source.
         """
-        data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
-            group="om",
-            parameter="data_retrieval_layer",
-            parameter_type=str,
-            required=True,
-        )
 
-        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
-            Type[OmDataRetrievalProtocol],
+        try:
+            self._parameters = _MonitorParameters.model_validate(parameters)
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing OM's configuration parameters: " f"{exception}"
+            )
+
+        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = (
             import_class_from_layer(
                 layer_name="data_retrieval_layer",
-                class_name=data_retrieval_layer_class_name,
-            ),
+                class_name=self._parameters.om.data_retrieval_layer,
+            )
         )
 
         data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-            monitor_parameters=monitor_parameters,
+            parameters=parameters["data_retrieval_layer"],
             source=source,
         )
 
