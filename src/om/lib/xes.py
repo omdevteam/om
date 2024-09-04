@@ -19,7 +19,7 @@
 TODO
 """
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -65,11 +65,11 @@ class XesAnalysisAndPlots:
         self._spectra_cumulative_sum: Union[
             NDArray[numpy.float_], NDArray[numpy.int_], None
         ] = None
-        self._spectra_cumulative_sum_smoothed: Union[NDArray[numpy.float_], None] = None
+        self._spectra_cumulative_sum_smoothed: Optional[NDArray[numpy.float_]] = None
 
-        self._cumulative_2d: Union[NDArray[numpy.float_], NDArray[numpy.int_], None] = (
-            None
-        )
+        self._cumulative_2d: Optional[
+            Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        ] = None
         self._cumulative_2d_pumped: Union[
             NDArray[numpy.float_], NDArray[numpy.int_], None
         ] = None
@@ -89,12 +89,12 @@ class XesAnalysisAndPlots:
         detector_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
         optical_laser_active: bool,
     ) -> Tuple[
-        Union[NDArray[numpy.float_], NDArray[numpy.int_], None],
-        Union[NDArray[numpy.float_], None],
-        Union[NDArray[numpy.float_], NDArray[numpy.int_], None],
-        Union[NDArray[numpy.float_], None],
-        Union[NDArray[numpy.float_], None],
-        Union[NDArray[numpy.float_], None],
+        Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]],
+        Optional[NDArray[numpy.float_]],
+        Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]],
+        Optional[NDArray[numpy.float_]],
+        Optional[NDArray[numpy.float_]],
+        Optional[NDArray[numpy.float_]],
     ]:
         """
         Updates and recovers the X-ray Emission Spectroscopy data plots.
@@ -163,9 +163,9 @@ class XesAnalysisAndPlots:
         self._spectra_cumulative_sum = cumulative_xes["spectrum"]
         self._spectra_cumulative_sum_smoothed = cumulative_xes["spectrum_smoothed"]
 
-        spectra_cumulative_sum_pumped: Union[NDArray[numpy.float_], None] = None
-        spectra_cumulative_sum_dark: Union[NDArray[numpy.float_], None] = None
-        spectra_cumulative_sum_difference: Union[NDArray[numpy.float_], None] = None
+        spectra_cumulative_sum_pumped: Optional[NDArray[numpy.float_]] = None
+        spectra_cumulative_sum_dark: Optional[NDArray[numpy.float_]] = None
+        spectra_cumulative_sum_difference: Optional[NDArray[numpy.float_]] = None
 
         if numpy.mean(numpy.abs(self._spectra_cumulative_sum)) > 0:
             self._spectra_cumulative_sum /= numpy.mean(

@@ -21,7 +21,7 @@ OnDA Test Monitor.
 This module contains an OnDA Monitor that can be used for testing.
 """
 import time
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -34,8 +34,8 @@ from om.typing import OmProcessingProtocol
 class _CrystallographyParameters(BaseModel):
     speed_report_interval: int
     data_broadcast_interval: int
-    data_broadcast_url: Union[str, None] = Field(default=None)
-    responding_url: Union[str, None] = Field(default=None)
+    data_broadcast_url: Optional[str] = Field(default=None)
+    responding_url: Optional[str] = Field(default=None)
 
 
 class _MonitorParameters(BaseModel):
@@ -126,7 +126,7 @@ class TestProcessing(OmProcessingProtocol):
 
         self._num_events: int = 0
         self._old_time: float = time.time()
-        self._time: Union[float, None] = None
+        self._time: Optional[float] = None
 
         log.info("Starting the monitor...")
 
@@ -207,7 +207,7 @@ class TestProcessing(OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+    ) -> Optional[Dict[int, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -269,7 +269,7 @@ class TestProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for the testing Monitor.
 

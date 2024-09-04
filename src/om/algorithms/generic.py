@@ -22,7 +22,7 @@ This module contains algorithms that perform generic data processing operations,
 tied to a specific experimental technique (e.g.: data accumulation, radial averaging,
 binning, etc.).
 """
-from typing import Any, Dict, TypeVar, Union, cast
+from typing import Any, Dict, Optional, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import DTypeLike, NDArray
@@ -39,8 +39,8 @@ A = TypeVar("A", numpy.float_, numpy.int_)
 
 
 class _RadialProfileParameters(BaseModel):
-    bad_pixel_map_filename: Union[str, None] = Field(default=None)
-    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
     radius_bin_size: float
 
     @model_validator(mode="after")
@@ -58,10 +58,10 @@ class _RadialProfileParameters(BaseModel):
 
 class _BinningParameters(BaseModel):
     bin_size: int
-    min_good_pix_count: Union[int, None] = Field(default=None)
-    bad_pixel_value: Union[int, float, None] = Field(default=None)
-    bad_pixel_map_filename: Union[str, None] = Field(default=None)
-    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+    min_good_pix_count: Optional[int] = Field(default=None)
+    bad_pixel_value: Optional[Union[int, float]] = Field(default=None)
+    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
@@ -152,8 +152,8 @@ class RadialProfile:
             self._radial_profile_parameters.bad_pixel_map_filename is not None
             and self._radial_profile_parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-                Union[NDArray[numpy.int_], None],
+            bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
+                Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
                     hdf5_filename=(
                         self._radial_profile_parameters.bad_pixel_map_filename
@@ -201,7 +201,7 @@ class RadialProfile:
         """
         return self._radial_bin_labels
 
-    def get_bad_pixel_map(self) -> Union[NDArray[numpy.bool_], None]:
+    def get_bad_pixel_map(self) -> Optional[NDArray[numpy.bool_]]:
         """
         Gets the bad pixel map provided to the algorithm.
 
@@ -347,8 +347,8 @@ class Binning:
             self._binning_parameters.bad_pixel_map_filename is not None
             and self._binning_parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-                Union[NDArray[numpy.int_], None],
+            bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
+                Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
                     hdf5_filename=self._binning_parameters.bad_pixel_map_filename,
                     hdf5_path=self._binning_parameters.bad_pixel_map_hdf5_path,
@@ -536,8 +536,8 @@ class Binning:
         return self._binned_data_array
 
     def bin_bad_pixel_map(
-        self, *, mask: Union[NDArray[numpy.int_], None]
-    ) -> Union[NDArray[numpy.int_], None]:
+        self, *, mask: Optional[NDArray[numpy.int_]]
+    ) -> Optional[NDArray[numpy.int_]]:
         """
         Computes a bad pixel map for a binned data frame.
 
@@ -751,8 +751,8 @@ class BinningPassthrough:
         return data.astype(numpy.float_)
 
     def bin_bad_pixel_map(
-        self, *, mask: Union[NDArray[numpy.int_], None]
-    ) -> Union[NDArray[numpy.int_], None]:
+        self, *, mask: Optional[NDArray[numpy.int_]]
+    ) -> Optional[NDArray[numpy.int_]]:
         """
         Computes a bad pixel map for the binned data frame.
 

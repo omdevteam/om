@@ -19,7 +19,7 @@
 #TODO: Docstring
 """
 
-from typing import Any, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
 import torch
@@ -40,8 +40,8 @@ class _PeakNetPeakDetectionParameters(BaseModel):
     path_config: str = Field(default=None)
     cheetah_geom: str
     min_num_peaks: int
-    bad_pixel_map_filename: Union[str, None] = Field(default=None)
-    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
@@ -95,8 +95,8 @@ class PeakNetPeakDetection(OmPeakDetectionProtocol):
             self._peaknet_parameters.bad_pixel_map_filename is not None
             and self._peaknet_parameters.bad_pixel_map_hdf5_path is not None
         ):
-            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-                Union[NDArray[numpy.int_], None],
+            self._bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
+                Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
                     hdf5_filename=self._peaknet_parameters.bad_pixel_map_filename,
                     hdf5_path=self._peaknet_parameters.bad_pixel_map_hdf5_path,

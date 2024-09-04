@@ -27,7 +27,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy
 import typer
@@ -111,7 +111,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
             _ParameterTweakerParameters.model_validate(parameters["crystallography"])
         )
 
-        self._img: Union[NDArray[numpy.float_], None] = None
+        self._img: Optional[NDArray[numpy.float_]] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
 

@@ -24,7 +24,7 @@ import collections
 import copy
 import math
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -194,7 +194,7 @@ def _parse_panel_entry(
             raise OmGeometryError("Invalid slow scan direction.")
     elif key.startswith("dim"):
         if panel["dim_structure"] is not None:
-            dim: List[Union[int, str, None]] = panel["dim_structure"]
+            dim: List[Optional[Union[int, str]]] = panel["dim_structure"]
         else:
             dim = []
         try:
@@ -259,7 +259,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         found_fs: int = 0
         found_placeholder: int = 0
         dim_index: int
-        entry: Union[int, str, None]
+        entry: Optional[Union[int, str]]
         for dim_index, entry in enumerate(panel["dim_structure"]):
             if entry is None:
                 raise OmGeometryError(
@@ -466,7 +466,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
         "max_ss": 0,
         "is_fsss": 99,
     }
-    default_dim: List[Union[int, str, None]] = ["ss", "fs"]
+    default_dim: List[Optional[Union[int, str]]] = ["ss", "fs"]
     hdf5_peak_path: str = ""
     line: str
     for line in text_lines:
@@ -854,7 +854,7 @@ class GeometryInformation:
 
     @classmethod
     def from_file(
-        cls, *, geometry_filename: str, geometry_format: Union[str, None] = None
+        cls, *, geometry_filename: str, geometry_format: Optional[str] = None
     ) -> "GeometryInformation":
         """
         Reads geometry description from file.
@@ -1046,7 +1046,7 @@ class DataVisualizer:
         self,
         *,
         data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
-        array_for_visualization: Union[NDArray[numpy.float_], None] = None,
+        array_for_visualization: Optional[NDArray[numpy.float_]] = None,
     ) -> NDArray[numpy.float_]:
         """
         Applies geometry information to a detector data frame.

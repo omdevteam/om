@@ -24,7 +24,7 @@ Serial Crystallography experiments.
 import signal
 import sys
 import time
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy
 import typer
@@ -81,7 +81,7 @@ class CrystallographyGui(OmGuiBase):
             tag="omdata",
         )
 
-        self._virtual_powder_plot_img: Union[NDArray[numpy.int_], None] = None
+        self._virtual_powder_plot_img: Optional[NDArray[numpy.int_]] = None
         self._img_center_x: int = 0
         self._img_center_y: int = 0
 

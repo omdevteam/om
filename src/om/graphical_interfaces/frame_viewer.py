@@ -26,7 +26,7 @@ import copy
 import signal
 import sys
 import time
-from typing import Annotated, Any, Deque, Dict, Tuple, Union
+from typing import Annotated, Any, Deque, Dict, Optional, Tuple, Union
 
 import numpy
 import typer
@@ -81,7 +81,7 @@ class FrameViewer(OmGuiBase):
             tag="omframedata",
         )
 
-        self._img: Union[NDArray[numpy.float_], None] = None
+        self._img: Optional[NDArray[numpy.float_]] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
 

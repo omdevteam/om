@@ -23,7 +23,7 @@ to external programs over a ZMQ socket.
 """
 import socket
 import sys
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import zmq
 
@@ -59,7 +59,7 @@ class ZmqDataBroadcaster:
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, data_broadcast_url: Union[str, None]) -> None:
+    def __init__(self, *, data_broadcast_url: Optional[str]) -> None:
         """
         Data-broadcasting socket for OnDA Monitors.
 
@@ -202,7 +202,7 @@ class ZmqResponder:
         self._zmq_poller.register(self._sock, zmq.POLLIN)
         log.info(f"Answering requests at {responding_url}")
 
-    def get_request(self) -> Union[Tuple[bytes, bytes], None]:
+    def get_request(self) -> Optional[Tuple[bytes, bytes]]:
         """
         Gets a request from the responding socket, if present.
 

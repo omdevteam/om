@@ -22,7 +22,7 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana software framework (used at the LCLS facility).
 """
 import sys
-from typing import Any, Dict, Generator, List, Type, Union
+from typing import Any, Dict, Generator, List, Optional, Type
 
 import numpy
 from pydantic import BaseModel, Field, ValidationError
@@ -47,7 +47,7 @@ except ImportError:
 
 class _PsanaDataEventHandlerParameters(BaseModel):
     required_data: List[str]
-    psana_calibration_directory: Union[str, None] = Field(default=None)
+    psana_calibration_directory: Optional[str] = Field(default=None)
 
 
 def _psana_offline_event_generator(

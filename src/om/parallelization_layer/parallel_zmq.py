@@ -22,7 +22,7 @@ This module contains a Parallelization Layer based on the MPI protocol.
 """
 import multiprocessing
 import sys
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import zmq
 from pydantic import BaseModel, ValidationError
@@ -111,7 +111,7 @@ def _om_processing_node(
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it
     # to the processing node.
-    final_data: Union[Dict[str, Any], None] = (
+    final_data: Optional[Dict[str, Any]] = (
         processing_layer.end_processing_on_processing_node(
             node_rank=rank, node_pool_size=node_pool_size
         )

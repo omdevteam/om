@@ -21,7 +21,7 @@ Generic data sources.
 This module contains Data Source classes that deal with data whose origin is not tied
 to a specific facility or experiment.
 """
-from typing import Any, Dict, List, Type, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 import numpy
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
@@ -60,7 +60,7 @@ class _FloatEntryParameters(BaseModel):
     value: float
 
     @field_validator("value")
-    def check_value(cls: Self, v: Union[float, None]) -> float:
+    def check_value(cls: Self, v: Optional[float]) -> float:
         if v is None:
             raise ValueError(
                 "The following entry must be present in the set of OM monitor "

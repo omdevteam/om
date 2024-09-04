@@ -23,7 +23,7 @@ Crystallography, based on OM but not designed to be run in real time.
 """
 from collections import deque
 from pathlib import Path
-from typing import Any, Deque, Dict, Tuple, Type, TypeVar, Union
+from typing import Any, Deque, Dict, Optional, Tuple, Type, TypeVar, Union
 
 import msgpack  # type: ignore
 import numpy
@@ -54,7 +54,7 @@ T = TypeVar("T")
 class _CheetahParameters(BaseModel):
     processed_directory: str
     status_file_update_interval: int
-    responding_url: Union[str, None] = Field(default=None)
+    responding_url: Optional[str] = Field(default=None)
     external_data_request_list_size: int = Field(default=20)
 
     @field_validator("status_file_update_interval")
@@ -322,7 +322,7 @@ class OmCheetahMixin:
         self,
         *,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -373,7 +373,7 @@ class OmCheetahMixin:
         self,
         *,
         node_rank: int,
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for Cheetah.
 
@@ -575,7 +575,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+    ) -> Optional[Dict[int, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and saves them to files.
 
@@ -604,7 +604,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 information.
         """
 
-        received_data: Union[Dict[str, Any], None] = self.common_collect_data(
+        received_data: Optional[Dict[str, Any]] = self.common_collect_data(
             processed_data=processed_data
         )
 
@@ -643,7 +643,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         self,
         *,
         node_rank: int,
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for Cheetah.
 
@@ -866,7 +866,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+    ) -> Optional[Dict[int, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -896,7 +896,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 information.
         """
         self._handle_external_requests()
-        received_data: Union[Dict[str, Any], None] = self.common_collect_data(
+        received_data: Optional[Dict[str, Any]] = self.common_collect_data(
             processed_data=processed_data
         )
 
@@ -961,7 +961,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for Cheetah Streaming.
 
@@ -1027,9 +1027,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
     def _handle_external_requests(self) -> None:
         # This function handles external requests sent to the crystallography monitor
         # over the responding network socket.
-        request: Union[Tuple[bytes, bytes], None] = (
-            self._responding_socket.get_request()
-        )
+        request: Optional[Tuple[bytes, bytes]] = self._responding_socket.get_request()
         if request:
             if request[1] == b"next":
                 self._request_list.append(request)

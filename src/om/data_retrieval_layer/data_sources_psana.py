@@ -24,7 +24,18 @@ software framework (used at the PETRA III facility).
 This module contains Data Source classes that deal with data retrieved from  the psana
 software framework (used at the LCLS facility).
 """
-from typing import Any, Callable, Dict, List, Tuple, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import numpy
 from numpy.typing import NDArray
@@ -169,7 +180,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        rayonix_psana: Union[NDArray[numpy.float_], None] = self._detector_interface(
+        rayonix_psana: Optional[NDArray[numpy.float_]] = self._detector_interface(
             event["data"]
         )
         if rayonix_psana is None:
@@ -207,7 +218,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        opal_psana: Union[NDArray[numpy.float_], None] = self._detector_interface(
+        opal_psana: Optional[NDArray[numpy.float_]] = self._detector_interface(
             event["data"]
         )
         if opal_psana is None:
@@ -253,11 +264,11 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
             A tuple, with two entries, storing the digitized waveform data from the
                 Acqiris detector.
         """
-        wftime: Union[NDArray[numpy.float_], None] = self._detector_interface.wftime(
+        wftime: Optional[NDArray[numpy.float_]] = self._detector_interface.wftime(
             event["data"]
         )
-        waveform: Union[NDArray[numpy.float_], None] = (
-            self._detector_interface.waveform(event["data"])
+        waveform: Optional[NDArray[numpy.float_]] = self._detector_interface.waveform(
+            event["data"]
         )
 
         if wftime is None or waveform is None:
@@ -299,7 +310,7 @@ class AssembledDetectorPsana(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        assembled_data: Union[NDArray[numpy.float_], None] = (
+        assembled_data: Optional[NDArray[numpy.float_]] = (
             self._detector_interface.image(event["data"])
         )
         if assembled_data is None:
@@ -337,7 +348,7 @@ class Wave8TotalIntensityPsana(
             The total intensity recorded by the Wave8 detector.
         """
 
-        wave8_total_intensity_data: Union[float, None] = self._detector_interface.image(
+        wave8_total_intensity_data: Optional[float] = self._detector_interface.image(
             event["data"]
         )
         if wave8_total_intensity_data is None:
@@ -434,7 +445,7 @@ class BeamEnergyFromEpicsVariablePsana(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        wavelength: Union[float, None] = self._detector_interface(event["data"])
+        wavelength: Optional[float] = self._detector_interface(event["data"])
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana via the "
@@ -543,7 +554,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: Union[NDArray[numpy.float_], NDArray[numpy.int_], None] = (
+        psana_data: Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]] = (
             self._data_retrieval_function(event["data"])
         )
         if psana_data is None:
@@ -657,7 +668,7 @@ class CspadPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        cspad_psana: Union[NDArray[numpy.float_], NDArray[numpy.int_], None] = (
+        cspad_psana: Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]] = (
             self._data_retrieval_function(event["data"])
         )
         if cspad_psana is None:
@@ -986,7 +997,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        current_evr_codes: Union[List[int], None] = self._detector_interface.eventCodes(
+        current_evr_codes: Optional[List[int]] = self._detector_interface.eventCodes(
             event["data"]
         )
         if current_evr_codes is None:

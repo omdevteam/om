@@ -23,7 +23,7 @@ This module contains a Parallelization Layer based on Python's multiprocessing m
 import queue
 import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -92,7 +92,7 @@ def _om_processing_node(
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it
     # to the processing node.
-    final_data: Union[Dict[str, Any], None] = (
+    final_data: Optional[Dict[str, Any]] = (
         processing_layer.end_processing_on_processing_node(
             node_rank=rank, node_pool_size=node_pool_size
         )
@@ -232,7 +232,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                    feedback_data: Optional[Dict[int, Dict[str, Any]]] = (
                         self._processing_layer.collect_data(
                             node_rank=self._rank,
                             node_pool_size=self._node_pool_size,

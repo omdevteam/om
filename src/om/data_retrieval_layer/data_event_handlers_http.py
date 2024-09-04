@@ -24,7 +24,7 @@ the HTTP/REST interface of detectors manufactured by company Dectris.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Literal, Type, Union, cast
+from typing import Any, Dict, Generator, List, Literal, Optional, Type, cast
 
 import requests  # type: ignore
 from pydantic import BaseModel, ValidationError
@@ -109,7 +109,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
-    ) -> Union[Literal["enabled", "disabled"], None]:
+    ) -> Optional[Literal["enabled", "disabled"]]:
         # Checks if the detector is available. If not, keeps retrying for 1 minute.
         # If detector is available, returns the state of the detector monitor mode.
         while count_down > 0:

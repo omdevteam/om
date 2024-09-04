@@ -23,7 +23,7 @@ from the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
-from typing import Any, Dict, Generator, List, NamedTuple, Type, Union
+from typing import Any, Dict, Generator, List, NamedTuple, Optional, Type, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -140,7 +140,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
     def _offline_event_generator(
         self, consumer: Any, consumer_group_id: str, stream_name: str
     ) -> Generator[_TypeAsapoEvent, None, None]:
-        stream_metadata: Union[Dict[str, Any], None] = None
+        stream_metadata: Optional[Dict[str, Any]] = None
         while not stream_metadata:
             try:
                 stream_metadata = consumer.get_stream_meta(stream_name)

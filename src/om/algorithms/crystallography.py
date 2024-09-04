@@ -23,7 +23,7 @@ Crystallography. Additionally, it contains the definitions of several typed
 dictionaries that store data produced or required by these algorithms.
 """
 import random
-from typing import Any, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
 
@@ -54,8 +54,8 @@ class _Peakfinder8PeakDetectionParameters(BaseModel):
     max_res: int
     fast_mode: bool = Field(default=False)
     num_pixel_per_bin_in_radial_statistics: int = Field(default=100)
-    bad_pixel_map_filename: Union[str, None] = Field(default=None)
-    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
@@ -190,8 +190,8 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._peakfinder8_parameters.bad_pixel_map_filename is not None
             and self._peakfinder8_parameters.bad_pixel_map_hdf5_path is not None
         ):
-            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-                Union[NDArray[numpy.int_], None],
+            self._bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
+                Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
                     hdf5_filename=self._peakfinder8_parameters.bad_pixel_map_filename,
                     hdf5_path=self._peakfinder8_parameters.bad_pixel_map_hdf5_path,
@@ -200,7 +200,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         else:
             self._bad_pixel_map = None
 
-        self._mask: Union[NDArray[numpy.int_], None] = None
+        self._mask: Optional[NDArray[numpy.int_]] = None
         self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
         self._radial_stats_pixel_index: Union[None, NDArray[numpy.int_]] = None
@@ -240,12 +240,10 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._nasics_x = layout_info["nasics_x"]
         self._nasics_y = layout_info["nasics_y"]
 
-    def get_bad_pixel_map(self) -> Union[NDArray[numpy.int_], None]:
+    def get_bad_pixel_map(self) -> Optional[NDArray[numpy.int_]]:
         return self._bad_pixel_map
 
-    def set_bad_pixel_map(
-        self, bad_pixel_map: Union[NDArray[numpy.int_], None]
-    ) -> None:
+    def set_bad_pixel_map(self, bad_pixel_map: Optional[NDArray[numpy.int_]]) -> None:
         self._bad_pixel_map = bad_pixel_map
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:

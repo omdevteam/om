@@ -22,7 +22,7 @@ This module contains classes and functions that allow external programs to recei
 from OnDA Monitors over a ZMQ socket.
 """
 from builtins import str as unicode_str
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional
 
 import zmq
 
@@ -84,7 +84,7 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
                 label matches this argument will be accepted and received.
         """
         QtCore.QObject.__init__(self)
-        self._url: Union[str, None] = url
+        self._url: Optional[str] = url
         self._subscription_string: str = tag
         self._zmq_context: Any = zmq.Context()
         self._zmq_subscribe: Any = None

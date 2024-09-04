@@ -20,7 +20,17 @@ This module contains the definitions of several typed dictionaries that store da
 produced or required by OM's functions and classes.
 """
 
-from typing import Any, Dict, Generator, List, Protocol, Tuple, TypedDict, Union
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Protocol,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
 import numpy
 from numpy.typing import NDArray
@@ -222,7 +232,7 @@ class TypePanel(TypedDict, total=True):
     max_adu: float
     data: str
     adu_per_eV: float
-    dim_structure: List[Union[int, str, None]]
+    dim_structure: List[Optional[Union[int, str]]]
     fsx: float
     fsy: float
     fsz: float
@@ -905,7 +915,7 @@ class OmProcessingProtocol(Protocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+    ) -> Optional[Dict[int, Dict[str, Any]]]:
         """
         Collects processed data from a processing node.
 
@@ -960,7 +970,7 @@ class OmProcessingProtocol(Protocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Executes end-of-processing actions on a processing node.
 

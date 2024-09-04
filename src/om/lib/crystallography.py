@@ -23,7 +23,7 @@ operations for Serial Crystallography (peak finding, radial profile analysis, pl
 generation, etc.).
 """
 from collections import deque
-from typing import Any, Deque, Dict, List, Tuple, Union, cast
+from typing import Any, Deque, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -59,8 +59,8 @@ class _CrystallographyParameters(BaseModel):
 
 class _MonitorParameters(BaseModel):
     crystallography: _CrystallographyParameters
-    peakfinder8_peak_detection: Union[Dict[str, Any], None] = Field(default=None)
-    peaknet_peak_detection: Union[Dict[str, Any], None] = Field(default=None)
+    peakfinder8_peak_detection: Optional[Dict[str, Any]] = Field(default=None)
+    peaknet_peak_detection: Optional[Dict[str, Any]] = Field(default=None)
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:

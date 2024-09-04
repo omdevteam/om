@@ -22,7 +22,7 @@ This module contains a Parallelization Layer based on the MPI protocol.
 """
 import sys
 from enum import Enum
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 from mpi4py import MPI
 
@@ -146,7 +146,7 @@ class MpiParallelization(OmParallelizationProtocol):
                                 exit(0)
                             else:
                                 continue
-                        feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                        feedback_data: Optional[Dict[int, Dict[str, Any]]] = (
                             self._processing_layer.collect_data(
                                 node_rank=self._rank,
                                 node_pool_size=self._mpi_size,
@@ -233,7 +233,7 @@ class MpiParallelization(OmParallelizationProtocol):
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it
             # to the processing node.
-            final_data: Union[Dict[str, Any], None] = (
+            final_data: Optional[Dict[str, Any]] = (
                 self._processing_layer.end_processing_on_processing_node(
                     node_rank=self._rank, node_pool_size=self._mpi_size
                 )

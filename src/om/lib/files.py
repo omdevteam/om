@@ -23,7 +23,7 @@ HDF5 format.
 """
 import sys
 from pathlib import Path
-from typing import Any, Dict, TextIO, Union
+from typing import Any, Dict, Optional, TextIO, Union
 
 import h5py  # type: ignore
 import numpy
@@ -41,7 +41,7 @@ def load_hdf5_data(
     *,
     hdf5_filename: str,
     hdf5_path: str,
-) -> Union[NDArray[numpy.int_], NDArray[numpy.float_], None]:
+) -> Optional[Union[NDArray[numpy.int_], NDArray[numpy.float_]]]:
     """
     Loads data from an HDF5 file.
 

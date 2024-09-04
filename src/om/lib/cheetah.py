@@ -26,7 +26,18 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 import pathlib
 import time
 from enum import Enum
-from typing import Any, Dict, List, NamedTuple, Set, TextIO, Tuple, Union, cast
+from typing import (
+    Any,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    TextIO,
+    Tuple,
+    Union,
+    cast,
+)
 
 import h5py  # type: ignore
 import hdf5plugin  # type: ignore
@@ -137,7 +148,7 @@ class TypeFrameListData(NamedTuple):
     """
 
     timestamp: numpy.float64
-    event_id: Union[str, None]
+    event_id: Optional[str]
     frame_is_hit: int
     filename: str
     index_in_file: int

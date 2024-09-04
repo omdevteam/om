@@ -22,7 +22,7 @@ This module contains an OnDA Monitor for Serial X-ray Crystallography experiment
 """
 from collections import deque
 from pathlib import Path
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -54,12 +54,12 @@ class _CrystallographyParameters(BaseModel):
     max_num_peaks_for_hit: int
     external_data_request_list_size: int = Field(default=20)
     pump_probe_experiment: bool = Field(default=False)
-    data_broadcast_url: Union[str, None] = Field(default=None)
-    responding_url: Union[str, None] = Field(default=None)
+    data_broadcast_url: Optional[str] = Field(default=None)
+    responding_url: Optional[str] = Field(default=None)
     speed_report_interval: int
     data_broadcast_interval: int
-    hit_frame_sending_interval: Union[int, None] = Field(default=None)
-    non_hit_frame_sending_interval: Union[int, None] = Field(default=None)
+    hit_frame_sending_interval: Optional[int] = Field(default=None)
+    non_hit_frame_sending_interval: Optional[int] = Field(default=None)
 
 
 class _OmParameters(BaseModel):
@@ -70,7 +70,7 @@ class _OmParameters(BaseModel):
 class _MonitorParameters(BaseModel):
     crystallography: _CrystallographyParameters
     om: _OmParameters
-    binning: Union[Dict[str, Any], None] = Field(default=None)
+    binning: Optional[Dict[str, Any]] = Field(default=None)
 
     @model_validator(mode="after")
     def check_binning_parameters(self) -> Self:
@@ -386,7 +386,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+    ) -> Optional[Dict[int, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -452,8 +452,8 @@ class CrystallographyProcessing(OmProcessingProtocol):
         # Plots
         curr_hit_rate_timestamp_history: Deque[float]
         curr_hit_rate_history: Deque[float]
-        curr_hit_rate_timestamp_history_dark: Union[Deque[float], None]
-        curr_hit_rate_history_dark: Union[Deque[float], None]
+        curr_hit_rate_timestamp_history_dark: Optional[Deque[float]]
+        curr_hit_rate_history_dark: Optional[Deque[float]]
         curr_virt_powd_plot_img: NDArray[numpy.int_]
         curr_peakogram: NDArray[numpy.float_]
         peakogram_radius_bin_size: float
@@ -552,7 +552,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Union[Dict[str, Any], None]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for the Crystallography Monitor.
 
@@ -606,9 +606,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         # over the responding network socket. It either changes the state of the
         # monitor (resetting accumulated data, for example) or returns some data to the
         # requesting party.
-        request: Union[Tuple[bytes, bytes], None] = (
-            self._responding_socket.get_request()
-        )
+        request: Optional[Tuple[bytes, bytes]] = self._responding_socket.get_request()
         if request:
             if request[1] == b"next":
                 self._request_list.append(request)
