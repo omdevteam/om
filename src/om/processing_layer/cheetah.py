@@ -250,7 +250,7 @@ class OmCheetahMixin:
 
         # Status file
         self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
-            parameters=self._monitor_parameters["cheetah"],
+            parameters=self._monitor_parameters,
         )
         self._status_file_writer.update_status(status="Not finished")
 
