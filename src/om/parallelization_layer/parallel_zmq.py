@@ -183,7 +183,7 @@ class ZmqParallelization(OmParallelizationProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"om"
                 f"{exception}"
             )

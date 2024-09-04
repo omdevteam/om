@@ -20,7 +20,7 @@ Retrieval of data from a ZMQ stream.
 
 This module contains Data Retrieval classes that deal with ZMQ data streams.
 """
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_zmq import (
     Jungfrau1MZmqDataEventHandler,
@@ -77,24 +77,12 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampJungfrau1MZmq(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdJungfrau1MZmq(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": Jungfrau1MZmq(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampJungfrau1MZmq,
+            "event_id": EventIdJungfrau1MZmq,
+            "detector_data": Jungfrau1MZmq,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (

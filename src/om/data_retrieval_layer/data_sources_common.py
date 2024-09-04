@@ -80,7 +80,7 @@ class OmJungfrau1MDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(
         self,
@@ -119,8 +119,8 @@ class OmJungfrau1MDataSourceMixin:
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
                 f"{exception}"
             )
 
@@ -261,8 +261,8 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
                 f"{exception}"
             )
 

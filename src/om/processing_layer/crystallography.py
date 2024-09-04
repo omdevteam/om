@@ -21,6 +21,7 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
 from collections import deque
+from pathlib import Path
 from typing import Any, Deque, Dict, List, Tuple, Union
 
 import numpy
@@ -63,13 +64,13 @@ class _CrystallographyParameters(BaseModel):
 
 class _OmParameters(BaseModel):
     source: str
-    configuration_file: str
+    configuration_file: Path
 
 
 class _MonitorParameters(BaseModel):
     crystallography: _CrystallographyParameters
     om: _OmParameters
-    binning: Dict[str, Any]
+    binning: Union[Dict[str, Any], None] = Field(default=None)
 
     @model_validator(mode="after")
     def check_binning_parameters(self) -> Self:
@@ -130,6 +131,17 @@ class CrystallographyProcessing(OmProcessingProtocol):
             geometry_filename=self._parameters.crystallography.geometry_file
         )
 
+        # Post-processing binning
+        if self._parameters.crystallography.post_processing_binning:
+            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
+                parameters=self._monitor_parameters["binning"],
+                layout_info=self._geometry_information.get_layout_info(),
+            )
+        else:
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
+
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -156,17 +168,6 @@ class CrystallographyProcessing(OmProcessingProtocol):
             parameters=self._monitor_parameters,
             geometry_information=self._geometry_information,
         )
-
-        # Post-processing binning
-        if self._parameters.crystallography.post_processing_binning:
-            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
-                parameters=self._monitor_parameters["binning"],
-                layout_info=self._geometry_information.get_layout_info(),
-            )
-        else:
-            self._post_processing_binning = BinningPassthrough(
-                layout_info=self._geometry_information.get_layout_info()
-            )
 
         # Frame sending
         self._send_hit_frame: bool = False
@@ -508,6 +509,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 tag="omdata",
                 message=omdata_message,
             )
+            print("DEBUG: Sent")
 
         # Data broadcast
         if "detector_data" in received_data:

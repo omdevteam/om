@@ -80,7 +80,7 @@ class _CrystallographyParameters(BaseModel):
 
 class _OmParameters(BaseModel):
     source: str
-    configuration_file: str
+    configuration_file: Path
 
 
 class _MonitorParameters(BaseModel):
@@ -109,7 +109,7 @@ class OmCheetahMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(self, *, parameters: Dict[str, Any]) -> None:
         """

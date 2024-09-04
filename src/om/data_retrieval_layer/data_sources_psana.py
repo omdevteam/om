@@ -83,7 +83,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(
         self,
@@ -125,8 +125,8 @@ class OmDetectorInterfacePsanaDataSourceMixin:
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
                 f"{exception}"
             )
 
@@ -435,7 +435,7 @@ class BeamEnergyFromEpicsVariablePsana(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        wavelength: Union[float, None] = self._detector_interface(event=event)
+        wavelength: Union[float, None] = self._detector_interface(event["data"])
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana via the "
@@ -493,7 +493,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"data_retrieval_layer/{data_source_name}"
                 f"{exception}"
             )
@@ -556,7 +556,9 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         # Rearranges the data into 'slab' format.
         psana_data_shape: Tuple[int, ...] = psana_data.shape
         psana_data_reshaped: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
-            psana_data.reshape(psana_data_shape[0] * psana_data_shape[1], 384)
+            psana_data.reshape(
+                psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]
+            )
         )
 
         return psana_data_reshaped
@@ -605,7 +607,7 @@ class CspadPsana(OmDataSourceProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"data_retrieval_layer/{data_source_name}"
                 f"{exception}"
             )
@@ -943,7 +945,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"data_retrieval_layer/{data_source_name}"
                 f"{exception}"
             )
@@ -1040,7 +1042,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"data_retrieval_layer/{data_source_name}"
                 f"{exception}"
             )

@@ -89,7 +89,7 @@ class ZmqDataBroadcaster:
         """
 
         if data_broadcast_url is None:
-            data_broadcast_url = get_current_machine_ip()
+            data_broadcast_url = f"tcp://{get_current_machine_ip()}:12321"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -178,7 +178,7 @@ class ZmqResponder:
         """
 
         if responding_url is None:
-            responding_url = get_current_machine_ip()
+            responding_url = f"tcp://{get_current_machine_ip()}:12322"
 
         self._blocking: bool = blocking
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no

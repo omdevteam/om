@@ -68,13 +68,13 @@ class OmBaseFileDataEventHandlerMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
+        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -108,6 +108,8 @@ class OmBaseFileDataEventHandlerMixin:
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        self._data_retrieval_parameters: Dict[str, Any] = parameters
+
         try:
             self._parameters: _FileDataEventHandlerParameters = (
                 _FileDataEventHandlerParameters.model_validate(parameters)
@@ -118,7 +120,7 @@ class OmBaseFileDataEventHandlerMixin:
             )
 
         self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
@@ -220,10 +222,19 @@ class PilatusFilesEventHandler(
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
@@ -239,9 +250,9 @@ class PilatusFilesEventHandler(
                 pathlib.Path(stripped_entry).stat().st_mtime
             )
 
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
 
             data_event["data"] = fabio.open(data_event["additional_info"]["full_path"])
 
@@ -281,9 +292,9 @@ class PilatusFilesEventHandler(
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -306,10 +317,19 @@ class PilatusFilesEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -340,7 +360,7 @@ class PilatusFilesEventHandler(
             pathlib.Path(event_id).stat().st_mtime
         )
         data_event["data"] = fabio.open(pathlib.Path(event_id))
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
         return self.extract_data(event=data_event)
@@ -437,10 +457,19 @@ class Jungfrau1MFilesDataEventHandler(
 
         print("Num frames current node:", node_rank, num_frames_curr_node)
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
@@ -452,9 +481,9 @@ class Jungfrau1MFilesDataEventHandler(
                 frames_curr_node
             )
 
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
 
             yield data_event
 
@@ -491,9 +520,9 @@ class Jungfrau1MFilesDataEventHandler(
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -516,10 +545,10 @@ class Jungfrau1MFilesDataEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -569,7 +598,7 @@ class Jungfrau1MFilesDataEventHandler(
             "file_timestamp": file_timestamp,
         }
 
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
 
@@ -632,10 +661,19 @@ class EigerFilesDataEventHandler(
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Dict[str, Any]] = {}
         data_event["additional_info"] = {}
@@ -652,9 +690,9 @@ class EigerFilesDataEventHandler(
             data_event["additional_info"]["file_modification_time"] = numpy.float64(
                 pathlib.Path(filename).stat().st_mtime
             )
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
             index: int
             for index in range(num_frames):
                 data_event["additional_info"]["index"] = index
@@ -693,9 +731,9 @@ class EigerFilesDataEventHandler(
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -718,10 +756,10 @@ class EigerFilesDataEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -759,7 +797,7 @@ class EigerFilesDataEventHandler(
         data_event["additional_info"]["file_modification_time"] = numpy.float64(
             pathlib.Path(filename).stat().st_mtime
         )
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
         data_event["additional_info"]["index"] = index
@@ -823,10 +861,19 @@ class RayonixMccdFilesEventHandler(
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
@@ -842,9 +889,9 @@ class RayonixMccdFilesEventHandler(
                 pathlib.Path(stripped_entry).stat().st_mtime
             )
 
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
 
             yield data_event
 
@@ -882,9 +929,9 @@ class RayonixMccdFilesEventHandler(
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -907,10 +954,19 @@ class RayonixMccdFilesEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -940,7 +996,7 @@ class RayonixMccdFilesEventHandler(
         data_event["additional_info"]["file_modification_time"] = numpy.float64(
             pathlib.Path(event_id).stat().st_mtime
         )
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
         return self.extract_data(event=data_event)
@@ -1004,10 +1060,19 @@ class Lambda1M5FilesDataEventHandler(
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Dict[str, Any]] = {}
 
@@ -1037,9 +1102,11 @@ class Lambda1M5FilesDataEventHandler(
                         pathlib.Path(filename).stat().st_mtime
                     ),
                 }
-                data_event["additional_info"]["timestamp"] = self._data_sources[
-                    "timestamp"
-                ].get_data(event=data_event)
+                data_event["additional_info"]["timestamp"] = (
+                    self._instantiated_data_sources["timestamp"].get_data(
+                        event=data_event
+                    )
+                )
                 yield data_event
 
     def extract_data(
@@ -1076,9 +1143,9 @@ class Lambda1M5FilesDataEventHandler(
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -1101,10 +1168,19 @@ class Lambda1M5FilesDataEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -1162,7 +1238,7 @@ class Lambda1M5FilesDataEventHandler(
                 pathlib.Path(filename).stat().st_mtime
             ),
         }
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
 

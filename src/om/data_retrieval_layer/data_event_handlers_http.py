@@ -24,7 +24,7 @@ the HTTP/REST interface of detectors manufactured by company Dectris.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Literal, Union, cast
+from typing import Any, Dict, Generator, List, Literal, Type, Union, cast
 
 import requests  # type: ignore
 from pydantic import BaseModel, ValidationError
@@ -53,7 +53,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
+        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -88,6 +88,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        self._data_retrieval_parameters: Dict[str, Any] = parameters
 
         try:
             self._parameters: _HttpDataEventHandlerParameters = (
@@ -99,7 +100,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
@@ -228,22 +229,34 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        del node_pool_size
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         while True:
             response: requests.Response = requests.get(f"{self._source}/images/next")
             if response.status_code == 200:
                 image_file: BytesIO = BytesIO(response.content)
                 data_event["additional_info"]["image_file"] = image_file
-                data_event["additional_info"]["timestamp"] = self._data_sources[
-                    "timestamp"
-                ].get_data(event=data_event)
+                data_event["additional_info"]["timestamp"] = (
+                    self._instantiated_data_sources["timestamp"].get_data(
+                        event=data_event
+                    )
+                )
 
                 yield data_event
 
@@ -293,9 +306,9 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         source_name: str
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:

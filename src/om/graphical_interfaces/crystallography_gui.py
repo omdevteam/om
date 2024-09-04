@@ -428,3 +428,7 @@ def main(
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyGui(url=url)
     sys.exit(app.exec_())
+
+
+def run() -> None:
+    typer.run(main)

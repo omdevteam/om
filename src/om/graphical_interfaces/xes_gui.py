@@ -223,3 +223,7 @@ def main(
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = XesGui(url, time_resolved)
     sys.exit(app.exec_())
+
+
+def run() -> None:
+    typer.run(main)

@@ -22,7 +22,7 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana software framework (used at the LCLS facility).
 """
 import sys
-from typing import Any, Dict, Generator, List, Union
+from typing import Any, Dict, Generator, List, Type, Union
 
 import numpy
 from pydantic import BaseModel, Field, ValidationError
@@ -80,7 +80,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
+        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -113,6 +113,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        self._data_retrieval_parameters: Dict[str, Any] = parameters
 
         try:
             self._parameters: _PsanaDataEventHandlerParameters = (
@@ -124,7 +125,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
@@ -150,10 +151,19 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
         psana_source: Any = psana.DataSource(self._source)
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         return psana_source
 
@@ -263,9 +273,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             # Recovers the timestamp from the psana event (as seconds from the Epoch)
             # and stores it in the event dictionary to be retrieved later.
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
 
             yield data_event
 
@@ -303,9 +313,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         source_name: str
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -379,7 +389,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
         # Recovers the timestamp from the psana event (as seconds from the Epoch)
         # and stores it in the event dictionary.
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
 

@@ -472,7 +472,7 @@ class OmDataSourceProtocol(Protocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Data Source classes.

@@ -115,7 +115,7 @@ def import_class_from_layer(
             # TODO: Fix types
             if exc_type is not None:
                 raise OmMissingLayerModuleError(
-                    f"The python module file {layer_name}.py cannot be found or loaded"
+                    f"The python module file {layer_name}.py cannot be found or loaded "
                     f"due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
@@ -134,7 +134,7 @@ def import_class_from_layer(
 
 def filter_data_sources(
     *,
-    data_sources: Dict[str, OmDataSourceProtocol],
+    data_sources: Dict[str, Type[OmDataSourceProtocol]],
     required_data: List[str],
 ) -> List[str]:
     """

@@ -21,7 +21,7 @@ Data retrieval from ASAP::O.
 This module contains Data Retrieval classes that deal with the ASAP::O software
 framework (used at the PETRA III facility).
 """
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
 from om.data_retrieval_layer.data_sources_asapo import (
@@ -76,22 +76,12 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampAsapo(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdAsapo(data_source_name="eventid", parameters=parameters),
-            "detector_data": DetectorDataAsapo(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": BeamEnergyAsapo(
-                data_source_name="beam_energy",
-                parameters=parameters,
-            ),
-            "detector_distance": DetectorDistanceAsapo(
-                data_source_name="detector_distance",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampAsapo,
+            "event_id": EventIdAsapo,
+            "detector_data": DetectorDataAsapo,
+            "beam_energy": BeamEnergyAsapo,
+            "detector_distance": DetectorDistanceAsapo,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
@@ -156,22 +146,12 @@ class PilatusAsapoDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampAsapo(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdAsapo(data_source_name="eventid", parameters=parameters),
-            "detector_data": DetectorDataAsapo(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampAsapo,
+            "event_id": EventIdAsapo,
+            "detector_data": DetectorDataAsapo,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(

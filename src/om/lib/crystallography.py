@@ -59,8 +59,8 @@ class _CrystallographyParameters(BaseModel):
 
 class _MonitorParameters(BaseModel):
     crystallography: _CrystallographyParameters
-    peakfinder8_peak_detection: Dict[str, Any]
-    peaknet_peak_detection: Dict[str, Any]
+    peakfinder8_peak_detection: Union[Dict[str, Any], None] = Field(default=None)
+    peaknet_peak_detection: Union[Dict[str, Any], None] = Field(default=None)
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:
@@ -149,11 +149,11 @@ class CrystallographyPeakFinding:
 
         try:
             self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
-                parameters["crystallography"]
+                parameters
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"crystallography"
                 f"{exception}"
             )
@@ -266,7 +266,7 @@ class CrystallographyPlots:
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section OM's configuration parameters: "
+                "Error parsing the following section of OM's configuration parameters: "
                 f"crystallography"
                 f"{exception}"
             )

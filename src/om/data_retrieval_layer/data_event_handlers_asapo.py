@@ -23,7 +23,7 @@ from the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
-from typing import Any, Dict, Generator, List, NamedTuple, Union
+from typing import Any, Dict, Generator, List, NamedTuple, Type, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -73,7 +73,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
+        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -108,6 +108,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        self._data_retrieval_parameters: Dict[str, Any] = parameters
+
         try:
             self._parameters: _AsapoDataEventHandlerParameters = (
                 _AsapoDataEventHandlerParameters.model_validate(parameters)
@@ -118,7 +120,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
         consumer: Any = asapo_consumer.create_consumer(
@@ -261,10 +263,19 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         """
         consumer: Any = self._initialize_asapo_consumer()
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
@@ -293,9 +304,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 "stream_metadata"
             ] = asapo_event.stream_metadata
 
-            data_event["additional_info"]["timestamp"] = self._data_sources[
-                "timestamp"
-            ].get_data(event=data_event)
+            data_event["additional_info"]["timestamp"] = (
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+            )
 
             yield data_event
 
@@ -333,9 +344,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         source_name: str
         for source_name in self._required_data_sources:
             try:
-                data[source_name] = self._data_sources[source_name].get_data(
-                    event=event
-                )
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -365,10 +376,18 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         )
         self._consumer: Any = self._initialize_asapo_consumer()
 
-        self._data_sources["timestamp"].initialize_data_source()
+        self._instantiated_data_sources = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
         source_name: str
         for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -413,7 +432,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
         # Recovers the timestamp from the ASAP::O event (as seconds from the Epoch)
         # and stores it in the event dictionary.
-        data_event["additional_info"]["timestamp"] = self._data_sources[
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
             "timestamp"
         ].get_data(event=data_event)
 

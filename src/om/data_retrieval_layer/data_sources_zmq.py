@@ -42,7 +42,7 @@ class OmBaseZmqDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(
         self,

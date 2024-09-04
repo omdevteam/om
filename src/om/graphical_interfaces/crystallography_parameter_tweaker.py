@@ -529,3 +529,7 @@ def main(
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyParameterTweaker(url=url, parameters=parameters)
     sys.exit(app.exec_())
+
+
+def run() -> None:
+    typer.run(main)

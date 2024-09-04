@@ -21,7 +21,7 @@ Retrieval and handling of data from the http/REST interface.
 This module contains Data Retrieval classes that deal with the HTTP/REST interface
 used by detectors manufactured by the company Dectris.
 """
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler
 from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
@@ -78,24 +78,12 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampEiger16MHttp(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdEiger16MHttp(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": Eiger16MHttp(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampEiger16MHttp,
+            "event_id": EventIdEiger16MHttp,
+            "detector_data": Eiger16MHttp,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (

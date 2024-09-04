@@ -35,15 +35,17 @@ peakfinder8_ext = Extension(
     name="om.algorithms._crystallography_cython",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
-    sources=[
-        "src/cython/peakfinder8.cpp",
-        "src/cython/_crystallography_cython.pyx",
-    ]
-    if OM_USE_CYTHON
-    else [
-        "src/cython/_crystallography_cython.cpp",
-        "src/cython/peakfinder8.cpp",
-    ],
+    sources=(
+        [
+            "src/cython/peakfinder8.cpp",
+            "src/cython/_crystallography_cython.pyx",
+        ]
+        if OM_USE_CYTHON
+        else [
+            "src/cython/_crystallography_cython.cpp",
+            "src/cython/peakfinder8.cpp",
+        ]
+    ),
     language="c++",
 )
 peakfinder8_ext.cython_directives = {"embedsignature": True}
@@ -51,15 +53,17 @@ peakfinder8_ext.cython_directives = {"embedsignature": True}
 binning_ext = Extension(
     name="om.algorithms._generic_cython",
     libraries=["stdc++"],
-    sources=[
-        "src/cython/binning.cpp",
-        "src/cython/_generic_cython.pyx",
-    ]
-    if OM_USE_CYTHON
-    else [
-        "src/cython/_generic_cython.cpp",
-        "src/cython//binning.cpp",
-    ],
+    sources=(
+        [
+            "src/cython/binning.cpp",
+            "src/cython/_generic_cython.pyx",
+        ]
+        if OM_USE_CYTHON
+        else [
+            "src/cython/_generic_cython.cpp",
+            "src/cython//binning.cpp",
+        ]
+    ),
     language="c++",
 )
 binning_ext.cython_directives = {"embedsignature": True}
@@ -148,17 +152,17 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "om_monitor.py=om.monitor:main",
-            "om_jungfrau_dark.py=om.tools.jungfrau_dark:main",
-            "om_jungfrau_zmq_receiver.py=om.tools.jungfrau_zmq_receiver:main",
+            "om_monitor.py=om.monitor:run",
+            "om_jungfrau_dark.py=om.tools.jungfrau_dark:run",
+            "om_jungfrau_zmq_receiver.py=om.tools.jungfrau_zmq_receiver:run",
         ],
         "gui_scripts": [
-            "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:main",
-            "om_frame_viewer.py=om.graphical_interfaces.frame_viewer:main",
+            "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:run",
+            "om_frame_viewer.py=om.graphical_interfaces.frame_viewer:run",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
-            "crystallography_parameter_tweaker:main",
-            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
-            "om_swaxs_gui.py=om.graphical_interfaces." "swaxs_gui:main",
+            "crystallography_parameter_tweaker:run",
+            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:run",
+            "om_swaxs_gui.py=om.graphical_interfaces." "swaxs_gui:run",
         ],
     },
     ext_modules=extensions,

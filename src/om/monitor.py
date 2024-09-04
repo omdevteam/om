@@ -139,8 +139,9 @@ def main(
             )
             sys.exit(1)
 
-    parameters.om.source = source
-    parameters.om.node_pool_size = node_pool_size
+    monitor_parameters["om"]["source"] = source
+    monitor_parameters["om"]["configuration_file"] = config
+    monitor_parameters["data_retrieval_layer"]["node_pool_size"] = node_pool_size
 
     parallelization_layer_class: Type[OmParallelizationProtocol] = (
         import_class_from_layer(
@@ -157,7 +158,7 @@ def main(
     )
 
     processing_layer: OmProcessingProtocol = processing_layer_class(
-        parameters=parameters.model_dump()
+        parameters=monitor_parameters
     )
     data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
         parameters=monitor_parameters["data_retrieval_layer"],
@@ -170,3 +171,7 @@ def main(
     )
 
     parallelization_layer.start()
+
+
+def run() -> None:
+    typer.run(main)

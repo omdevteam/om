@@ -45,7 +45,7 @@ from ._crystallography_cython import peakfinder_8  # type: ignore
 
 class _Peakfinder8PeakDetectionParameters(BaseModel):
     max_num_peaks: int
-    adc_thresh: float
+    adc_threshold: float
     minimum_snr: float
     min_pixel_count: int
     max_pixel_count: int
@@ -178,7 +178,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._nasics_x: int = layout_info["nasics_x"]
         self._nasics_y: int = layout_info["nasics_y"]
         self._max_num_peaks: float = self._peakfinder8_parameters.max_num_peaks
-        self._adc_thresh: float = self._peakfinder8_parameters.adc_thresh
+        self._adc_thresh: float = self._peakfinder8_parameters.adc_threshold
         self._minimum_snr: float = self._peakfinder8_parameters.minimum_snr
         self._min_pixel_count: int = self._peakfinder8_parameters.min_pixel_count
         self._max_pixel_count: int = self._peakfinder8_parameters.max_pixel_count

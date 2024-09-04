@@ -146,11 +146,6 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
 
-        if "om" not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: " "om"
-            )
-
         multiprocessing_parallelization_parameters: (
             _MultiProcessingParallelizationParameters
         ) = _MultiProcessingParallelizationParameters.model_validate(parameters)

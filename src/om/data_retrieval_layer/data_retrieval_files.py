@@ -20,7 +20,7 @@ Data retrieval from files.
 
 This module contains Data Retrieval classes that deal with files.
 """
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_files import (
     EigerFilesDataEventHandler,
@@ -91,24 +91,12 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdFromFilePath(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": PilatusSingleFrameFiles(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampFromFileModificationTime,
+            "event_id": EventIdFromFilePath,
+            "detector_data": PilatusSingleFrameFiles,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = PilatusFilesEventHandler(
@@ -177,24 +165,12 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampJungfrau1MFiles(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdJungfrau1MFiles(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": Jungfrau1MFiles(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampJungfrau1MFiles,
+            "event_id": EventIdJungfrau1MFiles,
+            "detector_data": Jungfrau1MFiles,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
@@ -262,24 +238,12 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdEiger16MFiles(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": Eiger16MFiles(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampFromFileModificationTime,
+            "event_id": EventIdEiger16MFiles,
+            "detector_data": Eiger16MFiles,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
@@ -345,24 +309,12 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdFromFilePath(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": RayonixMccdSingleFrameFiles(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV",
-                parameters=parameters,
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampFromFileModificationTime,
+            "event_id": EventIdFromFilePath,
+            "detector_data": RayonixMccdSingleFrameFiles,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
@@ -434,23 +386,12 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": TimestampFromFileModificationTime(
-                data_source_name="timestamp", parameters=parameters
-            ),
-            "event_id": EventIdLambda1M5Files(
-                data_source_name="eventid", parameters=parameters
-            ),
-            "detector_data": Lambda1M5Files(
-                data_source_name="detector", parameters=parameters
-            ),
-            "beam_energy": FloatValueFromConfiguration(
-                data_source_name="fallback_beam_energy_in_eV", parameters=parameters
-            ),
-            "detector_distance": FloatValueFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                parameters=parameters,
-            ),
+        data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
+            "timestamp": TimestampFromFileModificationTime,
+            "event_id": EventIdLambda1M5Files,
+            "detector_data": Lambda1M5Files,
+            "beam_energy": FloatValueFromConfiguration,
+            "detector_distance": FloatValueFromConfiguration,
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = (

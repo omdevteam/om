@@ -310,3 +310,7 @@ def main(
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = FrameViewer(url=url)
     sys.exit(app.exec_())
+
+
+def run() -> None:
+    typer.run(main)
