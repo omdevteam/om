@@ -23,7 +23,7 @@ by OM.
 """
 import time
 from itertools import cycle
-from typing import Any, Dict, Iterator, Union
+from typing import Iterator, Union
 
 from om.lib.logging import log
 
@@ -36,10 +36,10 @@ class EventCounter:
     def __init__(
         self,
         *,
-        speed_report_interval: int,
-        data_broadcast_interval: int,
-        hit_frame_sending_interval: Union[int, None],
-        non_hit_frame_sending_interval: Union[int, None],
+        speed_report_interval: Union[int, None] = None,
+        data_broadcast_interval: Union[int, None] = None,
+        hit_frame_sending_interval: Union[int, None] = None,
+        non_hit_frame_sending_interval: Union[int, None] = None,
         node_pool_size: int,
     ) -> None:
         """
@@ -82,9 +82,9 @@ class EventCounter:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = speed_report_interval
+        self._speed_report_interval: Union[int, None] = speed_report_interval
 
-        self._data_broadcast_interval: int = data_broadcast_interval
+        self._data_broadcast_interval: Union[int, None] = data_broadcast_interval
 
         self._hit_frame_sending_interval: Union[int, None] = hit_frame_sending_interval
 

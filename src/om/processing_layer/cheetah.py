@@ -73,9 +73,6 @@ class _CrystallographyParameters(BaseModel):
     min_num_peaks_for_hit: int
     max_num_peaks_for_hit: int
     speed_report_interval: int
-    data_broadcast_interval: int
-    hit_frame_sending_interval: Union[int, None] = Field(default=None)
-    non_hit_frame_sending_interval: Union[int, None] = Field(default=None)
 
 
 class _OmParameters(BaseModel):
@@ -235,15 +232,6 @@ class OmCheetahMixin:
         self._event_counter: EventCounter = EventCounter(
             speed_report_interval=(
                 self._parameters.crystallography.speed_report_interval
-            ),
-            data_broadcast_interval=(
-                self._parameters.crystallography.data_broadcast_interval
-            ),
-            hit_frame_sending_interval=(
-                self._parameters.crystallography.hit_frame_sending_interval
-            ),
-            non_hit_frame_sending_interval=(
-                self._parameters.crystallography.non_hit_frame_sending_interval
             ),
             node_pool_size=node_pool_size,
         )
