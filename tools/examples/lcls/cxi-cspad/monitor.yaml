@@ -1,0 +1,54 @@
+om:
+  parallelization_layer: MpiParallelization
+  #parallelization_layer: MultiprocessingParallelization
+  data_retrieval_layer: CxiLclsCspadDataRetrieval
+  processing_layer: CrystallographyProcessing
+
+data_retrieval_layer:
+  detector_data:
+    name: DscCsPad 
+  beam_energy:
+    name: SIOC:SYS0:ML00:AO192
+  detector_distance:
+    name: DscCsPad_z
+  #psana_calibration_directory: /reg/d/psdm/cxi/cxitut13/calib
+  required_data:
+    - "detector_data"
+    - "beam_energy"
+    - "detector_distance"
+    - "timestamp"
+    - "event_id"
+
+crystallography:
+  data_broadcast_url: null
+  responding_url: null
+  data_broadcast_interval: 20
+  geometry_file: cxi06216_v4-predrefine.geom
+  min_num_peaks_for_hit: 8
+  max_num_peaks_for_hit: 5000
+  running_average_window_size: 200
+  geometry_is_optimized: true
+  speed_report_interval: 1
+  hit_frame_sending_interval: 20
+  non_hit_frame_sending_interval: 20
+
+correction:
+  dark_dfilename: null
+  dark_hdf5_path: null
+  mask_dfilename: null
+  mask_hdf5_path: null
+  gain_dfilename: null
+  gain_hdf5_path: null
+
+peakfinder8_peak_detection:
+  detector_type: cspad
+  max_num_peaks: 2048
+  adc_threshold: 250.0
+  minimum_snr: 6.0
+  min_pixel_count: 2
+  max_pixel_count: 30
+  local_bg_radius: 4
+  bad_pixel_map_filename: null
+  bad_pixel_map_hdf5_path: /data/data
+  min_res: 10
+  max_res: 1000

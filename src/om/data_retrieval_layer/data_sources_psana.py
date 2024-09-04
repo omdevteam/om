@@ -50,21 +50,20 @@ T = TypeVar("T")
 
 
 class _DetectorInterfacePsanaParameters(BaseModel):
-    name: str
+    psana_name: str
 
 
 class _AreaDetectorPsanaParameters(BaseModel):
-    name: str
+    psana_name: str
     calibration: bool = Field(default=True)
 
 
 class _CspadPsanaParameters(BaseModel):
-    name: str
+    psana_name: str
     calibration: bool = Field(default=True)
 
 
 class _EvrCodesPsanaParameters(BaseModel):
-    name: str
     evr_source: str
     event_code: int
 
@@ -140,7 +139,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        self._detector_interface: Any = psana.Detector(self._parameters.name)
+        self._detector_interface: Any = psana.Detector(self._parameters.psana_name)
 
 
 class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
@@ -176,7 +175,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
         if rayonix_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
         return rayonix_psana
 
@@ -214,7 +213,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
         if opal_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
         return opal_psana
 
@@ -264,7 +263,7 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
         if wftime is None or waveform is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
 
         return (wftime, waveform)
@@ -306,7 +305,7 @@ class AssembledDetectorPsana(
         if assembled_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
 
         return assembled_data
@@ -344,7 +343,7 @@ class Wave8TotalIntensityPsana(
         if wave8_total_intensity_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
 
         return wave8_total_intensity_data
@@ -439,7 +438,7 @@ class BeamEnergyFromEpicsVariablePsana(
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana via the "
-                f"{self._parameters.name} data source."
+                f"{self._parameters.psana_name} data source."
             )
         h: float = 6.626070e-34  # J.m
         c: float = 2.99792458e8  # m/s
@@ -508,7 +507,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = psana.Detector(self._parameters.name)
+        detector_interface: Any = psana.Detector(self._parameters.psana_name)
 
         if self._parameters.calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
@@ -550,7 +549,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         if psana_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
 
         # Rearranges the data into 'slab' format.
@@ -622,7 +621,7 @@ class CspadPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = psana.Detector(self._parameters.name)
+        detector_interface: Any = psana.Detector(self._parameters.psana_name)
 
         if self._parameters.calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
@@ -664,7 +663,7 @@ class CspadPsana(OmDataSourceProtocol):
         if cspad_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.name}"
+                f"{self._parameters.psana_name}"
             )
 
         # Rearranges the data into 'slab' format.

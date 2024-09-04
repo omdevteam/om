@@ -509,7 +509,6 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 tag="omdata",
                 message=omdata_message,
             )
-            print("DEBUG: Sent")
 
         # Data broadcast
         if "detector_data" in received_data:

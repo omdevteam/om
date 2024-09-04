@@ -1,0 +1,58 @@
+om:
+  parallelization_layer: MpiParallelization
+  data_retrieval_layer: CxiLclsDataRetrieval
+  processing_layer: CrystallographyProcessing
+
+data_retrieval_layer:
+  detector_data:
+    psana_name: jungfrau4M
+  beam_energy:
+    psana_name: SIOC:SYS0:ML00:AO192
+  detector_distance:
+    psana_name: Jungfrau_z
+  optical_laser_active:
+    evr_source: evr2
+    event_code: 41
+  required_data:
+    - "detector_data"
+    - "beam_energy"
+    - "detector_distance"
+    - "timestamp"
+    - "event_id"
+    - "optical_laser_active"
+
+crystallography:
+  num_frames_in_event_to_process: null
+  data_broadcast_url: null
+  responding_url: null
+  data_broadcast_interval: 20
+  geometry_file: jungfrau4M.geom
+  min_num_peaks_for_hit: 8
+  max_num_peaks_for_hit: 5000
+  running_average_window_size: 200
+  geometry_is_optimized: true
+  speed_report_interval: 1
+  hit_frame_sending_interval: 5
+  non_hit_frame_sending_interval: 10
+  pump_probe_experiment: true
+
+correction:
+  dark_dfilename: null
+  dark_hdf5_path: null
+  mask_dfilename: null
+  mask_hdf5_path: null
+  gain_dfilename: null
+  gain_hdf5_path: null
+
+peakfinder8_peak_detection:
+  detector_type: jungfrau4M
+  max_num_peaks: 2048
+  adc_threshold: 250.0
+  minimum_snr: 6.0
+  min_pixel_count: 2
+  max_pixel_count: 30
+  local_bg_radius: 4
+  bad_pixel_map_filename: null
+  bad_pixel_map_hdf5_path: /data/data
+  min_res: 10
+  max_res: 1000

@@ -1,0 +1,46 @@
+om:
+  #parallelization_layer: MpiParallelization
+  parallelization_layer: MultiprocessingParallelization
+  data_retrieval_layer: PilatusFilesDataRetrieval
+  processing_layer: CrystallographyProcessing
+
+data_retrieval_layer:
+  node_pool_size: 3
+  detector_distance:
+    value: 156
+  beam_energy:
+    value: 20000
+  required_data:
+  - detector_data
+  - beam_energy
+  - detector_distance
+  - timestamp
+  - event_id
+
+crystallography:
+  data_broadcast_url:
+  data_responding__url:
+  data_broadcast_interval: 30
+  geometry_file: pilatus.geom
+  min_num_peaks_for_hit: 10
+  max_num_peaks_for_hit: 5000
+  running_average_window_size: 200
+  geometry_is_optimized: true
+  speed_report_interval: 1
+  hit_frame_sending_interval: 5
+  non_hit_frame_sending_interval: 10
+  peakogram_radius_bin_size: 50
+
+peakfinder8_peak_detection:
+  detector_type: pilatus
+  max_num_peaks: 2048
+  adc_threshold: 0.0
+  minimum_snr: 6.0
+  min_pixel_count: 1
+  max_pixel_count: 300
+  local_bg_radius: 4
+  bad_pixel_map_filename:
+  bad_pixel_map_hdf5_path: /data/data
+  min_res: 50
+  max_res: 2000
+  fast_mode: True
