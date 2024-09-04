@@ -256,13 +256,13 @@ class OmCheetahMixin:
 
         # List files
         self._list_files_writer: CheetahListFilesWriter = CheetahListFilesWriter(
-            parameters=self._monitor_parameters["cheetah"],
+            parameters=self._monitor_parameters,
         )
 
         # Class sums collection
         self._class_sum_collector: CheetahClassSumsCollector = (
             CheetahClassSumsCollector(
-                parameters=self._monitor_parameters["cheetah"], num_classes=2
+                parameters=self._monitor_parameters, num_classes=2
             )
         )
 
