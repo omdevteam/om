@@ -26,6 +26,7 @@ framework (used at the PETRA III facility).
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
+from om.data_retrieval_layer.data_retrieval_common import data_source_overrides
 from om.data_retrieval_layer.data_sources_asapo import (
     BeamEnergyAsapo,
     DetectorDataAsapo,
@@ -85,6 +86,9 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": BeamEnergyAsapo,
             "detector_distance": DetectorDistanceAsapo,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
             source=source,
@@ -155,6 +159,9 @@ class PilatusAsapoDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
             source=source,

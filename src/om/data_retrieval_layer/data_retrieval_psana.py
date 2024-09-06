@@ -26,6 +26,7 @@ This module contains Data Retrieval classes that deal with the psana software fr
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
+from om.data_retrieval_layer.data_retrieval_common import data_source_overrides
 from om.data_retrieval_layer.data_sources_psana import (
     AreaDetectorPsana,
     BeamEnergyFromEpicsVariablePsana,
@@ -96,6 +97,9 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
             "post_sample_intensity": DiodeTotalIntensityPsana,
             "lcls_extra": LclsExtraPsana,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
@@ -306,6 +310,9 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
             "xrays_active": EvrCodesPsana,
             "lcls_extra": LclsExtraPsana,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
@@ -375,6 +382,9 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
             "xrays_active": EvrCodesPsana,
             "lcls_extra": LclsExtraPsana,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,

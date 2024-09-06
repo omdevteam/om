@@ -24,14 +24,17 @@ to a specific facility or experiment.
 
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from pathlib import Path
+from typing import Any, Dict, List, Type, TypeVar, Union, cast
 
 import numpy
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from numpy.typing import NDArray
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
 from om.algorithms.calibration import Jungfrau1MCalibration
 from om.lib.exceptions import OmConfigurationFileSyntaxError
+from om.lib.files import load_hdf5_data
 from om.lib.protocols import OmDataSourceProtocol
 
 T = TypeVar("T")
@@ -59,18 +62,17 @@ class _Jungfrau1MFilesParameters(BaseModel):
         return self
 
 
-class _FloatEntryParameters(BaseModel):
+class _FloatValueParameters(BaseModel):
     value: float
 
-    @field_validator("value")
-    def check_value(cls: Self, v: Optional[float]) -> float:
-        if v is None:
-            raise ValueError(
-                "The following entry must be present in the set of OM monitor "
-                "parameters for every data source of type "
-                "FloatValueFromConfiguration: value",
-            )
-        return v
+
+class _IntValueParameters(BaseModel):
+    value: int
+
+
+class _ArrayParameters(BaseModel):
+    hdf5_filename: Path
+    hdf5_path: str
 
 
 @dataclass
@@ -268,8 +270,8 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
             )
 
         try:
-            self._parameters: _FloatEntryParameters = (
-                _FloatEntryParameters.model_validate(parameters[data_source_name])
+            self._parameters: _FloatValueParameters = (
+                _FloatValueParameters.model_validate(parameters[data_source_name])
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
@@ -312,3 +314,174 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
             The value of the configuration parameter.
         """
         return self._parameters.value
+
+
+class IntValueFromConfiguration(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: Dict[str, Any],
+    ):
+        """
+        Numerical values from configuration parameters.
+
+        This class deals with the retrieval of numerical values from OM's configuration
+        parameters.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+
+        if data_source_name not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                f"data retrieval_layer/{data_source_name}"
+            )
+
+        try:
+            self._parameters: _IntValueParameters = _IntValueParameters.model_validate(
+                parameters[data_source_name]
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
+                f"{exception}"
+            )
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the numerical configuration parameter data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves the value of the `{data_source_name}` entry from OM's
+        `data_retrieval_layer` configuration parameter group, and stores it for
+        subsequent recall. The function treats the entry as a required parameter (i.e.:
+        it raises an exception if the parameter is not available), and requires its
+        value to be a float number.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> float:
+        """
+        Retrieves the numerical value of an OM's configuration parameter
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function returns the value of the configuration parameter retrieved by the
+        the Data Source.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The value of the configuration parameter.
+        """
+        return self._parameters.value
+
+
+class ArrayFromHdf5File(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: Dict[str, Any],
+    ):
+        """
+        Numerical values from configuration parameters.
+
+        This class deals with the retrieval of numerical values from OM's configuration
+        parameters.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+
+        if data_source_name not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                f"data retrieval_layer/{data_source_name}"
+            )
+
+        try:
+            self._parameters: _ArrayParameters = _ArrayParameters.model_validate(
+                parameters[data_source_name]
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
+                f"{exception}"
+            )
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the numerical configuration parameter data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves the value of the `{data_source_name}` entry from OM's
+        `data_retrieval_layer` configuration parameter group, and stores it for
+        subsequent recall. The function treats the entry as a required parameter (i.e.:
+        it raises an exception if the parameter is not available), and requires its
+        value to be a float number.
+        """
+        self._array: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = load_hdf5_data(
+            hdf5_filename=self._parameters.hdf5_filename,
+            hdf5_path=self._parameters.hdf5_path,
+        )
+
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        """
+        Retrieves the numerical value of an OM's configuration parameter
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function returns the value of the configuration parameter retrieved by the
+        the Data Source.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The value of the configuration parameter.
+        """
+        return self._array

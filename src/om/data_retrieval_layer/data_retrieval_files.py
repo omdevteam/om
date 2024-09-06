@@ -31,6 +31,7 @@ from om.data_retrieval_layer.data_event_handlers_files import (
     PilatusFilesEventHandler,
     RayonixMccdFilesEventHandler,
 )
+from om.data_retrieval_layer.data_retrieval_common import data_source_overrides
 from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.data_retrieval_layer.data_sources_files import (
     Eiger16MFiles,
@@ -100,6 +101,9 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = PilatusFilesEventHandler(
             source=source,
@@ -174,6 +178,9 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             Jungfrau1MFilesDataEventHandler(
@@ -247,6 +254,9 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             EigerFilesDataEventHandler(
@@ -318,6 +328,9 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             RayonixMccdFilesEventHandler(
@@ -395,6 +408,9 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             Lambda1M5FilesDataEventHandler(

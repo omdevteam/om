@@ -20,6 +20,7 @@
 """
 
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
@@ -42,7 +43,7 @@ class _PeakNetPeakDetectionParameters(BaseModel):
     path_config: str = Field(default=None)
     cheetah_geom: str
     min_num_peaks: int
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_filename: Optional[Path] = Field(default=None)
     bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")

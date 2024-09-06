@@ -25,7 +25,7 @@ HDF5 format.
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, TextIO, Union
+from typing import Any, Dict, TextIO, Union
 
 import h5py  # type: ignore
 import numpy
@@ -41,9 +41,9 @@ from om.lib.exceptions import (
 
 def load_hdf5_data(
     *,
-    hdf5_filename: str,
+    hdf5_filename: Path,
     hdf5_path: str,
-) -> Optional[Union[NDArray[numpy.int_], NDArray[numpy.float_]]]:
+) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
     """
     Loads data from an HDF5 file.
 

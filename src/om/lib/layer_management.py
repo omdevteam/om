@@ -130,7 +130,7 @@ def import_class_from_layer(
         return imported_class
     except AttributeError:
         raise OmMissingLayerClassError(
-            f"The {class_name} class cannot be found in the {layer_name} file."
+            f"The {class_name} class cannot be found in the {layer_name} layer."
         )
 
 

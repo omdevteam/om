@@ -26,6 +26,7 @@ used by detectors manufactured by the company Dectris.
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler
+from om.data_retrieval_layer.data_retrieval_common import data_source_overrides
 from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
 from om.data_retrieval_layer.data_sources_http import (
     Eiger16MHttp,
@@ -87,6 +88,9 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
             "beam_energy": FloatValueFromConfiguration,
             "detector_distance": FloatValueFromConfiguration,
         }
+        data_sources = data_source_overrides(
+            data_sources=data_sources, parameters=parameters
+        )
 
         self._data_event_handler: OmDataEventHandlerProtocol = (
             EigerHttpDataEventHandler(

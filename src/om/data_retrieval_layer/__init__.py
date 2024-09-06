@@ -71,4 +71,5 @@ except ModuleNotFoundError:
     pass
 
 
+from .data_sources_common import FloatValueFromConfiguration
 from .event_retrieval import OmEventDataRetrieval  # noqa: F401

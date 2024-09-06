@@ -31,11 +31,11 @@ crystallography:
   non_hit_frame_sending_interval: 20
 
 correction:
-  dark_dfilename: null
+  dark_filename: null
   dark_hdf5_path: null
-  mask_dfilename: null
+  mask_filename: null
   mask_hdf5_path: null
-  gain_dfilename: null
+  gain_filename: null
   gain_hdf5_path: null
 
 peakfinder8_peak_detection:
