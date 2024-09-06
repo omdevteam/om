@@ -20,6 +20,8 @@ OnDA Test Monitor.
 
 This module contains an OnDA Monitor that can be used for testing.
 """
+
+
 import time
 from typing import Any, Dict, Optional, Tuple
 
@@ -27,8 +29,8 @@ from pydantic import BaseModel, Field, ValidationError
 
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.logging import log
+from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.typing import OmProcessingProtocol
 
 
 class _CrystallographyParameters(BaseModel):

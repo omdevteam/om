@@ -21,6 +21,8 @@ Algorithms for the calibration of raw detector data frames.
 This module contains algorithms that calibrate raw detector data frames, preparing them
 for data extraction,
 """
+
+
 from typing import Any, BinaryIO, List, Tuple
 
 import h5py  # type: ignore
@@ -74,12 +76,10 @@ class Jungfrau1MCalibration:
                 self._dark[gain, 512 * panel_id : 512 * (panel_id + 1), :] = dark_file[
                     "gain%d" % gain
                 ][:]
-                self._gain[
-                    gain, 512 * panel_id : 512 * (panel_id + 1), :
-                ] = numpy.fromfile(
-                    gain_file, dtype=numpy.float64, count=1024 * 512
-                ).reshape(
-                    (512, 1024)
+                self._gain[gain, 512 * panel_id : 512 * (panel_id + 1), :] = (
+                    numpy.fromfile(
+                        gain_file, dtype=numpy.float64, count=1024 * 512
+                    ).reshape((512, 1024))
                 )
             gain_file.close()
             dark_file.close()

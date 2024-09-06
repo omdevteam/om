@@ -18,13 +18,15 @@
 """
 This module contains classes that deals with the retrieval of single standalone events.
 """
+
+
 from typing import Any, Dict, Type
 
 from pydantic import BaseModel, ValidationError
 
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.layer_management import import_class_from_layer
-from om.typing import OmDataEventHandlerProtocol, OmDataRetrievalProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataRetrievalProtocol
 
 
 class _OmParameters(BaseModel):

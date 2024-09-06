@@ -1,17 +1,15 @@
 om:
   parallelization_layer: MpiParallelization
-  #parallelization_layer: MultiprocessingParallelization
   data_retrieval_layer: CxiLclsCspadDataRetrieval
   processing_layer: CrystallographyProcessing
 
 data_retrieval_layer:
   detector_data:
-    name: DscCsPad 
+    psana_name: DscCsPad 
   beam_energy:
-    name: SIOC:SYS0:ML00:AO192
+    psana_name: SIOC:SYS0:ML00:AO192
   detector_distance:
-    name: DscCsPad_z
-  #psana_calibration_directory: /reg/d/psdm/cxi/cxitut13/calib
+    psana_name: DscCsPad_z
   required_data:
     - "detector_data"
     - "beam_energy"

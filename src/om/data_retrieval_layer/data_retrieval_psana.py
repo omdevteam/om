@@ -21,6 +21,8 @@ Retrieval of data from psana.
 This module contains Data Retrieval classes that deal with the psana software framework
 (used at the LCLS facility).
 """
+
+
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
@@ -37,7 +39,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     RayonixPsana,
     TimestampPsana,
 )
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

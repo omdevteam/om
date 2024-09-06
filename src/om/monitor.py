@@ -21,6 +21,7 @@ OM's main function.
 This module contains the main function that tarts an OnDA Monitor.
 """
 
+
 import signal
 import sys
 from pathlib import Path
@@ -34,7 +35,7 @@ from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
 from om.lib.logging import log
-from om.typing import (
+from om.lib.protocols import (
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,

@@ -21,6 +21,8 @@ Base classes for OM's graphical interfaces.
 This module contains common base classes and functions used by all of OM's graphical
 user interfaces and viewers.
 """
+
+
 import copy
 from abc import ABCMeta
 from typing import Any, Callable, Dict, List, Union  # noqa: F401

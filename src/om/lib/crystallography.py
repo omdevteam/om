@@ -22,6 +22,8 @@ This module contains classes and functions that perform common data processing
 operations for Serial Crystallography (peak finding, radial profile analysis, plot
 generation, etc.).
 """
+
+
 from collections import deque
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union, cast
 
@@ -30,15 +32,16 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
+from om.algorithms.common import PeakList
 from om.algorithms.crystallography import Peakfinder8PeakDetection
 from om.lib.exceptions import OmConfigurationFileSyntaxError
-from om.lib.geometry import DataVisualizer, GeometryInformation
-from om.typing import (
-    OmPeakDetectionProtocol,
-    TypePeakList,
-    TypePixelMaps,
-    TypeVisualizationPixelMaps,
+from om.lib.geometry import (
+    DataVisualizer,
+    GeometryInformation,
+    PixelMaps,
+    VisualizationPixelMaps,
 )
+from om.lib.protocols import OmPeakDetectionProtocol
 
 try:
     from om.algorithms.crystallography_ml import PeakNetPeakDetection
@@ -161,7 +164,7 @@ class CrystallographyPeakFinding:
         if self._parameters.crystallography.peakfinding_algorithm == "peakfinder8":
             self._peak_detection: OmPeakDetectionProtocol = Peakfinder8PeakDetection(
                 parameters=parameters["peakfinder8_peak_detection"],
-                radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
+                radius_pixel_map=geometry_information.get_pixel_maps().radius,
                 layout_info=geometry_information.get_layout_info(),
             )
         elif self._parameters.crystallography.peakfinding_algorithm == "peaknet":
@@ -176,7 +179,7 @@ class CrystallographyPeakFinding:
 
     def find_peaks(
         self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
-    ) -> TypePeakList:
+    ) -> PeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -193,7 +196,7 @@ class CrystallographyPeakFinding:
 
             A dictionary storing information about the detected peaks.
         """
-        peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
+        peak_list: PeakList = self._peak_detection.find_peaks(data=detector_data)
 
         return peak_list
 
@@ -243,21 +246,17 @@ class CrystallographyPlots:
         self._pump_probe_experiment: bool = pump_probe_experiment
         self._bin_size: int = bin_size
 
-        pixel_maps: TypePixelMaps = data_visualizer.get_pixel_maps()
-        visualization_pixel_maps: TypeVisualizationPixelMaps = (
+        pixel_maps: PixelMaps = data_visualizer.get_pixel_maps()
+        visualization_pixel_maps: VisualizationPixelMaps = (
             data_visualizer.get_visualization_pixel_maps()
         )
         plot_shape: Tuple[int, int] = (
             data_visualizer.get_min_array_shape_for_visualization()
         )
 
-        self._flattened_visualization_pixel_map_y = visualization_pixel_maps[
-            "y"
-        ].flatten()
-        self._flattened_visualization_pixel_map_x = visualization_pixel_maps[
-            "x"
-        ].flatten()
-        self._radius_pixel_map = pixel_maps["radius"]
+        self._flattened_visualization_pixel_map_y = visualization_pixel_maps.y.flatten()
+        self._flattened_visualization_pixel_map_x = visualization_pixel_maps.x.flatten()
+        self._radius_pixel_map = pixel_maps.radius
         self._data_shape: Tuple[int, ...] = self._radius_pixel_map.shape
 
         try:
@@ -316,7 +315,7 @@ class CrystallographyPlots:
         self,
         *,
         timestamp: float,
-        peak_list: TypePeakList,
+        peak_list: PeakList,
         frame_is_hit: bool,
         optical_laser_active: bool,
     ) -> Tuple[
@@ -430,7 +429,7 @@ class CrystallographyPlots:
                 self._peakogram.shape[1] * peakogram_intensity_bin_size
             )
 
-            peaks_max_intensity: float = max(peak_list["max_pixel_intensity"])
+            peaks_max_intensity: float = max(peak_list.max_pixel_intensity)
             if peaks_max_intensity > peakogram_max_intensity:
                 self._peakogram = numpy.concatenate(
                     (
@@ -455,10 +454,10 @@ class CrystallographyPlots:
         peak_ss: float
         peak_value: float
         for peak_fs, peak_ss, peak_value, peak_max_pixel_intensity in zip(
-            peak_list["fs"],
-            peak_list["ss"],
-            peak_list["intensity"],
-            peak_list["max_pixel_intensity"],
+            peak_list.fs,
+            peak_list.ss,
+            peak_list.intensity,
+            peak_list.max_pixel_intensity,
         ):
             peak_index_in_slab: int = int(round(peak_ss)) * self._data_shape[1] + int(
                 round(peak_fs)

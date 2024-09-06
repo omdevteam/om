@@ -21,6 +21,8 @@ Retrieval and handling of data from the http/REST interface.
 This module contains Data Retrieval classes that deal with the HTTP/REST interface
 used by detectors manufactured by the company Dectris.
 """
+
+
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler
@@ -30,7 +32,7 @@ from om.data_retrieval_layer.data_sources_http import (
     EventIdEiger16MHttp,
     TimestampEiger16MHttp,
 )
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

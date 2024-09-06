@@ -21,6 +21,8 @@ Rich console utilities.
 This module contains classes and functions that OM uses to improve and augment its
 terminal console output, using the Rich python library.
 """
+
+
 import logging
 
 from rich.logging import RichHandler
@@ -30,6 +32,7 @@ logging.basicConfig(
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
 )
+
 
 logging.getLogger("rich").setLevel(logging.INFO)
 log = logging.getLogger("rich")

@@ -20,22 +20,24 @@ MPI-based Parallelization Layer for OM.
 
 This module contains a Parallelization Layer based on the MPI protocol.
 """
+
+
 import multiprocessing
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import zmq
 from pydantic import BaseModel, ValidationError
 
 from om.lib.exceptions import OmConfigurationFileSyntaxError, OmDataExtractionError
 from om.lib.logging import log
-from om.lib.zmq import get_current_machine_ip
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
+from om.lib.zmq import get_current_machine_ip
 
 
 class _OmParameters(BaseModel):
@@ -265,7 +267,7 @@ class ZmqParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Union[Dict[int, Dict[str, Any]], None] = (
+                    feedback_data: Optional[Dict[int, Dict[str, Any]]] = (
                         self._processing_layer.collect_data(
                             node_rank=self._rank,
                             node_pool_size=self._parameters.om.node_pool_size,

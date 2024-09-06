@@ -20,6 +20,8 @@ Retrieval of data from a ZMQ stream.
 
 This module contains Data Retrieval classes that deal with ZMQ data streams.
 """
+
+
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_zmq import (
@@ -31,7 +33,7 @@ from om.data_retrieval_layer.data_sources_zmq import (
     Jungfrau1MZmq,
     TimestampJungfrau1MZmq,
 )
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

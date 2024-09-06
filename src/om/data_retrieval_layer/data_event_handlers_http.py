@@ -21,6 +21,8 @@ Handling of HTTP/REST-based data events.
 This module contains Data Event Handler classes that manipulate events originating from
 the HTTP/REST interface of detectors manufactured by company Dectris.
 """
+
+
 import sys
 import time
 from io import BytesIO
@@ -35,7 +37,7 @@ from om.lib.exceptions import (
     OmHttpInterfaceInitializationError,
 )
 from om.lib.layer_management import filter_data_sources
-from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
 class _HttpDataEventHandlerParameters(BaseModel):

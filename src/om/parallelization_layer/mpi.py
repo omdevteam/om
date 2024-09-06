@@ -20,6 +20,8 @@ MPI-based Parallelization Layer for OM.
 
 This module contains a Parallelization Layer based on the MPI protocol.
 """
+
+
 import sys
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple
@@ -28,7 +30,7 @@ from mpi4py import MPI
 
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,

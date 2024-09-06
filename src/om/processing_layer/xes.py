@@ -20,6 +20,8 @@ OnDA Monitor for X-ray Emission Spectroscopy.
 
 This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments.
 """
+
+
 from __future__ import absolute_import, division, print_function
 
 from typing import Any, Dict, Optional, Tuple, Union
@@ -33,9 +35,9 @@ from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import GeometryInformation
 from om.lib.logging import log
+from om.lib.protocols import OmProcessingProtocol
 from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.typing import OmProcessingProtocol
 
 
 class _XesProcessingParameters(BaseModel):

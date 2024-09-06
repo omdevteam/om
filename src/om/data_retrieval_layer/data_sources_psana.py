@@ -24,6 +24,8 @@ software framework (used at the PETRA III facility).
 This module contains Data Source classes that deal with data retrieved from  the psana
 software framework (used at the LCLS facility).
 """
+
+
 from typing import (
     Any,
     Callable,
@@ -47,7 +49,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
     OmWrongParameterTypeError,
 )
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 try:
     import psana  # type: ignore

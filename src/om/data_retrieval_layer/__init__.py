@@ -23,6 +23,7 @@ and data events to be processed. Modules in this package contain functions and c
 for specific detectors, facilities or software frameworks.
 """
 
+
 from .data_retrieval_files import (  # noqa: F401
     EigerFilesDataRetrieval,
     Jungfrau1MFilesDataRetrieval,
@@ -37,6 +38,7 @@ try:
     from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
+
 
 try:
     import psana  # type: ignore  # noqa: F401
@@ -67,5 +69,6 @@ try:
     from .data_retrieval_http import EigerHttpDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
+
 
 from .event_retrieval import OmEventDataRetrieval  # noqa: F401

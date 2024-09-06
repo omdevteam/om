@@ -21,6 +21,8 @@ Classes and function for handling data events.
 This module contains classes and functions that manage and count data events processed
 by OM.
 """
+
+
 import time
 from itertools import cycle
 from typing import Iterator, Optional
@@ -83,11 +85,8 @@ class EventCounter:
                 processing nodes and the collecting node.
         """
         self._speed_report_interval: Optional[int] = speed_report_interval
-
         self._data_broadcast_interval: Optional[int] = data_broadcast_interval
-
         self._hit_frame_sending_interval: Optional[int] = hit_frame_sending_interval
-
         self._non_hit_frame_sending_interval: Optional[int] = (
             non_hit_frame_sending_interval
         )

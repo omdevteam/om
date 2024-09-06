@@ -21,9 +21,12 @@ Handling of ASAP::O-based data events.
 This module contains Data Event Handler classes that manipulate events originating
 from the ASAP::O software framework (used at the PETRA III facility).
 """
+
+
 import sys
 import time
-from typing import Any, Dict, Generator, List, NamedTuple, Optional, Type, Union
+from dataclasses import dataclass
+from typing import Any, Dict, Generator, List, Optional, Type, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -35,7 +38,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
-from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import asapo_consumer  # type: ignore
@@ -55,7 +58,8 @@ class _AsapoDataEventHandlerParameters(BaseModel):
     required_data: List[str]
 
 
-class _TypeAsapoEvent(NamedTuple):
+@dataclass
+class _AsapoEvent:
     # This named tuple is used internally to store ASAP::O event data, metadata and
     # corresponding ASAP::O stream information.
     event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
@@ -139,7 +143,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
     def _offline_event_generator(
         self, consumer: Any, consumer_group_id: str, stream_name: str
-    ) -> Generator[_TypeAsapoEvent, None, None]:
+    ) -> Generator[_AsapoEvent, None, None]:
         stream_metadata: Optional[Dict[str, Any]] = None
         while not stream_metadata:
             try:
@@ -153,7 +157,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 event_data, event_metadata = consumer.get_next(
                     group_id=consumer_group_id, stream=stream_name, meta_only=False
                 )
-                yield _TypeAsapoEvent(
+                yield _AsapoEvent(
                     event_data, event_metadata, stream_name, stream_metadata
                 )
             except asapo_consumer.AsapoNoDataError:
@@ -163,7 +167,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
     def _online_event_generator(
         self, consumer: Any, consumer_group_id: str
-    ) -> Generator[_TypeAsapoEvent, None, None]:
+    ) -> Generator[_AsapoEvent, None, None]:
         stream_list: List[Any] = []
         while len(stream_list) == 0:
             time.sleep(1)
@@ -177,7 +181,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 event_data, event_metadata = consumer.get_last(
                     group_id=consumer_group_id, stream=last_stream, meta_only=False
                 )
-                yield _TypeAsapoEvent(
+                yield _AsapoEvent(
                     event_data, event_metadata, last_stream, stream_metadata
                 )
             except (
@@ -283,7 +287,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         source_items: List[str] = self._source.split(":")
         if len(source_items) > 1:
             stream_name: str = ":".join(source_items[1:])
-            asapo_events: Generator[_TypeAsapoEvent, None, None] = (
+            asapo_events: Generator[_AsapoEvent, None, None] = (
                 self._offline_event_generator(
                     consumer,
                     self._parameters.asapo_group_id,
@@ -295,7 +299,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 consumer, self._parameters.asapo_group_id
             )
 
-        asapo_event: _TypeAsapoEvent
+        asapo_event: _AsapoEvent
         for asapo_event in asapo_events:
             data_event["data"] = asapo_event.event_data
             data_event["metadata"] = asapo_event.event_metadata

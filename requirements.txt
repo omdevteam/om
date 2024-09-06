@@ -1,4 +1,3 @@
-click
 cython
 fabio
 hdf5plugin
@@ -7,8 +6,10 @@ msgpack
 msgpack_numpy
 numpy
 pillow
+pydantic
 pyyaml
 pyzmq
 rich
 ruamel.yaml
 scipy
+typer

@@ -21,6 +21,8 @@ OM's real-time Parameter Tweaker.
 This module contains a graphical interface that can be used to test peak-finding
 parameters in real time during crystallography experiments.
 """
+
+
 import collections
 import copy
 import signal
@@ -35,13 +37,12 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
-from om.algorithms.crystallography import Peakfinder8PeakDetection
+from om.algorithms.crystallography import Peakfinder8PeakDetection, PeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.files import load_configuration_parameters
 from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.logging import log
-from om.typing import TypePeakList
 
 try:
     from PyQt5 import QtCore  # type: ignore
@@ -58,6 +59,10 @@ except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
+
+
+class _ParameterTweakerParameters(BaseModel):
+    geometry_file: str
 
 
 class CrystallographyParameterTweaker(OmGuiBase):
@@ -91,9 +96,6 @@ class CrystallographyParameterTweaker(OmGuiBase):
             url=url,
             tag="omtweakingdata",
         )
-
-        class _ParameterTweakerParameters(BaseModel):
-            geometry_file: str
 
         if "crystallography" not in parameters:
             raise AttributeError(
@@ -131,10 +133,10 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         self._visual_pixel_map_x: NDArray[numpy.int_] = (
-            self._data_visualizer.get_visualization_pixel_maps()["x"].ravel()
+            self._data_visualizer.get_visualization_pixel_maps().x.ravel()
         )
         self._visual_pixel_map_y: NDArray[numpy.int_] = (
-            self._data_visualizer.get_visualization_pixel_maps()["y"].ravel()
+            self._data_visualizer.get_visualization_pixel_maps().y.ravel()
         )
 
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
@@ -144,7 +146,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
             parameters=parameters["peakfinder8_peak_detection"],
-            radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
+            radius_pixel_map=geometry_information.get_pixel_maps().radius,
             layout_info=geometry_information.get_layout_info(),
         )
 
@@ -355,7 +357,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
             # If the frame buffer is empty, returns without drawing anything.
             return
 
-        peak_list: TypePeakList = self._peak_detection.find_peaks(
+        peak_list: PeakList = self._peak_detection.find_peaks(
             data=current_data["detector_data"]
         )
 
@@ -367,9 +369,9 @@ class CrystallographyParameterTweaker(OmGuiBase):
         peak_ss: float
         peak_value: float
         for peak_fs, peak_ss, peak_value in zip(
-            peak_list["fs"],
-            peak_list["ss"],
-            peak_list["intensity"],
+            peak_list.fs,
+            peak_list.ss,
+            peak_list.intensity,
         ):
             peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
                 round(peak_fs)

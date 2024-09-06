@@ -21,6 +21,8 @@ OM's Frame Viewer.
 This module contains a graphical interface that displays detector data frames and,
 additional provided information.
 """
+
+
 import collections
 import copy
 import signal

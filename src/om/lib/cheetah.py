@@ -25,19 +25,9 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 
 import pathlib
 import time
+from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    Any,
-    Dict,
-    List,
-    NamedTuple,
-    Optional,
-    Set,
-    TextIO,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Dict, List, Optional, Set, TextIO, Tuple, Union, cast
 
 import h5py  # type: ignore
 import hdf5plugin  # type: ignore
@@ -46,12 +36,12 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
+from om.algorithms.common import PeakList
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmHdf5UnsupportedDataFormat,
 )
 from om.lib.logging import log
-from om.typing import TypeClassSumData, TypePeakList
 
 
 class _Hdf5Compression(str, Enum):
@@ -121,7 +111,31 @@ class _MonitorSumHDF5WriterParameters(BaseModel):
     cheetah: _CheetahSumHDF5WriterParameters
 
 
-class TypeFrameListData(NamedTuple):
+@dataclass
+class ClassSumData:
+    """
+    Cheetah data class sum data.
+
+    A dictionary storing the number of detector frames belonging to a specific data
+    class, their sum, and the virtual powder pattern generated from the Bragg peaks
+    detected in them.
+
+    Attributes:
+
+        num_frames: The number of detector frames belonging to the data class.
+
+        sum_frames: The sum of the detector frames belonging to the class.
+
+        peak_powder: The virtual powder pattern for the data class.
+    """
+
+    num_frames: int
+    sum_frames: NDArray[numpy.float_]
+    peak_powder: NDArray[numpy.float_]
+
+
+@dataclass(order=True)
+class FrameListData:
     """
     Cheetah frame list data.
 
@@ -154,6 +168,9 @@ class TypeFrameListData(NamedTuple):
     index_in_file: int
     num_peaks: int
     average_intensity: numpy.float64
+
+    def __post_init__(self) -> None:
+        self.sort_index = self.timestamp
 
 
 class CheetahStatusFileWriter:
@@ -321,13 +338,13 @@ class CheetahListFilesWriter:
         self._hits_filename: pathlib.Path = processed_directory / "hits.lst"
         self._hits_file: TextIO = open(self._hits_filename, "w")
 
-        self._frame_list: List[TypeFrameListData] = []
+        self._frame_list: List[FrameListData] = []
 
     def add_frame(
         self,
         *,
-        frame_data: TypeFrameListData,
-        peak_list: TypePeakList,
+        frame_data: FrameListData,
+        peak_list: PeakList,
     ) -> None:
         """
         Adds a frame to the list files.
@@ -364,14 +381,14 @@ class CheetahListFilesWriter:
             self._peaks_file.writelines(
                 (
                     f"{frame_data.event_id}, "
-                    f"{peak_list['num_peaks']}, "
-                    f"{peak_list['fs'][i]}, "
-                    f"{peak_list['ss'][i]}, "
-                    f"{peak_list['intensity'][i]}, "
-                    f"{peak_list['num_pixels'][i]}, "
-                    f"{peak_list['max_pixel_intensity'][i]}, "
-                    f"{peak_list['snr'][i]}\n"
-                    for i in range(peak_list["num_peaks"])
+                    f"{peak_list.num_peaks}, "
+                    f"{peak_list.fs[i]}, "
+                    f"{peak_list.ss[i]}, "
+                    f"{peak_list.intensity[i]}, "
+                    f"{peak_list.num_pixels[i]}, "
+                    f"{peak_list.max_pixel_intensity[i]}, "
+                    f"{peak_list.snr[i]}\n"
+                    for i in range(peak_list.num_peaks)
                 )
             )
 
@@ -396,7 +413,7 @@ class CheetahListFilesWriter:
         sorted data to the `frames.txt`, `cleaned.txt` and `events.lst` files. The
         function then closes all the list files.
         """
-        frame_list: List[TypeFrameListData] = sorted(self._frame_list)
+        frame_list: List[FrameListData] = sorted(self._frame_list)
         self._frames_file.close()
         self._events_file.close()
         self._hits_file.close()
@@ -404,7 +421,7 @@ class CheetahListFilesWriter:
 
         fh: TextIO
         with open(self._events_filename, "w") as fh:
-            frame: TypeFrameListData
+            frame: FrameListData
             for frame in frame_list:
                 fh.write(f"{frame.event_id}\n")
         with open(self._frames_filename, "w") as fh:
@@ -485,7 +502,7 @@ class CheetahClassSumsAccumulator:
         *,
         class_number: int,
         frame_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
-        peak_list: TypePeakList,
+        peak_list: PeakList,
     ) -> None:
         """
         Adds a detector frame to the accumulator.
@@ -505,24 +522,24 @@ class CheetahClassSumsAccumulator:
         if self._parameters.cheetah.class_sums_sending_interval == -1:
             return
         if self._sum_sending_counter == 0:
-            self._sums: List[TypeClassSumData] = [
-                {
-                    "num_frames": 0,
-                    "sum_frames": numpy.zeros(frame_data.shape),
-                    "peak_powder": numpy.zeros(frame_data.shape),
-                }
+            self._sums: List[ClassSumData] = [
+                ClassSumData(
+                    num_frames=0,
+                    sum_frames=numpy.zeros(frame_data.shape),
+                    peak_powder=numpy.zeros(frame_data.shape),
+                )
                 for class_number in range(self._num_classes)
             ]
-        self._sums[class_number]["num_frames"] += 1
-        self._sums[class_number]["sum_frames"] += frame_data
+        self._sums[class_number].num_frames += 1
+        self._sums[class_number].sum_frames += frame_data
 
         peak_fs: float
         peak_ss: float
         peak_value: float
         for peak_fs, peak_ss, peak_value in zip(
-            peak_list["fs"], peak_list["ss"], peak_list["intensity"]
+            peak_list.fs, peak_list.ss, peak_list.intensity
         ):
-            cast(h5py.Dataset, self._sums[class_number]["peak_powder"])[
+            cast(h5py.Dataset, self._sums[class_number].peak_powder)[
                 int(round(peak_ss)), int(round(peak_fs))
             ] += peak_value
 
@@ -530,7 +547,7 @@ class CheetahClassSumsAccumulator:
 
     def get_sums_for_sending(
         self, disregard_counter: bool = False
-    ) -> Union[None, List[TypeClassSumData]]:
+    ) -> Union[None, List[ClassSumData]]:
         """
         Retrieves the frame sum and virtual powder pattern from the accumulator.
 
@@ -619,7 +636,7 @@ class CheetahClassSumsCollector:
     def add_sums(
         self,
         *,
-        class_sums: List[TypeClassSumData],
+        class_sums: List[ClassSumData],
     ) -> None:
         """
         Adds information to the collectors
@@ -634,19 +651,19 @@ class CheetahClassSumsCollector:
         """
 
         if self._class_sum_update_counter == 0:
-            self._sums: List[TypeClassSumData] = class_sums
+            self._sums: List[ClassSumData] = class_sums
         else:
             class_number: int
             for class_number in range(len(class_sums)):
-                self._sums[class_number]["num_frames"] += class_sums[class_number][
-                    "num_frames"
-                ]
-                self._sums[class_number]["sum_frames"] += class_sums[class_number][
-                    "sum_frames"
-                ]
-                self._sums[class_number]["peak_powder"] += class_sums[class_number][
-                    "peak_powder"
-                ]
+                self._sums[class_number].num_frames += class_sums[
+                    class_number
+                ].num_frames
+                self._sums[class_number].sum_frames += class_sums[
+                    class_number
+                ].sum_frames
+                self._sums[class_number].peak_powder += class_sums[
+                    class_number
+                ].peak_powder
 
         self._class_sum_update_counter += 1
         if (
@@ -1017,9 +1034,9 @@ class HDF5Writer:
                 ]
 
         if "peak_list" in fields:
-            peak_list: TypePeakList = processed_data["peak_list"]
+            peak_list: PeakList = processed_data["peak_list"]
             n_peaks: int = min(
-                peak_list["num_peaks"], self._parameters.cheetah.hdf5_file_max_num_peaks
+                peak_list.num_peaks, self._parameters.cheetah.hdf5_file_max_num_peaks
             )
             self._resizable_datasets["npeaks"][frame_num] = n_peaks
             peak_dict_key: str
@@ -1031,9 +1048,9 @@ class HDF5Writer:
                 "max_pixel_intensity",
                 "snr",
             ):
-                self._resizable_datasets[peak_dict_key][frame_num, :n_peaks] = (
-                    peak_list[peak_dict_key][:n_peaks]
-                )
+                self._resizable_datasets[peak_dict_key][frame_num, :n_peaks] = getattr(
+                    peak_list, peak_dict_key
+                )[:n_peaks]
 
         for extra_group_name in self._extra_groups:
             if extra_group_name in fields:
@@ -1155,7 +1172,7 @@ class SumHDF5Writer:
     def write_sums(
         self,
         *,
-        data: TypeClassSumData,
+        data: ClassSumData,
     ) -> None:
         """
         Writes aggregated frame data into an HDF5 file.
@@ -1167,16 +1184,16 @@ class SumHDF5Writer:
             data: A dictionary containing the aggregated data to write into the file.
         """
         if not self._filename.exists():
-            self._create_hdf5_file_and_datasets(data_shape=data["sum_frames"].shape)
+            self._create_hdf5_file_and_datasets(data_shape=data.sum_frames.shape)
         attempt: int
         for attempt in range(5):
             # If file is opened by someone else try 5 times during 10 seconds and exit
             try:
                 self._h5file = h5py.File(self._filename, "r+")
-                self._h5file["/data/nframes"][0] = data["num_frames"]
-                self._h5file["/data/data"][:] = data["sum_frames"]
-                if data["peak_powder"] is not None:
-                    self._h5file["/data/peakpowder"][:] = data["peak_powder"]
+                self._h5file["/data/nframes"][0] = data.num_frames
+                self._h5file["/data/data"][:] = data.sum_frames
+                if data.peak_powder is not None:
+                    self._h5file["/data/peakpowder"][:] = data.peak_powder
                 self._h5file.close()
                 return
             except OSError:

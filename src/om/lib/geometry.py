@@ -20,9 +20,12 @@ CrystFEL's geometry utilities.
 
 This module contains functions and classes that manipulate geometry information.
 """
+
+
 import collections
 import copy
 import math
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -30,15 +33,384 @@ import numpy
 from numpy.typing import NDArray
 
 from om.lib.exceptions import OmGeometryError, OmWrongArrayShape
-from om.typing import (
-    TypeBadRegion,
-    TypeBeam,
-    TypeDetector,
-    TypeDetectorLayoutInformation,
-    TypePanel,
-    TypePixelMaps,
-    TypeVisualizationPixelMaps,
-)
+
+
+@dataclass
+class BadRegion:
+    """
+    A dictionary storing information about a bad region of a detector.
+
+    Attributes:
+
+        panel: The name of the panel in which the bad region lies.
+
+        min_x: The initial x coordinate of the bad region in the detector reference
+            system.
+
+        max_x: The final x coordinate of the bad region in the detector reference
+            system.
+
+        min_y: The initial y coordinate of the bad region in the detector reference
+            system.
+
+        max_y: The final y coordinate of the bad region in the detector reference
+            system.
+
+        min_fs: The initial fs index of the bad region in the block where the panel
+            data is stored.
+
+        max_fs: The final (inclusive) fs index of the bad region in the block where the
+            panel data is stored.
+
+        min_ss: The initial ss index of the bad region in the block where the panel
+            data is stored.
+
+        max_ss: The final (inclusive) ss index of the bad region in the block where the
+            panel data is stored.
+
+        is_fsss: Whether the fs,ss definition of the bad region (as opposed to the
+            x,y-based one) should be considered. In the first case, the min_fs, max_fs,
+            min_ss, and max_ss entries in this dictionary will define the bad region.
+            In the second case, the min_x, max_x, min_y, and max_y entries will. If the
+            value corresponding to this key is 1, the fs,ss-based definition will be
+            considered valid. Otherwise, the x,y definition will be used.
+    """
+
+    panel: str
+    min_x: float
+    max_x: float
+    min_y: float
+    max_y: float
+    min_fs: int
+    max_fs: int
+    min_ss: int
+    max_ss: int
+    is_fsss: int
+
+
+@dataclass
+class Beam:
+    """
+    A dictionary storing information about the x-ray beam.
+
+    Attributes:
+
+        photon_energy: The photon energy of the beam in eV.
+
+        photon_energy_from: The internal path for the photon energy information in an
+            HDF5 data file, in case the beam energy information is extracted from it.
+
+        photon_energy_scale: The scaling factor to be applied to the photon energy, in
+            case the provided energy value is not in eV.
+    """
+
+    photon_energy: float
+    photon_energy_from: str
+    photon_energy_scale: float
+
+
+@dataclass
+class Panel:
+    """
+    A dictionary storing information about a detector panel.
+
+    Attributes:
+
+        cnx: The x coordinate of the corner of the panel in the detector reference
+            system.
+
+        cny: The y coordinate of the corner of the panel in the detector reference
+            system.
+
+        clen: The perpendicular distance, as reported by the facility, of the sample
+            interaction point from the corner of the panel.
+
+        clen_from: The internal path to the `clen` information in an HDF5 data file, in
+            case the information is extracted from it.
+
+        coffset: The offset to be applied to the `clen` value reported by the facility
+            in order to determine the real perpendicular distance of the panel from the
+            interaction point.
+
+        mask: The internal path, in an HDF5 data file, to the mask data for the panel.
+
+        mask_file: The name of the HDF5 data file in which the mask data for the panel
+            can be found.
+
+        satmap: The internal path, in an HDF5 data file, to the per-pixel saturation
+            map for the panel.
+
+        satmap_file: The name of the HDF5 data file in which the per-pixel saturation
+            map for the panel can be found.
+
+        res: The size of the pixels that make up the the panel (in pixels per meter).
+
+        badrow: The readout direction for the panel, for filtering out clusters of
+            peaks. The value corresponding to this key must be either `x` or `y`.
+
+        no_index: Wether the panel should be considered entirely bad. The panel will be
+            considered bad if the value corresponding to this key is non-zero.
+
+        adu_per_photon: The number of ADUs per photon for the panel.
+
+        max_adu: The ADU value above which a pixel of the panel should be considered
+            unreliable.
+
+        data: The internal path, in an HDF5 data file, to the data block where the
+            panel data is stored.
+
+        adu_per_eV: The number of ADUs per eV of photon energy for the panel.
+
+        dim_structure: A description of the internal layout of the data block storing
+            the panel's data. The value corresponding to this key is a list of strings
+            which define the role of each axis in the data block. See the
+            [crystfel_geometry](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
+            man page for a detailed explanation.
+
+        fsx: The fs->x component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        fsy: The fs->y component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        fsz: The fs->z component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssx: The ss->x component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssy: The ss->y component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssz: The ss->z component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        rail_x: The x component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        rail_y: The y component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        rail_z: The z component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        clen_for_centering: The perpendicular distance of the origin of the detector
+            reference system from the interaction point, as reported by the facility,
+
+        xfs: The x->fs component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        yfs: The y->fs component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        xss: The x->ss component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        yss: The y->ss component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        orig_min_fs: The initial fs index of the panel data in the data block where
+            it is stored.
+
+        orig_max_fs: The final (inclusive) fs index of the panel data in the data block
+            where it is stored.
+
+        orig_min_ss: The initial ss index of the panel data in the data block where it
+            is stored.
+
+        orig_max_ss: The final (inclusive) fs index of the panel data in the data block
+            where it is stored.
+
+        w: The width of the panel in pixels.
+
+        h: The height of the panel in pixels.
+    """
+
+    cnx: float
+    cny: float
+    clen: float
+    clen_from: str
+    coffset: float
+    mask: str
+    mask_file: str
+    satmap: str
+    satmap_file: str
+    res: float
+    badrow: str
+    no_index: bool
+    adu_per_photon: float
+    max_adu: float
+    data: str
+    adu_per_eV: float
+    dim_structure: List[Optional[Union[int, str]]]
+    fsx: float
+    fsy: float
+    fsz: float
+    ssx: float
+    ssy: float
+    ssz: float
+    rail_x: float
+    rail_y: float
+    rail_z: float
+    clen_for_centering: float
+    xfs: float
+    yfs: float
+    xss: float
+    yss: float
+    orig_min_fs: int
+    orig_max_fs: int
+    orig_min_ss: int
+    orig_max_ss: int
+    w: int
+    h: int
+
+
+@dataclass
+class Detector:
+    """
+    A dictionary storing information about a detector.
+
+    Attributes:
+
+        panels: The panels in the detector. The value corresponding to this key is
+            dictionary containing information about the panels that make up the
+            detector. In the dictionary, the keys are the panel names, and the values
+            are [`TypePanel`][om.lib.geometry.TypePanel] dictionaries.
+
+        bad: The bad regions in the detector. The value corresponding to this key is a
+            dictionary containing information about the bad regions in the detector. In
+            the dictionary, the keys are bad region names, and the values are
+            [`TypeBadRegion`][om.lib.geometry.TypeBadRegion] dictionaries.
+
+        mask_bad: The value used in a bad pixel mask to label a pixel as bad.
+
+        mask_good: The value used in a bad pixel mask to label a pixel as good.
+
+        rigid_groups: The rigid groups of panels in the detector. The value
+            corresponding to this key is a dictionary containing information about the
+            rigid groups. In the dictionary, the keys are names of rigid groups and the
+            values are lists storing the names of the panels belonging to each group.
+
+        rigid_group_collections: The collections of rigid groups of panels in the
+            detector. The value corresponding to this key is a dictionary containing
+            information about the rigid group collections. In the dictionary, the keys
+            are names of rigid group collections and the values are lists storing the
+            names of the rigid groups belonging to the each collection.
+
+        furthest_out_panel: The name of the panel which contains the pixel that is the
+            furthest away from the center of the detector reference system.
+
+        furthest_out_fs: The fs coordinate, within its panel, of the pixel that is the
+            furthest away from the center of the detector reference system.
+
+        furthest_out_ss: The ss coordinate, within its panel, of the pixel that is the
+            furthest away from the center of the detector reference system.
+
+        furthest_in_panel: The name of the panel which contains the closest pixel to
+            the center of the detector reference system.
+
+        furthest_in_fs: The fs coordinate, within its panel, of the closest pixel to
+            the center of the detector reference system.
+
+        furthest_in_ss: The ss coordinate, within its panel, of the closest pixel to
+            the center of the detector reference system.
+    """
+
+    panels: Dict[str, Panel]
+    bad: Dict[str, BadRegion]
+    mask_bad: int
+    mask_good: int
+    rigid_groups: Dict[str, List[str]]
+    rigid_group_collections: Dict[str, List[str]]
+    furthest_out_panel: str
+    furthest_out_fs: float
+    furthest_out_ss: float
+    furthest_in_panel: str
+    furthest_in_fs: float
+    furthest_in_ss: float
+
+
+@dataclass
+class DetectorLayoutInformation:
+    """
+    Detector layout information for the peakfinder8 algorithm.
+
+    A dictionary storing information about the internal layout of a detector data frame
+    for a specific detector. The information is needed by the
+    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+    algorithm, and is usually retrieved via the
+    [`get_layout_info`][om.lib.geometry.GeometryInformation.get_layout_info]
+    function.
+
+    Attributes:
+
+        asic_nx: The fs size in pixels of each detector panel in the data frame.
+
+        asic_ny: The ss size in pixels of each detector panel in the data frame.
+
+        nasics_x: The number of detector panels along the fs axis of the data frame.
+
+        nasics_y: The number of detector panels along the ss axis of the data frame.
+    """
+
+    asic_nx: int
+    asic_ny: int
+    nasics_x: int
+    nasics_y: int
+
+
+@dataclass
+class PixelMaps:
+    """
+    A dictionary storing a set of pixel maps.
+
+    This dictionary stores a set of look-up pixels maps. Each map stores the value of a
+    specific coordinate for eac pixel in a detector data frame. All coordinates in this
+    set of maps are assumed to be relative to the detector's reference system.
+
+    Attributes:
+
+        x: A pixel map for the x coordinate.
+
+        y: A pixel map for the y coordinate.
+
+        z: A pixel map for the z coordinate.
+
+        radius: A pixel map storing the distance of each pixel from the center of the
+            reference system (usually the center of the detector).
+
+        phi: A pixel map storing, for each pixel, the amplitude of the angle drawn by
+            the pixel, the center of the reference system, and the x axis.
+    """
+
+    x: NDArray[numpy.float_]
+    y: NDArray[numpy.float_]
+    z: NDArray[numpy.float_]
+    radius: NDArray[numpy.float_]
+    phi: NDArray[numpy.float_]
+
+
+@dataclass
+class VisualizationPixelMaps:
+    """
+    A dictionary storing a set of pixel maps used for visualization.
+
+    This dictionary stores a set of look-up pixels maps. Each map stores the value of
+    a specific coordinate for each pixel in a detector data frame. This set of pixel
+    maps is supposed to be used for visualization: all coordinates are assumed to
+    refer to a cartesian reference system mapped on a 2D array storing pixel
+    information for an assembled detector image, with the origin in the top left
+    corner.
+
+    Attributes:
+
+        x: A pixel map for the x coordinate.
+
+        y: A pixel map for the y coordinate.
+    """
+
+    x: NDArray[numpy.int_]
+    y: NDArray[numpy.int_]
 
 
 def _parse_direction(
@@ -91,110 +463,110 @@ def _parse_direction(
 def _parse_panel_entry(
     key: str,
     value: str,
-    panel: TypePanel,
+    panel: Panel,
     panel_name: str,
-    detector: TypeDetector,
+    detector: Detector,
 ) -> None:
     # Parses entries in the geometry file that refer to panels
     if key == "min_fs":
-        panel["orig_min_fs"] = int(value)
+        panel.orig_min_fs = int(value)
     elif key == "max_fs":
-        panel["orig_max_fs"] = int(value)
+        panel.orig_max_fs = int(value)
     elif key == "min_ss":
-        panel["orig_min_ss"] = int(value)
+        panel.orig_min_ss = int(value)
     elif key == "max_ss":
-        panel["orig_max_ss"] = int(value)
+        panel.orig_max_ss = int(value)
     elif key == "corner_x":
-        panel["cnx"] = float(value)
+        panel.cnx = float(value)
     elif key == "corner_y":
-        panel["cny"] = float(value)
+        panel.cny = float(value)
     elif key == "rail_direction":
         try:
-            panel["rail_x"], panel["rail_y"], panel["rail_z"] = _parse_direction(
-                direction_x=panel["rail_x"],
-                direction_y=panel["rail_y"],
-                direction_z=panel["rail_z"],
+            panel.rail_x, panel.rail_y, panel.rail_z = _parse_direction(
+                direction_x=panel.rail_x,
+                direction_y=panel.rail_y,
+                direction_z=panel.rail_z,
                 string_to_parse=value,
             )
         except OmGeometryError:
             raise OmGeometryError("Invalid rail direction. ")
     elif key == "clen_for_centering":
-        panel["clen_for_centering"] = float(value)
+        panel.clen_for_centering = float(value)
     elif key == "adu_per_eV":
-        panel["adu_per_eV"] = float(value)
+        panel.adu_per_eV = float(value)
     elif key == "adu_per_photon":
-        panel["adu_per_photon"] = float(value)
+        panel.adu_per_photon = float(value)
     elif key == "rigid_group":
-        if value in detector["rigid_groups"]:
-            if panel_name != "" and panel_name not in detector["rigid_groups"][value]:
-                detector["rigid_groups"][value].append(panel_name)
+        if value in detector.rigid_groups:
+            if panel_name != "" and panel_name not in detector.rigid_groups[value]:
+                detector.rigid_groups[value].append(panel_name)
         else:
-            detector["rigid_groups"][value] = [
+            detector.rigid_groups[value] = [
                 panel_name,
             ]
     elif key == "clen":
         try:
-            panel["clen"] = float(value)
-            panel["clen_from"] = ""
+            panel.clen = float(value)
+            panel.clen_from = ""
         except ValueError:
-            panel["clen"] = -1
-            panel["clen_from"] = value
+            panel.clen = -1
+            panel.clen_from = value
     elif key == "data":
-        panel["data"] = value
+        panel.data = value
     elif key == "mask":
-        panel["mask"] = value
+        panel.mask = value
     elif key == "mask_file":
-        panel["mask_file"] = value
+        panel.mask_file = value
     elif key == "saturation_map":
-        panel["satmap"] = value
+        panel.satmap = value
     elif key == "saturation_map_file":
-        panel["satmap_file"] = value
+        panel.satmap_file = value
     elif key == "coffset":
-        panel["coffset"] = float(value)
+        panel.coffset = float(value)
     elif key == "res":
-        panel["res"] = float(value)
+        panel.res = float(value)
     elif key == "max_adu":
-        panel["max_adu"] = float(value)
+        panel.max_adu = float(value)
     elif key == "badrow_direction":
         if value == "x":
-            panel["badrow"] = "f"
+            panel.badrow = "f"
         elif value == "y":
-            panel["badrow"] = "s"
+            panel.badrow = "s"
         elif value == "f":
-            panel["badrow"] = "f"
+            panel.badrow = "f"
         elif value == "s":
-            panel["badrow"] = "s"
+            panel.badrow = "s"
         elif value == "-":
-            panel["badrow"] = "-"
+            panel.badrow = "-"
         else:
             print("badrow_direction must be x, t, f, s, or '-'")
             print("Assuming '-'.")
-            panel["badrow"] = "-"
+            panel.badrow = "-"
     elif key == "no_index":
-        panel["no_index"] = bool(value)
+        panel.no_index = bool(value)
     elif key == "fs":
         try:
-            panel["fsx"], panel["fsy"], panel["fsz"] = _parse_direction(
-                direction_x=panel["fsx"],
-                direction_y=panel["fsy"],
-                direction_z=panel["fsz"],
+            panel.fsx, panel.fsy, panel.fsz = _parse_direction(
+                direction_x=panel.fsx,
+                direction_y=panel.fsy,
+                direction_z=panel.fsz,
                 string_to_parse=value,
             )
         except OmGeometryError:
             raise OmGeometryError("Invalid fast scan direction.")
     elif key == "ss":
         try:
-            panel["ssx"], panel["ssy"], panel["ssz"] = _parse_direction(
-                direction_x=panel["ssx"],
-                direction_y=panel["ssy"],
-                direction_z=panel["ssz"],
+            panel.ssx, panel.ssy, panel.ssz = _parse_direction(
+                direction_x=panel.ssx,
+                direction_y=panel.ssy,
+                direction_z=panel.ssz,
                 string_to_parse=value,
             )
         except OmGeometryError:
             raise OmGeometryError("Invalid slow scan direction.")
     elif key.startswith("dim"):
-        if panel["dim_structure"] is not None:
-            dim: List[Optional[Union[int, str]]] = panel["dim_structure"]
+        if panel.dim_structure is not None:
+            dim: List[Optional[Union[int, str]]] = panel.dim_structure
         else:
             dim = []
         try:
@@ -212,23 +584,23 @@ def _parse_panel_entry(
             dim[dim_index] = int(value)
         else:
             raise OmGeometryError("Invalid dim entry: {}.".format(value))
-        panel["dim_structure"] = dim
+        panel.dim_structure = dim
     else:
         OmGeometryError(f"Unrecognized field: {key}")
 
 
-def _validate_detector_geometry(detector: TypeDetector) -> None:
+def _validate_detector_geometry(detector: Detector) -> None:
     # Validates the geometry file, checking for errors
-    if not detector["panels"]:
+    if not detector.panels:
         raise OmGeometryError("No panel descriptions in geometry file.")
-    panel: TypePanel
+    panel: Panel
     panel_name: str
     num_placeholders_in_panels: int = -1
     num_placeholders_in_masks: int = -1
     dim_length: int = -1
-    for panel_name, panel in detector["panels"].items():
-        if panel["dim_structure"] is not None:
-            curr_num_placeholders: int = panel["dim_structure"].count("%")
+    for panel_name, panel in detector.panels.items():
+        if panel.dim_structure is not None:
+            curr_num_placeholders: int = panel.dim_structure.count("%")
         else:
             curr_num_placeholders = 0
 
@@ -241,8 +613,8 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
                     "number of placeholders."
                 )
 
-        if panel["mask"] is not None:
-            curr_num_placeholders = panel["mask"].count("%")
+        if panel.mask is not None:
+            curr_num_placeholders = panel.mask.count("%")
         else:
             curr_num_placeholders = 0
 
@@ -260,7 +632,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         found_placeholder: int = 0
         dim_index: int
         entry: Optional[Union[int, str]]
-        for dim_index, entry in enumerate(panel["dim_structure"]):
+        for dim_index, entry in enumerate(panel.dim_structure):
             if entry is None:
                 raise OmGeometryError(
                     f"Dimension {dim_index} for panel {panel_name} is " "undefined."
@@ -288,49 +660,49 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
                 f"(found {found_placeholder} for panel {panel_name})"
             )
         if dim_length == -1:
-            dim_length = len(panel["dim_structure"])
-        elif dim_length != len(panel["dim_structure"]):
+            dim_length = len(panel.dim_structure)
+        elif dim_length != len(panel.dim_structure):
             raise OmGeometryError(
                 "Number of dim coordinates must be the same for all panels."
             )
         if dim_length == 1:
             raise OmGeometryError("Number of dim coordinates must be at least two.")
 
-        if panel["orig_min_fs"] < 0:
+        if panel.orig_min_fs < 0:
             raise OmGeometryError(
                 "Please specify the minimum fs coordinate for panel " f"{panel_name}."
             )
-        if panel["orig_max_fs"] < 0:
+        if panel.orig_max_fs < 0:
             raise OmGeometryError(
                 "Please specify the maximum fs coordinate for panel " f"{panel_name}."
             )
-        if panel["orig_min_ss"] < 0:
+        if panel.orig_min_ss < 0:
             raise OmGeometryError(
                 "Please specify the minimum ss coordinate for panel " f"{panel_name}."
             )
-        if panel["orig_max_ss"] < 0:
+        if panel.orig_max_ss < 0:
             raise OmGeometryError(
                 "Please specify the maximum ss coordinate for panel " f"{panel_name}."
             )
-        if panel["cnx"] is None:
+        if panel.cnx is None:
             raise OmGeometryError(
                 "Please specify the corner X coordinate for panel " f"{panel_name}."
             )
-        if panel["clen"] is None and panel["clen_from"] is None:
+        if panel.clen is None and panel.clen_from is None:
             raise OmGeometryError(
                 f"Please specify the camera length for panel {panel_name}."
             )
-        if panel["res"] < 0:
+        if panel.res < 0:
             raise OmGeometryError(
                 f"Please specify the resolution or panel {panel_name}."
             )
-        if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
+        if panel.adu_per_eV is None and panel.adu_per_photon is None:
             raise OmGeometryError(
                 "Please specify either adu_per_eV or adu_per_photon for panel "
                 f"{panel_name}."
             )
 
-        if (panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]) == 0.0:
+        if (panel.fsx * panel.ssy - panel.ssx * panel.fsy) == 0.0:
             raise OmGeometryError(f"Panel {panel_name} transformation is singular.")
 
     if num_placeholders_in_masks > num_placeholders_in_panels:
@@ -340,26 +712,26 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         )
 
     bad_region_name: str
-    bad_region: TypeBadRegion
-    for bad_region_name, bad_region in detector["bad"].items():
-        if bad_region["is_fsss"] == 99:
+    bad_region: BadRegion
+    for bad_region_name, bad_region in detector.bad.items():
+        if bad_region.is_fsss == 99:
             raise OmGeometryError(
                 "Please specify the coordinate ranges for bad "
                 f"region {bad_region_name}."
             )
     group: str
-    for group in detector["rigid_groups"]:
+    for group in detector.rigid_groups:
         name: str
-        for name in detector["rigid_groups"][group]:
-            if name not in detector["panels"]:
+        for name in detector.rigid_groups[group]:
+            if name not in detector.panels:
                 raise OmGeometryError(
                     "Cannot add panel to rigid_group. Panel not " f"found: {name}."
                 )
     group_collection: str
-    for group_collection in detector["rigid_group_collections"]:
+    for group_collection in detector.rigid_group_collections:
         group_name: str
-        for group_name in detector["rigid_group_collections"][group_collection]:
-            if group_name not in detector["rigid_groups"]:
+        for group_name in detector.rigid_group_collections[group_collection]:
+            if group_name not in detector.rigid_groups:
                 raise OmGeometryError(
                     "Cannot add rigid_group to collection. Rigid group not "
                     f"found: {group_name}."
@@ -369,7 +741,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
 def _read_crystfel_geometry_from_text(  # noqa: C901
     *,
     text_lines: List[str],
-) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
+) -> Tuple[Detector, Beam, str]:  # noqa: C901
     # This function is a Python re-implementation of the `get_detector_geometry_2` C
     # function from CrystFEL. It reads some CrystFEL geometry information provided in
     # the form of text data (and encoded using a format fully documented in CrystFEL's
@@ -396,76 +768,76 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
     #   Bragg peak information from files. This information is not always present in
     #   the geometry file. If it is not available, this entry is just an empty
     #   string.
-    beam: TypeBeam = {
-        "photon_energy": 0.0,
-        "photon_energy_from": "",
-        "photon_energy_scale": 1.0,
-    }
-    detector: TypeDetector = {
-        "panels": collections.OrderedDict(),
-        "bad": collections.OrderedDict(),
-        "mask_good": 0,
-        "mask_bad": 0,
-        "rigid_groups": {},
-        "rigid_group_collections": {},
-        "furthest_out_panel": "",
-        "furthest_out_fs": float("NaN"),
-        "furthest_out_ss": float("NaN"),
-        "furthest_in_panel": "",
-        "furthest_in_fs": float("NaN"),
-        "furthest_in_ss": float("NaN"),
-    }
-    default_panel: TypePanel = {
-        "cnx": float("NaN"),
-        "cny": float("NaN"),
-        "coffset": 0.0,
-        "clen": float("NaN"),
-        "clen_from": "",
-        "mask": "",
-        "mask_file": "",
-        "satmap": "",
-        "satmap_file": "",
-        "res": -1.0,
-        "badrow": "-",
-        "no_index": False,
-        "adu_per_photon": float("NaN"),
-        "max_adu": float("inf"),
-        "data": "",
-        "adu_per_eV": float("NaN"),
-        "dim_structure": [],
-        "fsx": 1.0,
-        "fsy": 0.0,
-        "fsz": 0.0,
-        "ssx": 0.0,
-        "ssy": 1.0,
-        "ssz": 0.0,
-        "rail_x": float("NaN"),
-        "rail_y": float("NaN"),
-        "rail_z": float("NaN"),
-        "clen_for_centering": float("NaN"),
-        "xfs": 0.0,
-        "yfs": 1.0,
-        "xss": 1.0,
-        "yss": 0.0,
-        "orig_min_fs": -1,
-        "orig_max_fs": -1,
-        "orig_min_ss": -1,
-        "orig_max_ss": -1,
-        "w": 0,
-        "h": 0,
-    }
-    default_bad_region: TypeBadRegion = {
-        "panel": "",
-        "min_x": float("NaN"),
-        "max_x": float("NaN"),
-        "min_y": float("NaN"),
-        "max_y": float("NaN"),
-        "min_fs": 0,
-        "max_fs": 0,
-        "min_ss": 0,
-        "max_ss": 0,
-        "is_fsss": 99,
-    }
+    beam: Beam = Beam(
+        photon_energy=0.0,
+        photon_energy_from="",
+        photon_energy_scale=1.0,
+    )
+    detector: Detector = Detector(
+        panels=collections.OrderedDict(),
+        bad=collections.OrderedDict(),
+        mask_good=0,
+        mask_bad=0,
+        rigid_groups={},
+        rigid_group_collections={},
+        furthest_out_panel="",
+        furthest_out_fs=float("NaN"),
+        furthest_out_ss=float("NaN"),
+        furthest_in_panel="",
+        furthest_in_fs=float("NaN"),
+        furthest_in_ss=float("NaN"),
+    )
+    default_panel: Panel = Panel(
+        cnx=float("NaN"),
+        cny=float("NaN"),
+        coffset=0.0,
+        clen=float("NaN"),
+        clen_from="",
+        mask="",
+        mask_file="",
+        satmap="",
+        satmap_file="",
+        res=-1.0,
+        badrow="-",
+        no_index=False,
+        adu_per_photon=float("NaN"),
+        max_adu=float("inf"),
+        data="",
+        adu_per_eV=float("NaN"),
+        dim_structure=[],
+        fsx=1.0,
+        fsy=0.0,
+        fsz=0.0,
+        ssx=0.0,
+        ssy=1.0,
+        ssz=0.0,
+        rail_x=float("NaN"),
+        rail_y=float("NaN"),
+        rail_z=float("NaN"),
+        clen_for_centering=float("NaN"),
+        xfs=0.0,
+        yfs=1.0,
+        xss=1.0,
+        yss=0.0,
+        orig_min_fs=-1,
+        orig_max_fs=-1,
+        orig_min_ss=-1,
+        orig_max_ss=-1,
+        w=0,
+        h=0,
+    )
+    default_bad_region: BadRegion = BadRegion(
+        panel="",
+        min_x=float("NaN"),
+        max_x=float("NaN"),
+        min_y=float("NaN"),
+        max_y=float("NaN"),
+        min_fs=0,
+        max_fs=0,
+        min_ss=0,
+        max_ss=0,
+        is_fsss=99,
+    )
     default_dim: List[Optional[Union[int, str]]] = ["ss", "fs"]
     hdf5_peak_path: str = ""
     line: str
@@ -485,31 +857,31 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
             if len(key_parts) < 2:
                 if key == "mask_bad":
                     try:
-                        detector["mask_bad"] = int(value)
+                        detector.mask_bad = int(value)
                     except ValueError:
-                        detector["mask_bad"] = int(value, base=16)
+                        detector.mask_bad = int(value, base=16)
                 elif key == "mask_good":
                     try:
-                        detector["mask_good"] = int(value)
+                        detector.mask_good = int(value)
                     except ValueError:
-                        detector["mask_good"] = int(value, base=16)
+                        detector.mask_good = int(value, base=16)
                 elif key == "photon_energy":
                     if value.startswith("/"):
-                        beam["photon_energy"] = 0.0
-                        beam["photon_energy_from"] = value
+                        beam.photon_energy = 0.0
+                        beam.photon_energy_from = value
                     else:
-                        beam["photon_energy"] = float(value)
-                        beam["photon_energy_from"] = ""
+                        beam.photon_energy = float(value)
+                        beam.photon_energy_from = ""
                 elif key == "photon_energy_scale":
-                    beam["photon_energy_scale"] = float(value)
+                    beam.photon_energy_scale = float(value)
                 elif key == "peak_info_location":
                     hdf5_peak_path = value
                 elif key.startswith("rigid_group") and not key.startswith(
                     "rigid_group_collection"
                 ):
-                    detector["rigid_groups"][key[12:]] = value.split(",")
+                    detector.rigid_groups[key[12:]] = value.split(",")
                 elif key.startswith("rigid_group_collection"):
-                    detector["rigid_group_collections"][key[23:]] = value.split(",")
+                    detector.rigid_group_collections[key[23:]] = value.split(",")
                 else:
                     _parse_panel_entry(
                         key=key,
@@ -522,15 +894,15 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
             if key_parts[0].startswith("bad"):
                 bad_region_name: str = key_parts[0]
                 bad_region_key: str = key_parts[1]
-                if bad_region_name not in detector["bad"]:
-                    detector["bad"][bad_region_name] = copy.deepcopy(default_bad_region)
-                curr_bad_region: TypeBadRegion = detector["bad"][bad_region_name]
-                if curr_bad_region["is_fsss"] == 99:
+                if bad_region_name not in detector.bad:
+                    detector.bad[bad_region_name] = copy.deepcopy(default_bad_region)
+                curr_bad_region: BadRegion = detector.bad[bad_region_name]
+                if curr_bad_region.is_fsss == 99:
                     if bad_region_key in ("min_ss", "min_fs", "max_ss", "max_fs"):
-                        curr_bad_region["is_fsss"] = 1
+                        curr_bad_region.is_fsss = 1
                     else:
-                        curr_bad_region["is_fsss"] = 0
-                if curr_bad_region["is_fsss"] == 1 and bad_region_key in (
+                        curr_bad_region.is_fsss = 0
+                if curr_bad_region.is_fsss == 1 and bad_region_key in (
                     "min_x",
                     "min_y",
                     "max_x",
@@ -538,31 +910,31 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                 ):
                     raise OmGeometryError("You can't mix x/y and fs/ss in a bad region")
                 if bad_region_key == "min_x":
-                    curr_bad_region["min_x"] = float(value)
+                    curr_bad_region.min_x = float(value)
                 elif bad_region_key == "max_x":
-                    curr_bad_region["max_x"] = float(value)
+                    curr_bad_region.max_x = float(value)
                 elif bad_region_key == "min_y":
-                    curr_bad_region["min_y"] = float(value)
+                    curr_bad_region.min_y = float(value)
                 elif bad_region_key == "max_y":
-                    curr_bad_region["max_y"] = float(value)
+                    curr_bad_region.max_y = float(value)
                 elif bad_region_key == "min_fs":
-                    curr_bad_region["min_fs"] = int(value)
+                    curr_bad_region.min_fs = int(value)
                 elif bad_region_key == "max_fs":
-                    curr_bad_region["max_fs"] = int(value)
+                    curr_bad_region.max_fs = int(value)
                 elif bad_region_key == "min_ss":
-                    curr_bad_region["min_ss"] = int(value)
+                    curr_bad_region.min_ss = int(value)
                 elif bad_region_key == "max_ss":
-                    curr_bad_region["max_ss"] = int(value)
+                    curr_bad_region.max_ss = int(value)
                 elif bad_region_key == "panel":
-                    curr_bad_region["panel"] = value
+                    curr_bad_region.panel = value
                 else:
                     raise OmGeometryError("Unrecognized field: {}".format(key))
             else:
                 panel_name: str = key_parts[0]
                 panel_key: str = key_parts[1]
-                if key_parts[0] not in detector["panels"]:
-                    detector["panels"][panel_name] = copy.deepcopy(default_panel)
-                curr_panel: TypePanel = detector["panels"][panel_name]
+                if key_parts[0] not in detector.panels:
+                    detector.panels[panel_name] = copy.deepcopy(default_panel)
+                curr_panel: Panel = detector.panels[panel_name]
                 _parse_panel_entry(
                     key=panel_key,
                     value=value,
@@ -577,63 +949,63 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                 f"Reason: {str(exp)}",
             )
 
-    panel: TypePanel
-    for panel in detector["panels"].values():
-        if len(panel["dim_structure"]) == 0:
-            panel["dim_structure"] = copy.deepcopy(default_dim)
+    panel: Panel
+    for panel in detector.panels.values():
+        if len(panel.dim_structure) == 0:
+            panel.dim_structure = copy.deepcopy(default_dim)
 
     _validate_detector_geometry(detector)
 
     min_d: float = float("inf")
     max_d: float = 0.0
-    for panel_name, panel in detector["panels"].items():
-        if panel["rail_x"] is None:
-            panel["rail_x"] = 0.0
-            panel["rail_y"] = 0.0
-            panel["rail_z"] = 1.0
+    for panel_name, panel in detector.panels.items():
+        if panel.rail_x is None:
+            panel.rail_x = 0.0
+            panel.rail_y = 0.0
+            panel.rail_z = 1.0
 
-        if panel["clen_for_centering"] is None:
-            panel["clen_for_centering"] = 0.0
+        if panel.clen_for_centering is None:
+            panel.clen_for_centering = 0.0
 
-        d: float = panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]
-        panel["xfs"] = panel["ssy"] / d
-        panel["yfs"] = panel["ssx"] / d
-        panel["xss"] = panel["fsy"] / d
-        panel["yss"] = panel["fsx"] / d
-        panel["w"] = panel["orig_max_fs"] - panel["orig_min_fs"] + 1
-        panel["h"] = panel["orig_max_ss"] - panel["orig_min_ss"] + 1
+        d: float = panel.fsx * panel.ssy - panel.ssx * panel.fsy
+        panel.xfs = panel.ssy / d
+        panel.yfs = panel.ssx / d
+        panel.xss = panel.fsy / d
+        panel.yss = panel.fsx / d
+        panel.w = panel.orig_max_fs - panel.orig_min_fs + 1
+        panel.h = panel.orig_max_ss - panel.orig_min_ss + 1
 
         fs: int
         ss: int
-        for fs in range(0, panel["w"] + 1, panel["w"]):
-            for ss in range(0, panel["h"] + 1, panel["h"]):
-                xs: float = fs * panel["fsx"] + ss * panel["ssx"]
-                ys: float = fs * panel["fsy"] + ss * panel["ssy"]
-                rx: float = (xs + panel["cnx"]) / panel["res"]
-                ry: float = (ys + panel["cny"]) / panel["res"]
+        for fs in range(0, panel.w + 1, panel.w):
+            for ss in range(0, panel.h + 1, panel.h):
+                xs: float = fs * panel.fsx + ss * panel.ssx
+                ys: float = fs * panel.fsy + ss * panel.ssy
+                rx: float = (xs + panel.cnx) / panel.res
+                ry: float = (ys + panel.cny) / panel.res
                 dist: float = math.sqrt(rx * rx + ry * ry)
                 if dist > max_d:
-                    detector["furthest_out_panel"] = panel_name
-                    detector["furthest_out_fs"] = fs
-                    detector["furthest_out_ss"] = ss
+                    detector.furthest_out_panel = panel_name
+                    detector.furthest_out_fs = fs
+                    detector.furthest_out_ss = ss
                     max_d = dist
                 elif dist < min_d:
-                    detector["furthest_in_panel"] = panel_name
-                    detector["furthest_in_fs"] = fs
-                    detector["furthest_in_ss"] = ss
+                    detector.furthest_in_panel = panel_name
+                    detector.furthest_in_fs = fs
+                    detector.furthest_in_ss = ss
                     min_d = dist
 
     return detector, beam, hdf5_peak_path
 
 
-def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
+def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
     # Computes pixel maps from CrystFEL geometry information.
 
     max_fs_in_slab: int = numpy.array(
-        [geometry["panels"][k]["orig_max_fs"] for k in geometry["panels"]]
+        [geometry.panels[k].orig_max_fs for k in geometry.panels]
     ).max()
     max_ss_in_slab: int = numpy.array(
-        [geometry["panels"][k]["orig_max_ss"] for k in geometry["panels"]]
+        [geometry.panels[k].orig_max_ss for k in geometry.panels]
     ).max()
 
     x_map: NDArray[numpy.float_] = numpy.zeros(
@@ -650,96 +1022,89 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     # computes the x,y vectors. Finally, copies the panel pixel maps into the
     # detector-wide pixel maps.
     panel_name: str
-    for panel_name in geometry["panels"]:
-        if "clen" in geometry["panels"][panel_name]:
-            first_panel_camera_length: float = geometry["panels"][panel_name]["clen"]
-        else:
-            first_panel_camera_length = 0.0
+    for panel_name in geometry.panels:
+        first_panel_camera_length: float = geometry.panels[panel_name].clen
 
         ss_grid: NDArray[numpy.int_]
         fs_grid: NDArray[numpy.int_]
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
-                geometry["panels"][panel_name]["orig_max_ss"]
-                - geometry["panels"][panel_name]["orig_min_ss"]
+                geometry.panels[panel_name].orig_max_ss
+                - geometry.panels[panel_name].orig_min_ss
                 + 1
             ),
             numpy.arange(
-                geometry["panels"][panel_name]["orig_max_fs"]
-                - geometry["panels"][panel_name]["orig_min_fs"]
+                geometry.panels[panel_name].orig_max_fs
+                - geometry.panels[panel_name].orig_min_fs
                 + 1
             ),
             indexing="ij",
         )
         y_panel: NDArray[numpy.float_] = (
-            ss_grid * geometry["panels"][panel_name]["ssy"]
-            + fs_grid * geometry["panels"][panel_name]["fsy"]
-            + geometry["panels"][panel_name]["cny"]
+            ss_grid * geometry.panels[panel_name].ssy
+            + fs_grid * geometry.panels[panel_name].fsy
+            + geometry.panels[panel_name].cny
         )
         x_panel: NDArray[numpy.float_] = (
-            ss_grid * geometry["panels"][panel_name]["ssx"]
-            + fs_grid * geometry["panels"][panel_name]["fsx"]
-            + geometry["panels"][panel_name]["cnx"]
+            ss_grid * geometry.panels[panel_name].ssx
+            + fs_grid * geometry.panels[panel_name].fsx
+            + geometry.panels[panel_name].cnx
         )
         x_map[
-            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
-                panel_name
-            ]["orig_max_ss"]
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
-                panel_name
-            ]["orig_max_fs"]
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = x_panel
         y_map[
-            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
-                panel_name
-            ]["orig_max_ss"]
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
-                panel_name
-            ]["orig_max_fs"]
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = y_panel
         z_map[
-            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
-                panel_name
-            ]["orig_max_ss"]
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
-                panel_name
-            ]["orig_max_fs"]
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = first_panel_camera_length
 
     r_map: NDArray[numpy.float_] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
     phi_map: NDArray[numpy.float_] = numpy.arctan2(y_map, x_map)
 
-    return {
-        "x": x_map,
-        "y": y_map,
-        "z": z_map,
-        "radius": r_map,
-        "phi": phi_map,
-    }
+    return PixelMaps(
+        x=x_map,
+        y=y_map,
+        z=z_map,
+        radius=r_map,
+        phi=phi_map,
+    )
 
 
-def _compute_min_array_shape(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
+def _compute_min_array_shape(*, pixel_maps: PixelMaps) -> Tuple[int, int]:
     # Computes the minimum shape of an array that can hold the pixel information for
     # the image representation of a detector data frame (starting from CrystFEL
     # geometry information).
-    y_minimum: int = (
-        2 * int(max(abs(pixel_maps["y"].max()), abs(pixel_maps["y"].min()))) + 2
-    )
-    x_minimum: int = (
-        2 * int(max(abs(pixel_maps["x"].max()), abs(pixel_maps["x"].min()))) + 2
-    )
+    y_minimum: int = 2 * int(max(abs(pixel_maps.y.max()), abs(pixel_maps.y.min()))) + 2
+    x_minimum: int = 2 * int(max(abs(pixel_maps.x.max()), abs(pixel_maps.x.min()))) + 2
     return (y_minimum, x_minimum)
 
 
 def _compute_visualization_pix_maps(
-    *, pixel_maps: TypePixelMaps
-) -> TypeVisualizationPixelMaps:
+    *, pixel_maps: PixelMaps
+) -> VisualizationPixelMaps:
     # Computes pixel maps that be used for data visualization starting from a set of
     # pixel maps that refer to the reference system of the detector.
 
@@ -749,36 +1114,36 @@ def _compute_visualization_pix_maps(
     # shift.
     min_shape: Tuple[int, int] = _compute_min_array_shape(pixel_maps=pixel_maps)
     new_x_map: NDArray[numpy.int_] = (
-        numpy.array(object=pixel_maps["x"], dtype=int) + min_shape[1] // 2 - 1
+        numpy.array(object=pixel_maps.x, dtype=int) + min_shape[1] // 2 - 1
     )
     new_y_map: NDArray[numpy.int_] = (
-        numpy.array(object=pixel_maps["y"], dtype=int) + min_shape[0] // 2 - 1
+        numpy.array(object=pixel_maps.y, dtype=int) + min_shape[0] // 2 - 1
     )
 
-    return {
-        "x": new_x_map,
-        "y": new_y_map,
-    }
+    return VisualizationPixelMaps(
+        x=new_x_map,
+        y=new_y_map,
+    )
 
 
 def _retrieve_layout_info_from_geometry(
-    *, geometry: TypeDetector
-) -> TypeDetectorLayoutInformation:
+    *, geometry: Detector
+) -> DetectorLayoutInformation:
     # Retrieves information about the internal data layout of a detector data frame,
     # Starting from CrystFEL geometry information.
-    panels: List[TypePanel] = list(geometry["panels"].values())
-    panel_fs_size: int = panels[0]["orig_max_fs"] - panels[0]["orig_min_fs"] + 1
-    panel_ss_size: int = panels[0]["orig_max_ss"] - panels[0]["orig_min_ss"] + 1
+    panels: List[Panel] = list(geometry.panels.values())
+    panel_fs_size: int = panels[0].orig_max_fs - panels[0].orig_min_fs + 1
+    panel_ss_size: int = panels[0].orig_max_ss - panels[0].orig_min_ss + 1
 
-    total_fs_size: int = max((panel["orig_max_fs"] for panel in panels))
-    total_ss_size: int = max((panel["orig_max_ss"] for panel in panels))
+    total_fs_size: int = max((panel.orig_max_fs for panel in panels))
+    total_ss_size: int = max((panel.orig_max_ss for panel in panels))
 
-    return {
-        "asic_nx": panel_fs_size,
-        "asic_ny": panel_ss_size,
-        "nasics_x": (total_fs_size + 1) // panel_fs_size,
-        "nasics_y": (total_ss_size + 1) // panel_ss_size,
-    }
+    return DetectorLayoutInformation(
+        asic_nx=panel_fs_size,
+        asic_ny=panel_ss_size,
+        nasics_x=(total_fs_size + 1) // panel_fs_size,
+        nasics_y=(total_ss_size + 1) // panel_ss_size,
+    )
 
 
 class GeometryInformation:
@@ -823,22 +1188,22 @@ class GeometryInformation:
         """
 
         if geometry_format == "crystfel":
-            geometry: TypeDetector
+            geometry: Detector
             geometry, _, __ = _read_crystfel_geometry_from_text(
                 text_lines=geometry_description
             )
 
-            self._layout_info: TypeDetectorLayoutInformation = (
+            self._layout_info: DetectorLayoutInformation = (
                 _retrieve_layout_info_from_geometry(geometry=geometry)
             )
-            self._pixel_maps: TypePixelMaps = _compute_pix_maps(geometry=geometry)
+            self._pixel_maps: PixelMaps = _compute_pix_maps(geometry=geometry)
 
             # Theoretically, the pixel size could be different for every module of the
             # detector. The pixel size of the first module is taken as the pixel size
             # of the whole detector.
-            res_first_panel: float = geometry["panels"][
-                tuple(geometry["panels"].keys())[0]
-            ]["res"]
+            res_first_panel: float = geometry.panels[
+                tuple(geometry.panels.keys())[0]
+            ].res
 
             # res from crystfel, which is 1/pixel_size
             self._pixel_size: float = 1.0 / res_first_panel
@@ -846,9 +1211,9 @@ class GeometryInformation:
             # Theoretically, panel coffset could be different for every module of the
             # detector. The panel coffset of the first module is taken as the pixel
             # size of the whole detector.
-            self._detector_distance_offset: float = geometry["panels"][
-                list(geometry["panels"].keys())[0]
-            ]["coffset"]
+            self._detector_distance_offset: float = geometry.panels[
+                list(geometry.panels.keys())[0]
+            ].coffset
         else:
             raise OmGeometryError("Geometry format is not supported.")
 
@@ -902,7 +1267,7 @@ class GeometryInformation:
             geometry_format=geometry_format,
         )
 
-    def get_pixel_maps(self) -> TypePixelMaps:
+    def get_pixel_maps(self) -> PixelMaps:
         """
         Retrieves pixel maps.
 
@@ -915,7 +1280,7 @@ class GeometryInformation:
         """
         return self._pixel_maps
 
-    def get_layout_info(self) -> TypeDetectorLayoutInformation:
+    def get_layout_info(self) -> DetectorLayoutInformation:
         """
         Retrieves detector layout information for the peakfinder8 algorithm.
 
@@ -971,7 +1336,7 @@ class DataVisualizer:
     def __init__(
         self,
         *,
-        pixel_maps: TypePixelMaps,
+        pixel_maps: PixelMaps,
     ):
         """
         Visualization of detector data with geometry applied.
@@ -989,14 +1354,14 @@ class DataVisualizer:
                 each pixel in detector data frame.
         """
         self._pixel_maps = pixel_maps
-        self._visualization_pixel_maps: TypeVisualizationPixelMaps = (
+        self._visualization_pixel_maps: VisualizationPixelMaps = (
             _compute_visualization_pix_maps(pixel_maps=self._pixel_maps)
         )
         self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
             pixel_maps=self._pixel_maps
         )
 
-    def get_pixel_maps(self) -> TypePixelMaps:
+    def get_pixel_maps(self) -> PixelMaps:
         """
         Retrieves pixel maps.
 
@@ -1010,7 +1375,7 @@ class DataVisualizer:
         """
         return self._pixel_maps
 
-    def get_visualization_pixel_maps(self) -> TypeVisualizationPixelMaps:
+    def get_visualization_pixel_maps(self) -> VisualizationPixelMaps:
         """
         Retrieves visualization pixel maps.
 
@@ -1094,8 +1459,8 @@ class DataVisualizer:
             visualization_array = array_for_visualization
 
         visualization_array[
-            self._visualization_pixel_maps["y"].flatten(),
-            self._visualization_pixel_maps["x"].flatten(),
+            self._visualization_pixel_maps.y.flatten(),
+            self._visualization_pixel_maps.x.flatten(),
         ] = data.ravel().astype(visualization_array.dtype)
 
         return visualization_array

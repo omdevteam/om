@@ -21,6 +21,8 @@ HTTP-based data sources.
 This module contains Data Source classes that deal with data retrieved from the
 HTTP/REST interface of detectors manufactured by the company Dectris.
 """
+
+
 import datetime
 from typing import Any, Dict, Type, TypeVar, Union
 
@@ -28,7 +30,7 @@ import numpy
 from numpy.typing import NDArray
 from PIL import Image  # type: ignore
 
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 
 class OmBaseGenericDataSourceMixin:

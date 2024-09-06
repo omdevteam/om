@@ -20,9 +20,12 @@ Handling of file-based data events.
 
 This module contains Data Event Handler classes that manipulate file-based events.
 """
+
+
 import pathlib
 import re
 import sys
+from dataclasses import asdict
 from datetime import datetime
 from typing import Any, Dict, Generator, List, TextIO, Tuple, Type, TypeVar, cast
 
@@ -31,6 +34,7 @@ import numpy
 from numpy.typing import NDArray
 from pydantic import BaseModel, ValidationError
 
+from om.data_retrieval_layer.data_sources_common import Jungfrau1MFrameInfo
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmDataExtractionError,
@@ -38,11 +42,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
-from om.typing import (
-    OmDataEventHandlerProtocol,
-    OmDataSourceProtocol,
-    TypeJungfrau1MFrameInfo,
-)
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import fabio  # type: ignore
@@ -412,7 +412,7 @@ class Jungfrau1MFilesDataEventHandler(
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
-        frame_list: List[TypeJungfrau1MFrameInfo] = []
+        frame_list: List[Jungfrau1MFrameInfo] = []
         line: str
         for line in filelist:
             filename: str = line.strip()
@@ -439,17 +439,17 @@ class Jungfrau1MFilesDataEventHandler(
             index: int
             for index in range(h5file["/entry/data/data"].shape[0]):
                 frame_list.append(
-                    {
-                        "h5file": h5file,
-                        "index": index,
-                        "file_timestamp": file_timestamp,
-                    }
+                    Jungfrau1MFrameInfo(
+                        h5file=h5file,
+                        index=index,
+                        file_timestamp=file_timestamp,
+                    )
                 )
 
         num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
         )
-        frames_curr_node: List[TypeJungfrau1MFrameInfo] = frame_list[
+        frames_curr_node: List[Jungfrau1MFrameInfo] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
@@ -474,9 +474,10 @@ class Jungfrau1MFilesDataEventHandler(
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        entry: TypeJungfrau1MFrameInfo
+        entry: Jungfrau1MFrameInfo
         for entry in frames_curr_node:
-            data_event["additional_info"].update(entry)
+
+            data_event["additional_info"] = asdict(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(
                 frames_curr_node
             )

@@ -19,6 +19,7 @@
 #TODO: Docstring
 """
 
+
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
@@ -30,9 +31,10 @@ from pydantic import BaseModel, Field, ValidationError, model_validator
 from ruamel.yaml import YAML
 from typing_extensions import Self
 
+from om.algorithms.common import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
-from om.typing import OmPeakDetectionProtocol, TypePeakList
+from om.lib.protocols import OmPeakDetectionProtocol
 
 
 class _PeakNetPeakDetectionParameters(BaseModel):
@@ -114,7 +116,7 @@ class PeakNetPeakDetection(OmPeakDetectionProtocol):
 
     def find_peaks(
         self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
-    ) -> TypePeakList:
+    ) -> PeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -165,12 +167,12 @@ class PeakNetPeakDetection(OmPeakDetectionProtocol):
             [0.0] * len(y),
         )
 
-        return {
-            "num_peaks": len(cheetah_peak_list[0]),
-            "fs": cheetah_peak_list[0],
-            "ss": cheetah_peak_list[1],
-            "intensity": cheetah_peak_list[2],
-            "num_pixels": cheetah_peak_list[4],
-            "max_pixel_intensity": cheetah_peak_list[5],
-            "snr": cheetah_peak_list[6],
-        }
+        return PeakList(
+            num_peaks=len(cheetah_peak_list[0]),
+            fs=cheetah_peak_list[0],
+            ss=cheetah_peak_list[1],
+            intensity=cheetah_peak_list[2],
+            num_pixels=cheetah_peak_list[4],
+            max_pixel_intensity=cheetah_peak_list[5],
+            snr=cheetah_peak_list[6],
+        )

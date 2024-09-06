@@ -21,6 +21,8 @@ Cheetah
 This module contains Cheetah, a data-processing program for Serial X-ray
 Crystallography, based on OM but not designed to be run in real time.
 """
+
+
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, Optional, Tuple, Type, TypeVar, Union
@@ -31,22 +33,23 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 from typing_extensions import Self
 
+from om.algorithms.crystallography import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import (
     CheetahClassSumsAccumulator,
     CheetahClassSumsCollector,
     CheetahListFilesWriter,
     CheetahStatusFileWriter,
+    FrameListData,
     HDF5Writer,
-    TypeFrameListData,
 )
 from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmConfigurationFileSyntaxError
-from om.lib.geometry import GeometryInformation
+from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
+from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
-from om.typing import OmProcessingProtocol, TypeDetectorLayoutInformation, TypePeakList
 
 T = TypeVar("T")
 
@@ -148,7 +151,7 @@ class OmCheetahMixin:
             geometry_filename=self._parameters.crystallography.geometry_file
         )
 
-    def common_initialize_processing_node(
+    def _common_initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
@@ -186,12 +189,12 @@ class OmCheetahMixin:
             )
 
         # Processed data shape
-        layout_info: TypeDetectorLayoutInformation = (
+        layout_info: DetectorLayoutInformation = (
             self._post_processing_binning.get_binned_layout_info()
         )
         self._processed_data_shape: Tuple[int, int] = (
-            layout_info["asic_ny"] * layout_info["nasics_y"],
-            layout_info["asic_nx"] * layout_info["nasics_x"],
+            layout_info.asic_ny * layout_info.nasics_y,
+            layout_info.asic_nx * layout_info.nasics_x,
         )
 
         # An array to store processed data converted to float32 (required by CrystFEL)
@@ -207,7 +210,7 @@ class OmCheetahMixin:
             )
         )
 
-    def common_initialize_collecting_node(
+    def _common_initialize_collecting_node(
         self, node_rank: int, node_pool_size: int
     ) -> None:
         """
@@ -256,7 +259,7 @@ class OmCheetahMixin:
 
     def common_process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Union[NDArray[numpy.float_], NDArray[numpy.int_]], TypePeakList, bool]:
+    ) -> Tuple[Union[NDArray[numpy.float_], NDArray[numpy.int_]], PeakList, bool]:
         """
         Processes a detector data frame.
 
@@ -292,12 +295,12 @@ class OmCheetahMixin:
                 entry is the OM rank number of the node that processed the information.
         """
         # Peak-finding
-        peak_list: TypePeakList = self._peak_detection.find_peaks(
+        peak_list: PeakList = self._peak_detection.find_peaks(
             detector_data=data["detector_data"]
         )
         frame_is_hit: bool = (
             self._parameters.crystallography.min_num_peaks_for_hit
-            < peak_list["num_peaks"]
+            < peak_list.num_peaks
             < self._parameters.crystallography.max_num_peaks_for_hit
         )
 
@@ -318,7 +321,7 @@ class OmCheetahMixin:
 
         return (binned_detector_data, peak_list, frame_is_hit)
 
-    def common_collect_data(  # noqa: C901
+    def _common_collect_data(  # noqa: C901
         self,
         *,
         processed_data: Tuple[Dict[str, Any], int],
@@ -369,7 +372,7 @@ class OmCheetahMixin:
 
         return received_data
 
-    def common_end_processing_on_processing_node(
+    def _common_end_processing_on_processing_node(
         self,
         *,
         node_rank: int,
@@ -430,7 +433,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self.common_initialize_processing_node(
+        self._common_initialize_processing_node(
             node_rank=node_rank, node_pool_size=node_pool_size
         )
 
@@ -461,7 +464,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self.common_initialize_collecting_node(
+        self._common_initialize_collecting_node(
             node_rank=node_rank, node_pool_size=node_pool_size
         )
 
@@ -604,7 +607,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 information.
         """
 
-        received_data: Optional[Dict[str, Any]] = self.common_collect_data(
+        received_data: Optional[Dict[str, Any]] = self._common_collect_data(
             processed_data=processed_data
         )
 
@@ -612,7 +615,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             return None
 
         # Write frame and peaks data to list files
-        frame_data: TypeFrameListData = TypeFrameListData(
+        frame_data: FrameListData = FrameListData(
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
@@ -639,7 +642,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         return None
 
-    def common_end_processing_on_processing_node(
+    def _common_end_processing_on_processing_node(
         self,
         *,
         node_rank: int,
@@ -668,7 +671,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         """
         log.info(f"Processing node {node_rank} shutting down.")
         self._file_writer.close()
-        return self.common_end_processing_on_processing_node(node_rank=node_rank)
+        return self._common_end_processing_on_processing_node(node_rank=node_rank)
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -734,7 +737,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self.common_initialize_processing_node(
+        self._common_initialize_processing_node(
             node_rank=node_rank, node_pool_size=node_pool_size
         )
 
@@ -759,7 +762,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self.common_initialize_collecting_node(
+        self._common_initialize_collecting_node(
             node_rank=node_rank, node_pool_size=node_pool_size
         )
 
@@ -896,7 +899,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 information.
         """
         self._handle_external_requests()
-        received_data: Optional[Dict[str, Any]] = self.common_collect_data(
+        received_data: Optional[Dict[str, Any]] = self._common_collect_data(
             processed_data=processed_data
         )
 
@@ -929,7 +932,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             _ = self._request_list.pop()
 
         # Write frame and peaks data to list files
-        frame_data: TypeFrameListData = TypeFrameListData(
+        frame_data: FrameListData = FrameListData(
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
@@ -984,7 +987,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 the processing node.
         """
         log.info(f"Processing node {node_rank} shutting down.")
-        return self.common_end_processing_on_processing_node(node_rank=node_rank)
+        return self._common_end_processing_on_processing_node(node_rank=node_rank)
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int

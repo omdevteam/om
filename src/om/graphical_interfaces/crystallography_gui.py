@@ -21,6 +21,8 @@ OM's GUI for Crystallography.
 This module contains a graphical interface that displays reduced and aggregated data in
 Serial Crystallography experiments.
 """
+
+
 import signal
 import sys
 import time

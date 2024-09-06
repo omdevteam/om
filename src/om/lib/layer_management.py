@@ -21,6 +21,8 @@ OM's layer management.
 This module contains classes and functions that mange OM's various data processing and
 extraction layers.
 """
+
+
 import importlib
 import sys
 from types import ModuleType
@@ -31,7 +33,7 @@ from om.lib.exceptions import (
     OmMissingLayerClassError,
     OmMissingLayerModuleError,
 )
-from om.typing import (
+from om.lib.protocols import (
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,
     OmParallelizationProtocol,
@@ -162,6 +164,7 @@ def filter_data_sources(
             class cannot be found in the list of Data Source available for the Data
             Retrieval.
     """
+
     required_data_sources: List[str] = []
     entry: str
     for entry in required_data:

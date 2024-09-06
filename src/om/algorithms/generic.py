@@ -22,6 +22,8 @@ This module contains algorithms that perform generic data processing operations,
 tied to a specific experimental technique (e.g.: data accumulation, radial averaging,
 binning, etc.).
 """
+
+
 from typing import Any, Dict, Optional, TypeVar, Union, cast
 
 import numpy
@@ -29,9 +31,10 @@ from numpy.typing import DTypeLike, NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
+from om.algorithms.crystallography import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
-from om.typing import TypeDetectorLayoutInformation, TypePeakList, TypePixelMaps
+from om.lib.geometry import DetectorLayoutInformation, PixelMaps
 
 from ._generic_cython import bin_detector_data  # type: ignore
 
@@ -261,7 +264,7 @@ class Binning:
     def __init__(
         self,
         *,
-        layout_info: TypeDetectorLayoutInformation,
+        layout_info: DetectorLayoutInformation,
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -327,21 +330,17 @@ class Binning:
             raise OmConfigurationFileSyntaxError(
                 "Error parsing parameters for the Binning algorithm: " f"{exception}"
             )
-        self._layout_info: TypeDetectorLayoutInformation = layout_info
+        self._layout_info: DetectorLayoutInformation = layout_info
 
         if self._binning_parameters.min_good_pix_count is None:
             self._min_good_pix_count: int = self._binning_parameters.bin_size**2
         else:
             self._min_good_pix_count = self._binning_parameters.min_good_pix_count
 
-        self._original_asic_nx: int = self._layout_info["asic_ny"]
-        self._original_asic_ny: int = self._layout_info["asic_nx"]
-        self._original_nx: int = (
-            self._layout_info["asic_ny"] * self._layout_info["nasics_y"]
-        )
-        self._original_ny: int = (
-            self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
-        )
+        self._original_asic_nx: int = self._layout_info.asic_ny
+        self._original_asic_ny: int = self._layout_info.asic_nx
+        self._original_nx: int = self._layout_info.asic_ny * self._layout_info.nasics_y
+        self._original_ny: int = self._layout_info.asic_nx * self._layout_info.nasics_x
 
         if (
             self._binning_parameters.bad_pixel_map_filename is not None
@@ -372,8 +371,8 @@ class Binning:
             int(numpy.ceil(self._original_asic_ny / self._binning_parameters.bin_size))
             * self._binning_parameters.bin_size
         )
-        self._extended_nx: int = self._extended_asic_nx * self._layout_info["nasics_y"]
-        self._extended_ny: int = self._extended_asic_ny * self._layout_info["nasics_x"]
+        self._extended_nx: int = self._extended_asic_nx * self._layout_info.nasics_y
+        self._extended_ny: int = self._extended_asic_ny * self._layout_info.nasics_x
 
         self._binned_asic_nx: int = (
             self._extended_asic_nx // self._binning_parameters.bin_size
@@ -405,8 +404,8 @@ class Binning:
         )
         i: int
         j: int
-        for i in range(self._layout_info["nasics_x"]):
-            for j in range(self._layout_info["nasics_y"]):
+        for i in range(self._layout_info.nasics_x):
+            for j in range(self._layout_info.nasics_y):
                 extended_data[
                     i * self._extended_asic_nx : i * self._extended_asic_nx
                     + self._original_asic_nx,
@@ -465,7 +464,7 @@ class Binning:
         """
         return self._binning_parameters.bin_size
 
-    def get_binned_layout_info(self) -> TypeDetectorLayoutInformation:
+    def get_binned_layout_info(self) -> DetectorLayoutInformation:
         """
         Gets the data layout information for the binned data frame.
 
@@ -476,12 +475,12 @@ class Binning:
 
             A dictionary with the data layout information for the binned frame.
         """
-        return {
-            "asic_nx": self._binned_asic_ny,
-            "asic_ny": self._binned_asic_nx,
-            "nasics_x": self._layout_info["nasics_x"],
-            "nasics_y": self._layout_info["nasics_y"],
-        }
+        return DetectorLayoutInformation(
+            asic_nx=self._binned_asic_ny,
+            asic_ny=self._binned_asic_nx,
+            nasics_x=self._layout_info.nasics_x,
+            nasics_y=self._layout_info.nasics_y,
+        )
 
     def bin_detector_data(
         self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
@@ -530,8 +529,8 @@ class Binning:
             self._saturation_value,
             self._original_asic_ny,
             self._original_asic_nx,
-            self._layout_info["nasics_y"],
-            self._layout_info["nasics_x"],
+            self._layout_info.nasics_y,
+            self._layout_info.nasics_x,
         )
         return self._binned_data_array
 
@@ -576,7 +575,7 @@ class Binning:
                 self._bin_data_array(data=mask) // self._binning_parameters.bin_size**2
             )
 
-    def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
+    def bin_pixel_maps(self, *, pixel_maps: PixelMaps) -> PixelMaps:
         """
         Computes pixel maps for a binned data frame.
 
@@ -594,26 +593,24 @@ class Binning:
             A dictionary storing the pixel maps for the binned frame.
         """
 
-        binned_pixel_maps: TypePixelMaps = {
-            "x": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["x"]))
+        binned_pixel_maps: PixelMaps = PixelMaps(
+            x=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.x))
             / self._binning_parameters.bin_size**3,
-            "y": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["y"]))
+            y=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.y))
             / self._binning_parameters.bin_size**3,
-            "z": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["z"]))
+            z=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.z))
             / self._binning_parameters.bin_size**3,
-            "radius": self._bin_data_array(
-                data=cast(NDArray[numpy.float_], pixel_maps["radius"])
+            radius=self._bin_data_array(
+                data=cast(NDArray[numpy.float_], pixel_maps.radius)
             )
             / self._binning_parameters.bin_size**3,
-            "phi": self._bin_data_array(
-                data=cast(NDArray[numpy.float_], pixel_maps["phi"])
-            )
+            phi=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.phi))
             / self._binning_parameters.bin_size**2,
-        }
+        )
 
         return binned_pixel_maps
 
-    def bin_peak_positions(self, peak_list: TypePeakList) -> TypePeakList:
+    def bin_peak_positions(self, peak_list: PeakList) -> PeakList:
         """
         Computes peaks positions for a binned data frame.
 
@@ -632,12 +629,12 @@ class Binning:
             data frame.
         """
         peak_index: int
-        for peak_index in range(peak_list["num_peaks"]):
-            peak_list["fs"][peak_index] = (
-                peak_list["fs"][peak_index] + 0.5
+        for peak_index in range(peak_list.num_peaks):
+            peak_list.fs[peak_index] = (
+                peak_list.fs[peak_index] + 0.5
             ) / self._binning_parameters.bin_size - 0.5
-            peak_list["ss"][peak_index] = (
-                peak_list["ss"][peak_index] + 0.5
+            peak_list.ss[peak_index] = (
+                peak_list.ss[peak_index] + 0.5
             ) / self._binning_parameters.bin_size - 0.5
         return peak_list
 
@@ -650,7 +647,7 @@ class BinningPassthrough:
     def __init__(
         self,
         *,
-        layout_info: TypeDetectorLayoutInformation,
+        layout_info: DetectorLayoutInformation,
     ) -> None:
         """
         Passthrough binning of detector data frames.
@@ -681,7 +678,7 @@ class BinningPassthrough:
                 detector data frame on which the algorithm is applied (number and size
                 of ASICs, etc.).
         """
-        self._layout_info: TypeDetectorLayoutInformation = layout_info
+        self._layout_info: DetectorLayoutInformation = layout_info
 
     def is_passthrough(self) -> bool:
         """
@@ -712,7 +709,7 @@ class BinningPassthrough:
         """
         return 1
 
-    def get_binned_layout_info(self) -> TypeDetectorLayoutInformation:
+    def get_binned_layout_info(self) -> DetectorLayoutInformation:
         """
         Gets the data layout information for the binned data frame.
 
@@ -787,7 +784,7 @@ class BinningPassthrough:
         else:
             return mask
 
-    def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
+    def bin_pixel_maps(self, *, pixel_maps: PixelMaps) -> PixelMaps:
         """
         Computes pixel maps for a binned data frame.
 
@@ -809,7 +806,7 @@ class BinningPassthrough:
         """
         return pixel_maps
 
-    def bin_peak_positions(self, peak_list: TypePeakList) -> TypePeakList:
+    def bin_peak_positions(self, peak_list: PeakList) -> PeakList:
         """
         Computes peaks positions for a binned data frame.
 

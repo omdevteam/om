@@ -21,6 +21,8 @@ Data retrieval from ASAP::O.
 This module contains Data Retrieval classes that deal with the ASAP::O software
 framework (used at the PETRA III facility).
 """
+
+
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
@@ -32,7 +34,7 @@ from om.data_retrieval_layer.data_sources_asapo import (
     TimestampAsapo,
 )
 from om.data_retrieval_layer.data_sources_common import FloatValueFromConfiguration
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

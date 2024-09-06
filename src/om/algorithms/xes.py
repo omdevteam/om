@@ -20,6 +20,7 @@ This module contains algorithms that perform data processing operations for X-ra
 Emission Spectroscopy.
 """
 
+
 from typing import Any, Dict, Union, cast
 
 import numpy

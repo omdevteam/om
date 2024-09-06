@@ -21,13 +21,15 @@ ZMQ-based data sources.
 This module contains Data Source classes that deal with data retrieved from ZMQ data
 streams.
 """
+
+
 from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
 
 from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMixin
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 T = TypeVar("T")
 

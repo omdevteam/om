@@ -21,6 +21,8 @@ Handling of psana-based data events.
 This module contains Data Event Handler classes that manipulate events originating from
 the psana software framework (used at the LCLS facility).
 """
+
+
 import sys
 from typing import Any, Dict, Generator, List, Optional, Type
 
@@ -35,7 +37,7 @@ from om.lib.exceptions import (
 )
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import psana  # type: ignore

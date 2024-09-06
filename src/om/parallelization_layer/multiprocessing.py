@@ -20,6 +20,8 @@ Multiprocessing Parallelization Layer for OM.
 
 This module contains a Parallelization Layer based on Python's multiprocessing module.
 """
+
+
 import queue
 import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
@@ -29,7 +31,7 @@ from pydantic import BaseModel
 
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
-from om.typing import (
+from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,

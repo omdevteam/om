@@ -21,6 +21,8 @@ OM's GUI for X-ray Emission Spectroscopy.
 This module contains a graphical interface that displays reduced and aggregated data
 in X-ray Emission Spectroscopy experiments.
 """
+
+
 import signal
 import sys
 import time

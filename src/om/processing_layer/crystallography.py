@@ -20,6 +20,8 @@ OnDA Monitor for Crystallography.
 
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
+
+
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
@@ -29,14 +31,15 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
+from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPlots
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmConfigurationFileSyntaxError, OmMissingDependencyError
-from om.lib.geometry import DataVisualizer, GeometryInformation
+from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
 from om.lib.logging import log
+from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.typing import OmProcessingProtocol, TypePeakList, TypePixelMaps
 
 try:
     import msgpack  # type: ignore
@@ -204,7 +207,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         self._pixel_size = self._geometry_information.get_pixel_size()
-        pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
+        pixel_maps: PixelMaps = self._geometry_information.get_pixel_maps()
 
         self._pixel_size /= self._post_processing_binning.get_bin_size()
         binned_pixel_maps = self._post_processing_binning.bin_pixel_maps(
@@ -301,7 +304,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         processed_data: Dict[str, Any] = {}
 
         # Peak-finding
-        peak_list: TypePeakList = self._peak_detection.find_peaks(
+        peak_list: PeakList = self._peak_detection.find_peaks(
             detector_data=data["detector_data"]
         )
 
@@ -311,7 +314,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         frame_is_hit: bool = (
             self._parameters.crystallography.min_num_peaks_for_hit
-            < len(peak_list["intensity"])
+            < len(peak_list.intensity)
             < self._parameters.crystallography.max_num_peaks_for_hit
         )
 

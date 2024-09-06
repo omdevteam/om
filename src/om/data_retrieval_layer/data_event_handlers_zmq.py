@@ -21,6 +21,8 @@ Handling of data events from a ZMQ stream.
 This module contains Data Event Handler classes that deal with events retrieved from a
 a ZMQ stream.
 """
+
+
 import sys
 from typing import Any, Dict, Generator, List, Tuple, Type
 
@@ -34,7 +36,7 @@ from om.lib.exceptions import (
 )
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
 class _ZmqDataEventHandlerParameters(BaseModel):

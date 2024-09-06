@@ -21,6 +21,9 @@ Generic data sources.
 This module contains Data Source classes that deal with data whose origin is not tied
 to a specific facility or experiment.
 """
+
+
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 import numpy
@@ -29,7 +32,7 @@ from typing_extensions import Self
 
 from om.algorithms.calibration import Jungfrau1MCalibration
 from om.lib.exceptions import OmConfigurationFileSyntaxError
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 T = TypeVar("T")
 
@@ -68,6 +71,15 @@ class _FloatEntryParameters(BaseModel):
                 "FloatValueFromConfiguration: value",
             )
         return v
+
+
+@dataclass
+class Jungfrau1MFrameInfo:
+    # This typed dictionary is used internally to store additional information
+    # required to retrieve Jungfrau 1M frame data.
+    h5file: Any
+    index: int
+    file_timestamp: float
 
 
 class OmJungfrau1MDataSourceMixin:

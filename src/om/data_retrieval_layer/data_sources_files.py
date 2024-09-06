@@ -20,6 +20,8 @@ File-based data sources.
 
 This module contains Data Source classes that deal with data stored in files.
 """
+
+
 from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
 
 import numpy
@@ -27,7 +29,7 @@ from numpy.typing import NDArray
 
 from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMixin
 from om.lib.exceptions import OmMissingDependencyError
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 try:
     from PIL import Image  # type: ignore

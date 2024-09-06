@@ -21,6 +21,8 @@ ASAP::O-related data sources.
 This module contains Data Source classes that deal with data retrieved from the ASAP::O
 software framework (used at the PETRA III facility).
 """
+
+
 from typing import Any, Dict, Type, TypeVar, Union, cast
 
 import numpy
@@ -28,7 +30,7 @@ from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.lib.exceptions import OmMissingDependencyError
-from om.typing import OmDataSourceProtocol
+from om.lib.protocols import OmDataSourceProtocol
 
 try:
     import seedee  # type: ignore

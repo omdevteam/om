@@ -22,6 +22,8 @@ This module contains algorithms that perform data processing operations for Seri
 Crystallography. Additionally, it contains the definitions of several typed
 dictionaries that store data produced or required by these algorithms.
 """
+
+
 import random
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -32,13 +34,11 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
+from om.algorithms.common import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
-from om.typing import (
-    OmPeakDetectionProtocol,
-    TypeDetectorLayoutInformation,
-    TypePeakList,
-)
+from om.lib.geometry import DetectorLayoutInformation
+from om.lib.protocols import OmPeakDetectionProtocol
 
 from ._crystallography_cython import peakfinder_8  # type: ignore
 
@@ -79,7 +79,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
-        layout_info: TypeDetectorLayoutInformation,
+        layout_info: DetectorLayoutInformation,
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -173,10 +173,10 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
                 f"{exception}"
             )
 
-        self._asic_nx: int = layout_info["asic_nx"]
-        self._asic_ny: int = layout_info["asic_ny"]
-        self._nasics_x: int = layout_info["nasics_x"]
-        self._nasics_y: int = layout_info["nasics_y"]
+        self._asic_nx: int = layout_info.asic_nx
+        self._asic_ny: int = layout_info.asic_ny
+        self._nasics_x: int = layout_info.nasics_x
+        self._nasics_y: int = layout_info.nasics_y
         self._max_num_peaks: float = self._peakfinder8_parameters.max_num_peaks
         self._adc_thresh: float = self._peakfinder8_parameters.adc_threshold
         self._minimum_snr: float = self._peakfinder8_parameters.minimum_snr
@@ -234,11 +234,11 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._radial_stats_radius = numpy.array(radius).astype(numpy.int32)
         self._radial_stats_num_pixels = self._radial_stats_pixel_index.shape[0]
 
-    def set_layout_info(self, layout_info: TypeDetectorLayoutInformation) -> None:
-        self._asic_nx = layout_info["asic_nx"]
-        self._asic_ny = layout_info["asic_ny"]
-        self._nasics_x = layout_info["nasics_x"]
-        self._nasics_y = layout_info["nasics_y"]
+    def set_layout_info(self, layout_info: DetectorLayoutInformation) -> None:
+        self._asic_nx = layout_info.asic_nx
+        self._asic_ny = layout_info.asic_ny
+        self._nasics_x = layout_info.nasics_x
+        self._nasics_y = layout_info.nasics_y
 
     def get_bad_pixel_map(self) -> Optional[NDArray[numpy.int_]]:
         return self._bad_pixel_map
@@ -461,7 +461,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
 
     def find_peaks(
         self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
-    ) -> TypePeakList:
+    ) -> PeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -507,12 +507,12 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._local_bg_radius,
         )
 
-        return {
-            "num_peaks": len(peak_list[0]),
-            "fs": peak_list[0],
-            "ss": peak_list[1],
-            "intensity": peak_list[2],
-            "num_pixels": peak_list[4],
-            "max_pixel_intensity": peak_list[5],
-            "snr": peak_list[6],
-        }
+        return PeakList(
+            num_peaks=len(peak_list[0]),
+            fs=peak_list[0],
+            ss=peak_list[1],
+            intensity=peak_list[2],
+            num_pixels=peak_list[4],
+            max_pixel_intensity=peak_list[5],
+            snr=peak_list[6],
+        )
