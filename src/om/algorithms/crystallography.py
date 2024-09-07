@@ -25,11 +25,10 @@ dictionaries that store data produced or required by these algorithms.
 
 
 import random
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy
-
-# import scipy  # type: ignore
 from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
@@ -54,7 +53,7 @@ class _Peakfinder8PeakDetectionParameters(BaseModel):
     max_res: int
     fast_mode: bool = Field(default=False)
     num_pixel_per_bin_in_radial_statistics: int = Field(default=100)
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
+    bad_pixel_map_filename: Optional[Path] = Field(default=None)
     bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
 
     @model_validator(mode="after")
@@ -164,7 +163,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
 
         """
         try:
-            self._peakfinder8_parameters: _Peakfinder8PeakDetectionParameters = (
+            self._parameters: _Peakfinder8PeakDetectionParameters = (
                 _Peakfinder8PeakDetectionParameters.model_validate(parameters)
             )
         except ValidationError as exception:
@@ -177,24 +176,24 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._asic_ny: int = layout_info.asic_ny
         self._nasics_x: int = layout_info.nasics_x
         self._nasics_y: int = layout_info.nasics_y
-        self._max_num_peaks: float = self._peakfinder8_parameters.max_num_peaks
-        self._adc_thresh: float = self._peakfinder8_parameters.adc_threshold
-        self._minimum_snr: float = self._peakfinder8_parameters.minimum_snr
-        self._min_pixel_count: int = self._peakfinder8_parameters.min_pixel_count
-        self._max_pixel_count: int = self._peakfinder8_parameters.max_pixel_count
-        self._local_bg_radius: int = self._peakfinder8_parameters.local_bg_radius
-        self._min_res: int = self._peakfinder8_parameters.min_res
-        self._max_res: int = self._peakfinder8_parameters.max_res
+        self._max_num_peaks: float = self._parameters.max_num_peaks
+        self._adc_thresh: float = self._parameters.adc_threshold
+        self._minimum_snr: float = self._parameters.minimum_snr
+        self._min_pixel_count: int = self._parameters.min_pixel_count
+        self._max_pixel_count: int = self._parameters.max_pixel_count
+        self._local_bg_radius: int = self._parameters.local_bg_radius
+        self._min_res: int = self._parameters.min_res
+        self._max_res: int = self._parameters.max_res
 
         if (
-            self._peakfinder8_parameters.bad_pixel_map_filename is not None
-            and self._peakfinder8_parameters.bad_pixel_map_hdf5_path is not None
+            self._parameters.bad_pixel_map_filename is not None
+            and self._parameters.bad_pixel_map_hdf5_path is not None
         ):
             self._bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
                 Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
-                    hdf5_filename=self._peakfinder8_parameters.bad_pixel_map_filename,
-                    hdf5_path=self._peakfinder8_parameters.bad_pixel_map_hdf5_path,
+                    hdf5_filename=self._parameters.bad_pixel_map_filename,
+                    hdf5_path=self._parameters.bad_pixel_map_hdf5_path,
                 ),
             )
         else:
@@ -207,9 +206,12 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
 
-        if self._peakfinder8_parameters.fast_mode is True:
-            self._num_pixels_per_bin = (
-                self._peakfinder8_parameters.num_pixel_per_bin_in_radial_statistics
+        if self._parameters.fast_mode is True:
+
+            self._compute_radial_stats_pixels(
+                num_pixels_per_bin=(
+                    self._parameters.num_pixel_per_bin_in_radial_statistics
+                )
             )
 
     def _compute_radial_stats_pixels(self, *, num_pixels_per_bin: int) -> None:
@@ -248,7 +250,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
-        if self._peakfinder8_parameters.fast_mode is True:
+        if self._parameters.fast_mode is True:
             self._compute_radial_stats_pixels(
                 num_pixels_per_bin=self._num_pixels_per_bin
             )
@@ -495,7 +497,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._radial_stats_num_pixels,
             self._radial_stats_pixel_index,
             self._radial_stats_radius,
-            int(self._peakfinder8_parameters.fast_mode),
+            int(self._parameters.fast_mode),
             self._asic_nx,
             self._asic_ny,
             self._nasics_x,
