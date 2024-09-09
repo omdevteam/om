@@ -621,8 +621,8 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             int(received_data["frame_is_hit"]),
             received_data["filename"],
             received_data["index"],
-            received_data["peak_list"]["num_peaks"],
-            numpy.mean(received_data["peak_list"]["intensity"]),
+            received_data["peak_list"].num_peaks,
+            numpy.mean(received_data["peak_list"].intensity),
         )
         self._list_files_writer.add_frame(
             frame_data=frame_data, peak_list=received_data["peak_list"]
