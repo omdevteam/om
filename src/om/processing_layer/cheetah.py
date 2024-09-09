@@ -642,10 +642,11 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         return None
 
-    def _common_end_processing_on_processing_node(
+    def end_processing_on_processing_node(
         self,
         *,
         node_rank: int,
+        node_pool_size: int,
     ) -> Optional[Dict[str, Any]]:
         """
         Ends processing on the processing nodes for Cheetah.
