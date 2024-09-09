@@ -775,7 +775,7 @@ class HDF5Writer:
         self._processed_filename: pathlib.Path = (
             pathlib.Path(self._parameters.cheetah.processed_directory).resolve()
             / f"{self._parameters.cheetah.processed_filename_prefix}_"
-            "{node_rank}.inprogress"
+            f"{node_rank}.inprogress"
         )
 
         self._processed_filename_extension: str = (
@@ -1152,7 +1152,7 @@ class SumHDF5Writer:
                 cheetah_sum_hdf5_writer_parameters.cheetah.processed_directory
             ).resolve()
             / f"{cheetah_sum_hdf5_writer_parameters.cheetah.processed_filename_prefix}"
-            "-detector0-class{powder_class}-sum.h5"
+            f"-detector0-class{powder_class}-sum.h5"
         )
 
     def _create_hdf5_file_and_datasets(self, *, data_shape: Tuple[int, ...]) -> None:
