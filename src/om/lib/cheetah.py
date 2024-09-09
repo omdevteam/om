@@ -424,6 +424,10 @@ class CheetahListFilesWriter:
             frame: FrameListData
             for frame in frame_list:
                 fh.write(f"{frame.event_id}\n")
+        with open(self._hits_filename, "w") as fh:
+            for frame in frame_list:
+                if frame.frame_is_hit:
+                    fh.write(f"{frame.event_id}\n")
         with open(self._frames_filename, "w") as fh:
             fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
@@ -1012,6 +1016,8 @@ class HDF5Writer:
         """
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
+        if len(fields) == 0:
+            return
 
         # When the first data comes create output file and all requested datasets:
         if self._num_frames == 0:

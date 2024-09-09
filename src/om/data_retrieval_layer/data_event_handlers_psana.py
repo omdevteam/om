@@ -129,45 +129,28 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
-
-    def _initialize_psana_data_source(self) -> Any:
+    def _initialize_psana_data_source(
+        self, *, psana_calibration_directory: Optional[str]
+    ) -> Any:
         # This private method contains all the common psana initialization code needed
         # by other methods of the class
 
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana before the DataSource is set.
 
-        if self._parameters.psana_calibration_directory is not None:
+        if psana_calibration_directory is not None:
             psana.setOption(
                 "psana.calib-dir",
-                self._parameters.psana_calibration_directory,
+                psana_calibration_directory,
             )
             log.warning(
                 "OM Warning: Using the following calibration directory: "
-                f"{self._parameters.psana_calibration_directory}"
+                f"{psana_calibration_directory}"
             )
 
-        psana_source: Any = psana.DataSource(self._source)
+        self._psana_source: Any = psana.DataSource(self._source)
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
-        return psana_source
+        return self._psana_source
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -211,7 +194,47 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
+        # Detects if data is being read from an online or offline source.
+        if "shmem" in self._source:
+            offline: bool = False
+        else:
+            offline = True
+        if offline and not self._source[-4:] == ":idx":
+            self._source += ":idx"
+
+        psana_source: Any = self._initialize_psana_data_source(
+            psana_calibration_directory=self._parameters.psana_calibration_directory
+        )
+
+        # Initializes the psana event source and starts retrieving events.
+        if offline:
+            self._psana_events: Any = _psana_offline_event_generator(
+                psana_source=psana_source,
+                node_rank=node_rank,
+                mpi_pool_size=node_pool_size,
+            )
+        else:
+            self._psana_events = psana_source.events()
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
+        self._psana_source
 
     def event_generator(
         self,
@@ -246,31 +269,11 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
         # TODO: Check types of Generator
-        # Detects if data is being read from an online or offline source.
-        if "shmem" in self._source:
-            offline: bool = False
-        else:
-            offline = True
-        if offline and not self._source[-4:] == ":idx":
-            self._source += ":idx"
-
-        psana_source: Any = self._initialize_psana_data_source()
-
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        # Initializes the psana event source and starts retrieving events.
-        if offline:
-            psana_events: Any = _psana_offline_event_generator(
-                psana_source=psana_source,
-                node_rank=node_rank,
-                mpi_pool_size=node_pool_size,
-            )
-        else:
-            psana_events = psana_source.events()
-
         psana_event: Any
-        for psana_event in psana_events:
+        for psana_event in self._psana_events:
             data_event["data"] = psana_event
 
             # Recovers the timestamp from the psana event (as seconds from the Epoch)
@@ -343,7 +346,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         if self._source[-4:] != ":idx":
             self._source += ":idx"
 
-        psana_source: Any = self._initialize_psana_data_source()
+        psana_source: Any = self._initialize_psana_data_source(
+            psana_calibration_directory=self._parameters.psana_calibration_directory
+        )
         self._run = next(psana_source.runs())
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:

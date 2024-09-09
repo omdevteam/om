@@ -204,6 +204,20 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             An optional initialization token.
         """
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
         while self._check_detector_monitor_mode() != "enabled":
             time.sleep(0.5)
 
@@ -234,20 +248,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         del node_pool_size
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
 
         while True:
             response: requests.Response = requests.get(f"{self._source}/images/next")

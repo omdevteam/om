@@ -33,7 +33,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 from typing_extensions import Self
 
-from om.algorithms.crystallography import PeakList
+from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import (
     CheetahClassSumsAccumulator,

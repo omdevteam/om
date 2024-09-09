@@ -23,13 +23,14 @@ software framework (used at the PETRA III facility).
 """
 
 
-from typing import Any, Dict, Type, TypeVar, Union, cast
+from typing import Any, Dict, Optional, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
+from pydantic import BaseModel, Field, ValidationError
 from scipy import constants  # type: ignore
 
-from om.lib.exceptions import OmMissingDependencyError
+from om.lib.exceptions import OmConfigurationFileSyntaxError, OmMissingDependencyError
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -40,6 +41,10 @@ except ImportError:
     )
 
 T = TypeVar("T")
+
+
+class _TimestampAsapoParameters(BaseModel):
+    asapo_timestamp_metadata_key: Optional[str] = Field(default=None)
 
 
 class OmBaseAsapoDataSourceMixin:
@@ -127,32 +132,6 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
                 event["data"], event["metadata"]["meta"]["_data_format"]
             ),
         )
-
-
-class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
-        """
-        Retrieves timestamp information from ASAP::O.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        This function retrieves from ASAP::O the timestamp information associated with
-        the provided event.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-
-        Returns:
-
-            The timestamp for the data event.
-        """
-        return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
 
 
 class EventIdAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
@@ -252,3 +231,89 @@ class DetectorDistanceAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
             ]["distance"]["()"]
             * 1e3,
         )
+
+
+class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: Dict[str, Any],
+    ):
+        """
+        Detector data frames from Pilatus single-frame CBF files.
+
+        This class deals with the retrieval of Pilatus detector data frames from
+        single-frame files written by the detector in CBF format.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            parameters: An object storing OM's configuration parameters.
+        """
+        if data_source_name not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                f"data retrieval_layer/{data_source_name}"
+            )
+
+        try:
+            self._parameters: _TimestampAsapoParameters = (
+                _TimestampAsapoParameters.model_validate(parameters[data_source_name])
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name} "
+                f"{exception}"
+            )
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes CBF file-based Pilatus detector data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        No initialization is needed to retrieve detector data frames from single-frame
+        CBF files, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+        """
+        Retrieves timestamp information from ASAP::O.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves from ASAP::O the timestamp information associated with
+        the provided event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The timestamp for the data event.
+        """
+        if self._parameters.asapo_timestamp_metadata_key is not None:
+            timestamp: float = (
+                event["metadata"]["meta"][self._parameters.asapo_timestamp_metadata_key]
+                / 1e9
+            )
+        else:
+            timestamp = event["metadata"]["timestamp"] / 1e9
+        return cast(numpy.float64, timestamp)

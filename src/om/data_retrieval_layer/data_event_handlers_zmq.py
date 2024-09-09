@@ -100,11 +100,6 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
-
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -144,8 +139,38 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        url: str = self._source
+        zmq_context: Any = zmq.Context()
+        log.info(f"Node {node_rank} connecting to {url}")
+        self._zmq_socket: Any = zmq_context.socket(zmq.PULL)
+        self._zmq_socket.setsockopt(zmq.CONFLATE, 1)
+        try:
+            self._zmq_socket.connect(url)
+        except zmq.error.ZMQError as exc:
+            raise OmInvalidZmqUrl(
+                "The format of the provided URL is not valid. The URL must be in "
+                "the format tcp://hostname:port or in the format "
+                "ipc:///path/to/socket, and in the latter case the user must have the "
+                "correct permissions to access the socket."
+            ) from exc
 
-    pass
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def event_generator(
         self,
@@ -173,40 +198,12 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        url: str = self._source
-        zmq_context: Any = zmq.Context()
-        log.info(f"Node {node_rank} connecting to {url}")
-        zmq_socket: Any = zmq_context.socket(zmq.PULL)
-        zmq_socket.setsockopt(zmq.CONFLATE, 1)
-        try:
-            zmq_socket.connect(url)
-        except zmq.error.ZMQError as exc:
-            raise OmInvalidZmqUrl(
-                "The format of the provided URL is not valid. The URL must be in "
-                "the format tcp://hostname:port or in the format "
-                "ipc:///path/to/socket, and in the latter case the user must have the "
-                "correct permissions to access the socket."
-            ) from exc
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         while True:
-            msg: Tuple[Dict[str, Any], Dict[str, Any]] = zmq_socket.recv_pyobj()
+            msg: Tuple[Dict[str, Any], Dict[str, Any]] = self._zmq_socket.recv_pyobj()
             data_event["data"] = msg
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)

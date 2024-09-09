@@ -25,12 +25,13 @@ This module contains the main function that tarts an OnDA Monitor.
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 import typer
 from pydantic import BaseModel, ValidationError
 from typing_extensions import Annotated
 
+from om.data_retrieval_layer.event_retrieval import EventListDataRetrieval
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
@@ -79,6 +80,14 @@ def main(
             "working directory",
         ),
     ] = Path("monitor.yaml"),
+    event_list: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--event-list",
+            "-l",
+            help="The path to a file containing a list of event IDs to be processed.",
+        ),
+    ] = None,
 ) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
@@ -144,16 +153,28 @@ def main(
     monitor_parameters["om"]["configuration_file"] = config
     monitor_parameters["data_retrieval_layer"]["node_pool_size"] = node_pool_size
 
-    parallelization_layer_class: Type[OmParallelizationProtocol] = (
-        import_class_from_layer(
-            layer_name="parallelization_layer",
-            class_name=parameters.om.parallelization_layer,
+    if event_list is not None:
+
+        data_retrieval_layer: OmDataRetrievalProtocol = EventListDataRetrieval(
+            parameters=monitor_parameters,
+            source=source,
+            event_list_file=event_list,
         )
-    )
-    data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = import_class_from_layer(
-        layer_name="data_retrieval_layer",
-        class_name=parameters.om.data_retrieval_layer,
-    )
+
+    else:
+
+        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = (
+            import_class_from_layer(
+                layer_name="data_retrieval_layer",
+                class_name=parameters.om.data_retrieval_layer,
+            )
+        )
+
+        data_retrieval_layer = data_retrieval_layer_class(
+            parameters=monitor_parameters["data_retrieval_layer"],
+            source=source,
+        )
+
     processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
         layer_name="processing_layer", class_name=parameters.om.processing_layer
     )
@@ -161,10 +182,14 @@ def main(
     processing_layer: OmProcessingProtocol = processing_layer_class(
         parameters=monitor_parameters
     )
-    data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-        parameters=monitor_parameters["data_retrieval_layer"],
-        source=source,
+
+    parallelization_layer_class: Type[OmParallelizationProtocol] = (
+        import_class_from_layer(
+            layer_name="parallelization_layer",
+            class_name=parameters.om.parallelization_layer,
+        )
     )
+
     parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,

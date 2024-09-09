@@ -122,11 +122,6 @@ class OmBaseFileDataEventHandlerMixin:
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
 
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
-
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -149,6 +144,14 @@ class OmBaseFileDataEventHandlerMixin:
         """
         pass
 
+
+class PilatusFilesEventHandler(
+    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
+):
+    """
+    See documentation of the `__init__` function.
+    """
+
     def initialize_event_handling_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -166,15 +169,40 @@ class OmBaseFileDataEventHandlerMixin:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
 
+        try:
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()
+        except (IOError, OSError) as exc:
+            raise OmInvalidSourceError(
+                f"Error reading the {self._source} source file."
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        self._files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
 
-class PilatusFilesEventHandler(
-    OmBaseFileDataEventHandlerMixin, OmDataEventHandlerProtocol
-):
-    """
-    See documentation of the `__init__` function.
-    """
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
 
     def event_generator(
         self,
@@ -207,40 +235,12 @@ class PilatusFilesEventHandler(
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-        try:
-            file_handle: TextIO
-            with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()
-        except (IOError, OSError) as exc:
-            raise OmInvalidSourceError(
-                f"Error reading the {self._source} source file."
-            ) from exc
-        num_files_curr_node: int = int(
-            numpy.ceil(len(filelist) / float(node_pool_size - 1))
-        )
-        files_curr_node: List[str] = filelist[
-            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-        ]
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: str
-        for entry in files_curr_node:
+        for entry in self._files_curr_node:
             stripped_entry: str = entry.strip()
             data_event["additional_info"]["full_path"] = stripped_entry
 
@@ -373,24 +373,14 @@ class Jungfrau1MFilesDataEventHandler(
     See documentation of the `__init__` function.
     """
 
-    def event_generator(  # noqa: C901
-        self,
-        *,
-        node_rank: int,
-        node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
-        Retrieves Jungfrau 1M file events.
+        Initializes Pilatus single-frame file event handling on the processing nodes.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
-
-        This function retrieves data events on the processing nodes. Each retrieved
-        event corresponds to a single single detector data frame with all its
-        associated data. The function tries to distribute the events as evenly as
-        possible across all the processing nodes, with each node ideally processing the
-        same number of events. If the total number of events cannot be split evenly,
-        the last last node processes fewer events than the others.
 
         Arguments:
 
@@ -400,10 +390,7 @@ class Jungfrau1MFilesDataEventHandler(
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # Computes how many events the current processing node should process. Splits
-        # the events as equally as possible amongst the processing nodes with the last
-        # processing node getting a smaller number of events if the number of events to
-        # be processed cannot be exactly divided by the number of processing nodes.
+
         try:
             file_handle: TextIO
             with open(self._source, "r") as file_handle:
@@ -449,13 +436,16 @@ class Jungfrau1MFilesDataEventHandler(
         num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
         )
-        frames_curr_node: List[Jungfrau1MFrameInfo] = frame_list[
+        self._frames_curr_node: List[Jungfrau1MFrameInfo] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
         ]
 
-        print("Num frames current node:", node_rank, num_frames_curr_node)
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
 
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": self._data_sources["timestamp"](
@@ -471,15 +461,46 @@ class Jungfrau1MFilesDataEventHandler(
             ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
             self._instantiated_data_sources[source_name].initialize_data_source()
 
+    def event_generator(  # noqa: C901
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Retrieves Jungfrau 1M file events.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single single detector data frame with all its
+        associated data. The function tries to distribute the events as evenly as
+        possible across all the processing nodes, with each node ideally processing the
+        same number of events. If the total number of events cannot be split evenly,
+        the last last node processes fewer events than the others.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Computes how many events the current processing node should process. Splits
+        # the events as equally as possible amongst the processing nodes with the last
+        # processing node getting a smaller number of events if the number of events to
+        # be processed cannot be exactly divided by the number of processing nodes.
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: Jungfrau1MFrameInfo
-        for entry in frames_curr_node:
+        for entry in self._frames_curr_node:
 
             data_event["additional_info"] = asdict(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(
-                frames_curr_node
+                self._frames_curr_node
             )
 
             data_event["additional_info"]["timestamp"] = (
@@ -616,6 +637,57 @@ class EigerFilesDataEventHandler(
     See documentation of the `__init__` function.
     """
 
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes Pilatus single-frame file event handling on the processing nodes.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        try:
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()  # type
+        except (IOError, OSError) as exc:
+            raise OmInvalidSourceError(
+                f"Error reading the {self._source} source file."
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        self._files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
     def event_generator(
         self,
         *,
@@ -647,40 +719,11 @@ class EigerFilesDataEventHandler(
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-        try:
-            file_handle: TextIO
-            with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()  # type
-        except (IOError, OSError) as exc:
-            raise OmInvalidSourceError(
-                f"Error reading the {self._source} source file."
-            ) from exc
-        num_files_curr_node: int = int(
-            numpy.ceil(len(filelist) / float(node_pool_size - 1))
-        )
-        files_curr_node: List[str] = filelist[
-            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-        ]
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
         data_event: Dict[str, Dict[str, Any]] = {}
         data_event["additional_info"] = {}
 
         entry: str
-        for entry in files_curr_node:
+        for entry in self._files_curr_node:
             filename: str = entry.strip()
             h5file: Any = h5py.File(filename, "r")
             num_frames: int = h5file["/entry/data/data"].shape[0]
@@ -816,6 +859,58 @@ class RayonixMccdFilesEventHandler(
     See documentation of the `__init__` function.
     """
 
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes Pilatus single-frame file event handling on the processing nodes.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        try:
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()  # type
+        except (IOError, OSError) as exc:
+            raise OmInvalidSourceError(
+                f"Error reading the {self._source} source file."
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+
+        self._files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
     def event_generator(
         self,
         *,
@@ -847,40 +942,11 @@ class RayonixMccdFilesEventHandler(
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-        try:
-            file_handle: TextIO
-            with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()
-        except (IOError, OSError) as exc:
-            raise OmInvalidSourceError(
-                f"Error reading the {self._source} source file."
-            ) from exc
-        num_files_curr_node: int = int(
-            numpy.ceil(len(filelist) / float(node_pool_size - 1))
-        )
-        files_curr_node: List[str] = filelist[
-            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-        ]
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: str
-        for entry in files_curr_node:
+        for entry in self._files_curr_node:
             stripped_entry: str = entry.strip()
             data_event["additional_info"]["full_path"] = stripped_entry
 
@@ -1010,6 +1076,62 @@ class Lambda1M5FilesDataEventHandler(
     See documentation of the `__init__` function.
     """
 
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes Pilatus single-frame file event handling on the processing nodes.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        try:
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = []
+                line: str
+                for line in file_handle:
+                    filename: str = line.strip()
+                    # input filename must be a 'm01' nexus file
+                    if re.match(r".+_m01(_.+)?\.nxs", filename):
+                        filelist.append(filename)
+        except (IOError, OSError) as exc:
+            raise OmInvalidSourceError(
+                f"Error reading the {self._source} source file."
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        self._files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
     def event_generator(  # noqa: C901
         self,
         *,
@@ -1041,43 +1163,9 @@ class Lambda1M5FilesDataEventHandler(
         # the events as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
-        try:
-            with open(self._source, "r") as file_handle:
-                filelist: List[str] = []
-                line: str
-                for line in file_handle:
-                    filename: str = line.strip()
-                    # input filename must be a 'm01' nexus file
-                    if re.match(r".+_m01(_.+)?\.nxs", filename):
-                        filelist.append(filename)
-        except (IOError, OSError) as exc:
-            raise OmInvalidSourceError(
-                f"Error reading the {self._source} source file."
-            ) from exc
-        num_files_curr_node: int = int(
-            numpy.ceil(len(filelist) / float(node_pool_size - 1))
-        )
-        files_curr_node: List[str] = filelist[
-            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-        ]
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
         data_event: Dict[str, Dict[str, Any]] = {}
 
-        for filename in files_curr_node:
+        for filename in self._files_curr_node:
             h5files: Tuple[h5py.File, h5py.File] = (
                 h5py.File(filename, "r"),
                 h5py.File(re.sub(r"_m01(_.+)?\.nxs", r"_m02\1.nxs", filename), "r"),

@@ -171,7 +171,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         stream_list: List[Any] = []
         while len(stream_list) == 0:
             time.sleep(1)
-            stream_list = consumer.get_stream_list()
+            stream_list = consumer.get_stream_list(detailed=False)
         last_stream: str = stream_list[-1]["name"]
         stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
         event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
@@ -187,8 +187,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             except (
                 asapo_consumer.AsapoEndOfStreamError,
                 asapo_consumer.AsapoNoDataError,
+                asapo_consumer.AsapoDataNotInCacheError,
             ):
-                stream_list = consumer.get_stream_list()
+                stream_list = consumer.get_stream_list(detailed=False)
                 current_stream = stream_list[-1]["name"]
                 if current_stream == last_stream:
                     time.sleep(1)
@@ -236,11 +237,39 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        consumer: Any = self._initialize_asapo_consumer()
 
         self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
         )
+
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": self._data_sources["timestamp"](
+                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+            )
+        }
+        self._instantiated_data_sources["timestamp"].initialize_data_source()
+
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._instantiated_data_sources[source_name] = self._data_sources[
+                source_name
+            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
+            self._instantiated_data_sources[source_name].initialize_data_source()
+
+        source_items: List[str] = self._source.split(":")
+        if len(source_items) > 1:
+            stream_name: str = ":".join(source_items[1:])
+            self._asapo_events: Generator[_AsapoEvent, None, None] = (
+                self._offline_event_generator(
+                    consumer, self._parameters.asapo_group_id, stream_name
+                )
+            )
+        else:
+            self._asapo_events = self._online_event_generator(
+                consumer, self._parameters.asapo_group_id
+            )
 
     def event_generator(
         self,
@@ -265,42 +294,12 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        consumer: Any = self._initialize_asapo_consumer()
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        source_items: List[str] = self._source.split(":")
-        if len(source_items) > 1:
-            stream_name: str = ":".join(source_items[1:])
-            asapo_events: Generator[_AsapoEvent, None, None] = (
-                self._offline_event_generator(
-                    consumer,
-                    self._parameters.asapo_group_id,
-                    stream_name,
-                )
-            )
-        else:
-            asapo_events = self._online_event_generator(
-                consumer, self._parameters.asapo_group_id
-            )
-
         asapo_event: _AsapoEvent
-        for asapo_event in asapo_events:
+        for asapo_event in self._asapo_events:
             data_event["data"] = asapo_event.event_data
             data_event["metadata"] = asapo_event.event_metadata
             data_event["additional_info"]["stream_name"] = asapo_event.stream_name
@@ -373,12 +372,12 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
+        self._consumer: Any = self._initialize_asapo_consumer()
 
         self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
         )
-        self._consumer: Any = self._initialize_asapo_consumer()
 
         self._instantiated_data_sources = {
             "timestamp": self._data_sources["timestamp"](

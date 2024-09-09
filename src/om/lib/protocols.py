@@ -20,7 +20,7 @@ This module contains the definitions of several typed dictionaries that store da
 produced or required by OM's functions and classes.
 """
 
-from typing import Any, Dict, Generator, Optional, Protocol, Tuple, Union
+from typing import Any, Dict, Generator, Optional, Protocol, Tuple, Type, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -107,7 +107,7 @@ class OmDataEventHandlerProtocol(Protocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceProtocol],
+        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: Dict[str, Any],
     ) -> None:
         """
