@@ -31,11 +31,29 @@ from .data_retrieval_files import (  # noqa: F401
     RayonixMccdFilesDataRetrieval,
 )
 from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
+from .data_sources_files import (  # noqa: F401
+    Eiger16MFiles,
+    EventIdEiger16MFiles,
+    EventIdFromFilePath,
+    EventIdJungfrau1MFiles,
+    EventIdLambda1M5Files,
+    Jungfrau1MFiles,
+    Lambda1M5Files,
+    RayonixMccdSingleFrameFiles,
+    TimestampFromFileModificationTime,
+    TimestampJungfrau1MFiles,
+)
+from .data_sources_zmq import (  # noqa: F401
+    EventIdJungfrau1MZmq,
+    Jungfrau1MZmq,
+    TimestampJungfrau1MZmq,
+)
 
 try:
     import fabio  # type: ignore  # noqa: F401
 
     from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
+    from .data_sources_files import PilatusSingleFrameFiles  # noqa: F401
 except ModuleNotFoundError:
     pass
 
@@ -50,6 +68,23 @@ try:
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
+    from .data_sources_psana import (  # noqa: F401
+        AcqirisPsana,
+        AreaDetectorPsana,
+        AssembledDetectorPsana,
+        BeamEnergyFromEpicsVariablePsana,
+        BeamEnergyPsana,
+        CspadPsana,
+        DiodeTotalIntensityPsana,
+        EpicsVariablePsana,
+        EventIdPsana,
+        EvrCodesPsana,
+        LclsExtraPsana,
+        OpalPsana,
+        RayonixPsana,
+        TimestampPsana,
+        Wave8TotalIntensityPsana,
+    )
 except ModuleNotFoundError:
     pass
 
@@ -60,6 +95,13 @@ try:
         EigerAsapoDataRetrieval,
         PilatusAsapoDataRetrieval,
     )
+    from .data_sources_asapo import (  # noqa: F401
+        BeamEnergyAsapo,
+        DetectorDataAsapo,
+        DetectorDistanceAsapo,
+        EventIdAsapo,
+        TimestampAsapo,
+    )
 except ModuleNotFoundError:
     ...
 
@@ -67,9 +109,10 @@ try:
     import PIL  # type: ignore  # noqa: F401
 
     from .data_retrieval_http import EigerHttpDataRetrieval  # noqa: F401
+    from .data_sources_http import (  # noqa: F401
+        Eiger16MHttp,
+        EventIdEiger16MHttp,
+        TimestampEiger16MHttp,
+    )
 except ModuleNotFoundError:
     pass
-
-
-from .data_sources_common import FloatValueFromConfiguration  # noqa: F40
-from .event_retrieval import OmEventDataRetrieval  # noqa: F401
