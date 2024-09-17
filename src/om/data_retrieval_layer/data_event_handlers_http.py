@@ -31,12 +31,15 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Type, cast
 import requests  # type: ignore
 from pydantic import BaseModel, ValidationError
 
+from om.data_retrieval_layer.data_event_handlers_common import (
+    filter_data_sources,
+    instantiate_data_sources,
+)
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmHttpInterfaceInitializationError,
 )
-from om.lib.layer_management import filter_data_sources
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
@@ -103,7 +106,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
@@ -204,22 +206,14 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             An optional initialization token.
         """
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
         while self._check_detector_monitor_mode() != "enabled":
             time.sleep(0.5)
+
+        self._instantiated_data_sources = instantiate_data_sources(
+            data_sources=self._data_sources,
+            data_retrieval_parameters=self._data_retrieval_parameters,
+            required_data_sources=self._required_data_sources,
+        )
 
     def event_generator(
         self,

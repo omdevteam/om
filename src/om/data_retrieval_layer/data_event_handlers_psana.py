@@ -29,13 +29,16 @@ from typing import Any, Dict, Generator, List, Optional, Type
 import numpy
 from pydantic import BaseModel, Field, ValidationError
 
+from om.data_retrieval_layer.data_event_handlers_common import (
+    filter_data_sources,
+    instantiate_data_sources,
+)
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
 )
-from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
@@ -128,6 +131,10 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
 
     def _initialize_psana_data_source(
         self, *, psana_calibration_directory: Optional[str]
@@ -216,25 +223,11 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         else:
             self._psana_events = psana_source.events()
 
-        self._required_data_sources: List[str] = filter_data_sources(
+        self._instantiated_data_sources = instantiate_data_sources(
             data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
+            data_retrieval_parameters=self._data_retrieval_parameters,
+            required_data_sources=self._required_data_sources,
         )
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
-
-        self._psana_source
 
     def event_generator(
         self,
@@ -350,6 +343,12 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             psana_calibration_directory=self._parameters.psana_calibration_directory
         )
         self._run = next(psana_source.runs())
+
+        self._instantiated_data_sources = instantiate_data_sources(
+            data_sources=self._data_sources,
+            data_retrieval_parameters=self._data_retrieval_parameters,
+            required_data_sources=self._required_data_sources,
+        )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """

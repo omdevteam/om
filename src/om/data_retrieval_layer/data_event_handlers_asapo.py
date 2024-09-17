@@ -32,12 +32,15 @@ import numpy
 from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError
 
+from om.data_retrieval_layer.data_event_handlers_common import (
+    filter_data_sources,
+    instantiate_data_sources,
+)
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDependencyError,
 )
-from om.lib.layer_management import filter_data_sources
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -125,6 +128,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
         self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=self._parameters.required_data,
+        )
 
     def _initialize_asapo_consumer(self) -> Any:
         consumer: Any = asapo_consumer.create_consumer(
@@ -239,24 +246,13 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         """
         consumer: Any = self._initialize_asapo_consumer()
 
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
-
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_sources,
+                data_retrieval_parameters=self._data_retrieval_parameters,
+                required_data_sources=self._required_data_sources,
             )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
-            self._instantiated_data_sources[source_name].initialize_data_source()
+        )
 
         source_items: List[str] = self._source.split(":")
         if len(source_items) > 1:
@@ -374,23 +370,11 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         """
         self._consumer: Any = self._initialize_asapo_consumer()
 
-        self._required_data_sources = filter_data_sources(
+        self._instantiated_data_sources = instantiate_data_sources(
             data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
+            data_retrieval_parameters=self._data_retrieval_parameters,
+            required_data_sources=self._required_data_sources,
         )
-
-        self._instantiated_data_sources = {
-            "timestamp": self._data_sources["timestamp"](
-                data_source_name="timestamp", parameters=self._data_retrieval_parameters
-            )
-        }
-        self._instantiated_data_sources["timestamp"].initialize_data_source()
-
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._instantiated_data_sources[source_name] = self._data_sources[
-                source_name
-            ](data_source_name=source_name, parameters=self._data_retrieval_parameters)
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
