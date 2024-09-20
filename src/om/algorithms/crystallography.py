@@ -287,6 +287,7 @@ class Peakfinder8PeakDetection:
         self, bad_pixel_map: Union[NDArray[numpy.int_], None]
     ) -> None:
         self._bad_pixel_map = bad_pixel_map
+        self._mask = None
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
