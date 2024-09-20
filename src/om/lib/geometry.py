@@ -874,12 +874,12 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                     except ValueError:
                         detector["mask_good"] = int(value, base=16)
                 elif key == "photon_energy":
-                    if value.startswith("/"):
-                        beam["photon_energy"] = 0.0
-                        beam["photon_energy_from"] = value
-                    else:
+                    try:
                         beam["photon_energy"] = float(value)
                         beam["photon_energy_from"] = ""
+                    except ValueError:
+                        beam["photon_energy"] = 0.0
+                        beam["photon_energy_from"] = value
                 elif key == "photon_energy_scale":
                     beam["photon_energy_scale"] = float(value)
                 elif key == "peak_info_location":
