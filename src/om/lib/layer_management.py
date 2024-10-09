@@ -22,20 +22,17 @@ This module contains classes and functions that mange OM's various data processi
 extraction layers.
 """
 
-
 import importlib
 import sys
 from types import ModuleType
-from typing import Dict, List, Literal, Type, Union, overload
+from typing import Literal, Type, Union, overload
 
 from om.lib.exceptions import (
-    OmMissingDataSourceClassError,
     OmMissingLayerClassError,
     OmMissingLayerModuleError,
 )
 from om.lib.protocols import (
     OmDataRetrievalProtocol,
-    OmDataSourceProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
@@ -132,46 +129,3 @@ def import_class_from_layer(
         raise OmMissingLayerClassError(
             f"The {class_name} class cannot be found in the {layer_name} layer."
         )
-
-
-def filter_data_sources(
-    *,
-    data_sources: Dict[str, Type[OmDataSourceProtocol]],
-    required_data: List[str],
-) -> List[str]:
-    """
-    Filters a list Data Sources.
-
-    This function filters the list of all Data Sources associated with a
-    Data Retrieval class, returning only the subset of Data Sources needed to retrieve
-    the data requested by the user.
-
-    Arguments:
-
-        data_sources: A list containing the names of all Data Sources available for a
-            Data Retrieval class.
-
-        required_data: A list containing the names of the data items requested by the
-            user.
-
-    Returns:
-
-        A list of Data Source names containing only the needed Data Sources.
-
-    Raises:
-
-        OmMissingDataSourceClassError: Raised when one of the required Data Source
-            class cannot be found in the list of Data Source available for the Data
-            Retrieval.
-    """
-
-    required_data_sources: List[str] = []
-    entry: str
-    for entry in required_data:
-        if entry == "timestamp":
-            continue
-        if entry in data_sources:
-            required_data_sources.append(entry)
-        else:
-            raise OmMissingDataSourceClassError(f"Data source {entry} is not defined")
-    return required_data_sources

@@ -464,6 +464,14 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
             hdf5_path=self._parameters.hdf5_path,
         )
 
+
+
+
+
+
+
+
+
     def get_data(
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
