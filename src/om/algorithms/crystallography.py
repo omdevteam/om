@@ -247,6 +247,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
 
     def set_bad_pixel_map(self, bad_pixel_map: Optional[NDArray[numpy.int_]]) -> None:
         self._bad_pixel_map = bad_pixel_map
+        self._mask = None
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
