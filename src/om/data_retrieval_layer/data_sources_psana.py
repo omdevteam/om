@@ -417,12 +417,49 @@ class DiodeTotalIntensityPsana(
         return cast(float, self._detector_interface.get(event["data"]).TotalIntensity())
 
 
-class BeamEnergyFromEpicsVariablePsana(
-    OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
-):
+class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: Dict[str, Any],
+    ):
+        """
+        Beam energy information from psana at the LCLS facility.
+
+        This class deals with the retrieval of beam energy information from the psana
+        software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        del data_source_name
+        del parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana beam energy data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes the psana Detector interface for the retrieval of
+        beam energy information.
+        """
+        self._detector_interface: Any = psana.Detector("SIOC:SYS0:ML00:AO192")
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
@@ -451,7 +488,7 @@ class BeamEnergyFromEpicsVariablePsana(
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana via the "
-                f"{self._parameters.psana_name} data source."
+                "SIOC:SYS0:ML00:AO192 PV."
             )
         h: float = 6.626070e-34  # J.m
         c: float = 2.99792458e8  # m/s

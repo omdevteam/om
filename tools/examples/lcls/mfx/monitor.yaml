@@ -7,8 +7,6 @@ data_retrieval_layer:
   detector_data:
     psana_name: epix10k2M
     calibration: true
-  beam_energy:
-    psana_name: SIOC:SYS0:ML00:AO192
   detector_distance:
     psana_name: detector_z
   required_data:

@@ -6,8 +6,6 @@ om:
 data_retrieval_layer:
   detector_data:
     psana_name: DscCsPad 
-  beam_energy:
-    psana_name: SIOC:SYS0:ML00:AO192
   detector_distance:
     psana_name: DscCsPad_z
   required_data:

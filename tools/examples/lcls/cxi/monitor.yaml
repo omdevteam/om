@@ -6,8 +6,6 @@ om:
 data_retrieval_layer:
   detector_data:
     psana_name: jungfrau4M
-  beam_energy:
-    psana_name: SIOC:SYS0:ML00:AO192
   detector_distance:
     psana_name: Jungfrau_z
   optical_laser_active:
