@@ -867,11 +867,11 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                         detector.mask_good = int(value, base=16)
                 elif key == "photon_energy":
                     try:
-                        beam["photon_energy"] = float(value)
-                        beam["photon_energy_from"] = ""
+                        beam.photon_energy = float(value)
+                        beam.photon_energy_from = ""
                     except ValueError:
-                        beam["photon_energy"] = 0.0
-                        beam["photon_energy_from"] = value
+                        beam.photon_energy = 0.0
+                        beam.photon_energy_from = value
                 elif key == "photon_energy_scale":
                     beam.photon_energy_scale = float(value)
                 elif key == "peak_info_location":
@@ -1102,9 +1102,7 @@ def _compute_min_array_shape(*, pixel_maps: PixelMaps) -> Tuple[int, int]:
     return (y_minimum, x_minimum)
 
 
-def _compute_visualization_pix_maps(
-    *, pixel_maps: PixelMaps
-) -> VisualizationPixelMaps:
+def _compute_visualization_pix_maps(*, pixel_maps: PixelMaps) -> VisualizationPixelMaps:
     # Computes pixel maps that be used for data visualization starting from a set of
     # pixel maps that refer to the reference system of the detector.
 
