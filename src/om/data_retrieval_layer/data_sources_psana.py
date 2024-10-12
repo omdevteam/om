@@ -81,6 +81,10 @@ class _EvrCodesPsanaParameters(BaseModel):
     event_code: int
 
 
+class _EventCodeListPsanaParameters(BaseModel):
+    evr_source: str
+
+
 class _LclsExtraPsanaParameters(BaseModel):
     data: List[Tuple[str, str, str]]
 
@@ -1043,6 +1047,105 @@ class EvrCodesPsana(OmDataSourceProtocol):
             raise OmDataExtractionError("Could not retrieve event codes from psana.")
 
         return self._parameters.event_code in current_evr_codes
+
+
+class EvrCodeListPsana(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: Dict[str, Any],
+    ):
+        """
+        EVR event codes from psana at the LCLS facility.
+
+        This class deals with the retrieval EVR event codes from the psana software
+        framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        if data_source_name not in parameters:
+            raise AttributeError(
+                "The following section must be present in the configuration file: "
+                f"data retrieval_layer/{data_source_name}"
+            )
+
+        try:
+            self._parameters: _EventCodeListPsanaParameters = (
+                _EventCodeListPsanaParameters.model_validate(parameters[data_source_name])
+            )
+        except ValidationError as exception:
+            raise OmConfigurationFileSyntaxError(
+                "Error parsing the following section of OM's configuration parameters: "
+                f"data_retrieval_layer/{data_source_name}"
+                f"{exception}"
+            )
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana EVR event code data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes the data retrieval for the EVR event code number
+        specified  by the `{data_source_name}_evr_code` entry in OM's
+        `Data Retrieval Layer` configuration parameter group. The EVR event source
+        to monitor for the emission of the event is instead determined by the
+        `psana_evr_source_name` entry in the same parameter group.
+        """
+        self._detector_interface: Any = psana.Detector(self._parameters.evr_source)
+
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
+        """
+        Retrieves EVR events code information from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function checks whether the event code attached to the Data Source has
+        been emitted, for the provided event, by the monitored EVR source.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            Whether the required event code has been emitted for the provided event.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
+        """
+        current_evr_codes: Union[List[int], None] = self._detector_interface.eventCodes(
+            event["data"]
+        )
+        if current_evr_codes is None:
+            raise OmDataExtractionError("Could not retrieve event codes from psana.")
+        
+        numpy_evr_codes = numpy.pad(
+            numpy.array(current_evr_codes),
+            pad_width=(0,256-len(current_evr_codes)),
+                constant_values=0
+        )
+        return numpy_evr_codes
+
 
 
 class LclsExtraPsana(OmDataSourceProtocol):
