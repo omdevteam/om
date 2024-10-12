@@ -87,7 +87,7 @@ class _MonitorParameters(BaseModel):
     cheetah: _CheetahParameters
     crystallography: _CrystallographyParameters
     om: _OmParameters
-    binning: Dict[str, Any]
+    binning: Optional[Dict[str, Any]] = None
 
     @model_validator(mode="after")
     def check_binning_parameters(self) -> Self:

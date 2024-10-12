@@ -44,10 +44,10 @@ from om.lib.exceptions import (
 from om.lib.logging import log
 
 
-class _Hdf5Compression(str, Enum):
+class _Hdf5Compression(Enum):
     gzip = "gzip"
     bitshuffle_with_zstd = "bitshuffle_with_zstd"
-    none = "none"
+    none = None
 
 
 class _CheetahFileWriterParameters(BaseModel):
