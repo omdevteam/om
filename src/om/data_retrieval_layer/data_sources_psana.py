@@ -25,7 +25,7 @@ This module contains Data Source classes that deal with data retrieved from  the
 software framework (used at the LCLS facility).
 """
 
-
+from pathlib import Path
 from typing import (
     Any,
     Callable,
@@ -41,7 +41,8 @@ from typing import (
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, model_validator
+from typing_extensions import Self
 
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
@@ -49,6 +50,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
     OmWrongParameterTypeError,
 )
+from om.lib.files import load_hdf5_data
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -68,12 +70,22 @@ class _DetectorInterfacePsanaParameters(BaseModel):
 
 class _AreaDetectorPsanaParameters(BaseModel):
     psana_name: str
+    gain_map_filename: Path
+    gain_map_hdf5_path: str
     calibration: bool = Field(default=True)
+    gain_correction: bool = Field(default=False)
 
-
-class _CspadPsanaParameters(BaseModel):
-    psana_name: str
-    calibration: bool = Field(default=True)
+    @model_validator(mode="after")
+    def _check_gain_map(self) -> Self:
+        if self.gain_correction is True and (
+            self.gain_map_filename is None or self.gain_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the gain correction entry for a detector is requested, the "
+                "following entries must be present in the detector's section of OM's "
+                "configuration file: gain_map_filename, gain_map_hdf5_path"
+            )
+        return self
 
 
 class _EvrCodesPsanaParameters(BaseModel):
@@ -157,44 +169,6 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         data events, so this function actually does nothing.
         """
         self._detector_interface: Any = psana.Detector(self._parameters.psana_name)
-
-
-class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
-        """
-        Retrieves a Rayonix detector data frame from psana.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        This function retrieves from psana the detector data frame associated with the
-        provided event. It returns the frame as a 2D array storing pixel information.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-
-        Returns:
-
-            A detector data frame.
-
-        Raises:
-
-            OmDataExtractionError: Raised when data cannot be retrieved from psana.
-        """
-        rayonix_psana: Optional[NDArray[numpy.float_]] = self._detector_interface(
-            event["data"]
-        )
-        if rayonix_psana is None:
-            raise OmDataExtractionError(
-                "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
-            )
-        return rayonix_psana
 
 
 class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
@@ -570,6 +544,17 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         else:
             self._data_retrieval_function = detector_interface.raw
 
+        if self._parameters.gain_correction:
+            self._gain_map: Optional[NDArray[numpy.float_]] = cast(
+                Optional[NDArray[numpy.float_]],
+                load_hdf5_data(
+                    hdf5_filename=self._parameters.gain_map_filename,
+                    hdf5_path=self._parameters.gain_map_hdf5_path,
+                ),
+            )
+        else:
+            self._gain_map = None
+
     def get_data(
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
@@ -614,6 +599,9 @@ class AreaDetectorPsana(OmDataSourceProtocol):
             )
         )
 
+        if self._gain_map is not None:
+            psana_data_reshaped = psana_data_reshaped * self._gain_map
+
         return psana_data_reshaped
 
 
@@ -655,8 +643,10 @@ class CspadPsana(OmDataSourceProtocol):
             )
 
         try:
-            self._parameters: _CspadPsanaParameters = (
-                _CspadPsanaParameters.model_validate(parameters[data_source_name])
+            self._parameters: _AreaDetectorPsanaParameters = (
+                _AreaDetectorPsanaParameters.model_validate(
+                    parameters[data_source_name]
+                )
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
@@ -1086,7 +1076,9 @@ class EvrCodeListPsana(OmDataSourceProtocol):
 
         try:
             self._parameters: _EventCodeListPsanaParameters = (
-                _EventCodeListPsanaParameters.model_validate(parameters[data_source_name])
+                _EventCodeListPsanaParameters.model_validate(
+                    parameters[data_source_name]
+                )
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
@@ -1109,7 +1101,6 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         `psana_evr_source_name` entry in the same parameter group.
         """
         self._detector_interface: Any = psana.Detector(self._parameters.evr_source)
-
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
@@ -1138,14 +1129,13 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         )
         if current_evr_codes is None:
             raise OmDataExtractionError("Could not retrieve event codes from psana.")
-        
+
         numpy_evr_codes = numpy.pad(
             numpy.array(current_evr_codes),
-            pad_width=(0,256-len(current_evr_codes)),
-                constant_values=0
+            pad_width=(0, 256 - len(current_evr_codes)),
+            constant_values=0,
         )
         return numpy_evr_codes
-
 
 
 class LclsExtraPsana(OmDataSourceProtocol):

@@ -23,7 +23,6 @@ Crystallography. Additionally, it contains the definitions of several typed
 dictionaries that store data produced or required by these algorithms.
 """
 
-
 import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
@@ -207,11 +206,11 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._radial_stats_num_pixels: int = 0
 
         if self._parameters.fast_mode is True:
-
+            self._num_pixels_per_bin = (
+                self._parameters.num_pixel_per_bin_in_radial_statistics
+            )
             self._compute_radial_stats_pixels(
-                num_pixels_per_bin=(
-                    self._parameters.num_pixel_per_bin_in_radial_statistics
-                )
+                num_pixels_per_bin=self._num_pixels_per_bin
             )
 
     def _compute_radial_stats_pixels(self, *, num_pixels_per_bin: int) -> None:

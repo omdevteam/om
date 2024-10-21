@@ -37,7 +37,6 @@ from om.data_retrieval_layer.data_sources_psana import (
     EventIdPsana,
     EvrCodesPsana,
     LclsExtraPsana,
-    RayonixPsana,
     TimestampPsana,
 )
 from om.lib.protocols import (
@@ -374,7 +373,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
         data_sources: Dict[str, Type[OmDataSourceProtocol]] = {
             "timestamp": TimestampPsana,
             "event_id": EventIdPsana,
-            "detector_data": RayonixPsana,
+            "detector_data": AreaDetectorPsana,
             "beam_energy": BeamEnergyPsana,
             "detector_distance": EpicsVariablePsana,
             "timetool_data": EpicsVariablePsana,

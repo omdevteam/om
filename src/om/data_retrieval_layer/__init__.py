@@ -81,7 +81,6 @@ try:
         EvrCodesPsana,
         LclsExtraPsana,
         OpalPsana,
-        RayonixPsana,
         TimestampPsana,
         Wave8TotalIntensityPsana,
     )
