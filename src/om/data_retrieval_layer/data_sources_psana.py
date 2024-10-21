@@ -70,20 +70,16 @@ class _DetectorInterfacePsanaParameters(BaseModel):
 
 class _AreaDetectorPsanaParameters(BaseModel):
     psana_name: str
-    gain_map_filename: Path
-    gain_map_hdf5_path: str
+    gain_map_filename: Optional[Path] = Field(default=None)
+    gain_map_hdf5_path: Optional[str] = Field(default=None)
     calibration: bool = Field(default=True)
-    gain_correction: bool = Field(default=False)
 
     @model_validator(mode="after")
-    def _check_gain_map(self) -> Self:
-        if self.gain_correction is True and (
-            self.gain_map_filename is None or self.gain_map_hdf5_path is None
-        ):
+    def check_gain_map(self) -> Self:
+        if self.gain_map_filename is not None and self.gain_map_hdf5_path is None:
             raise ValueError(
-                "If the gain correction entry for a detector is requested, the "
-                "following entries must be present in the detector's section of OM's "
-                "configuration file: gain_map_filename, gain_map_hdf5_path"
+                "If the gain_map_filename parameter is specified for a specific "
+                "detector, the gain_map_hdf5_path parameter must also be provided"
             )
         return self
 
@@ -544,7 +540,10 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         else:
             self._data_retrieval_function = detector_interface.raw
 
-        if self._parameters.gain_correction:
+        if (
+            self._parameters.gain_map_filename is not None
+            and self._parameters.gain_map_hdf5_path is not None
+        ):
             self._gain_map: Optional[NDArray[numpy.float_]] = cast(
                 Optional[NDArray[numpy.float_]],
                 load_hdf5_data(

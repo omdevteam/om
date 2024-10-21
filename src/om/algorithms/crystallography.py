@@ -62,8 +62,9 @@ class _Peakfinder8PeakDetectionParameters(BaseModel):
             and self.bad_pixel_map_hdf5_path is None
         ):
             raise ValueError(
-                "If the bad_pixel_map_filename parameter is specified, "
-                "the bad_pixel_map_hdf5_path must also be provided"
+                "If the bad_pixel_map_filename parameter is specified for a specific "
+                "detector, the bad_pixel_map_hdf5_path parameters must also be "
+                "provided"
             )
         return self
 
