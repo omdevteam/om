@@ -48,6 +48,12 @@ from .data_sources_zmq import (  # noqa: F401
     Jungfrau1MZmq,
     TimestampJungfrau1MZmq,
 )
+from .data_sources_common import (  # noqa: F401
+    TimestampFromEvent,
+    FloatValueFromConfiguration,
+    IntValueFromConfiguration,
+    ArrayFromHdf5File,
+)
 
 try:
     import fabio  # type: ignore  # noqa: F401

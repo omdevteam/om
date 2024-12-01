@@ -167,6 +167,44 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         self._detector_interface: Any = psana.Detector(self._parameters.psana_name)
 
 
+class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
+        """
+        Retrieves a Rayonix detector data frame from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves from psana the detector data frame associated with the
+        provided event. It returns the frame as a 2D array storing pixel information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
+        """
+        rayonix_psana: Optional[NDArray[numpy.float_]] = (
+            self._detector_interface.calib(event["data"])
+        )
+        if rayonix_psana is None:
+            raise OmDataExtractionError(
+                "Could not retrieve data from psana for the following data source: "
+                f"{self._parameters.psana_name}"
+            )
+        return rayonix_psana
+
+
 class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
