@@ -48,6 +48,7 @@ try:
         CxiLclsEpix10kaSinglePanelDataRetrieval,
         LclsEpix100DataRetrieval,
         MfxLclsDataRetrieval,
+        MfxLclsEpix100DataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
 except ModuleNotFoundError:

@@ -1429,13 +1429,20 @@ class SwaxsHDF5Writer:
 
     def close(self) -> None:
         """
-        Closes the file being written.
+        Closes the file currently being written.
+
+        This function closes the HDF5 file that the class is currently writing.
         """
+        if self._h5file is None:
+            return
         self._h5file.close()
-        print(
-            "{0} frames saved in {1} file.".format(
-                self._num_frames, self._processed_filename
-            )
+        final_filename: pathlib.Path = self._processed_filename.with_suffix(
+            self._processed_filename_extension
+        )
+        self._processed_filename.rename(final_filename)
+        console.print(
+            f"{get_current_timestamp()} {self._num_frames} frames saved in "
+            f"{final_filename} file."
         )
         sys.stdout.flush()
 
