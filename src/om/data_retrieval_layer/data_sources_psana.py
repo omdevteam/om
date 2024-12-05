@@ -194,8 +194,8 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        rayonix_psana: Optional[NDArray[numpy.float_]] = (
-            self._detector_interface.calib(event["data"])
+        rayonix_psana: Optional[NDArray[numpy.float_]] = self._detector_interface.calib(
+            event["data"]
         )
         if rayonix_psana is None:
             raise OmDataExtractionError(
@@ -206,6 +206,44 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
 
 class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
+        """
+        Retrieves an Opal camera data frame from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves from psana the camera data frame associated with the
+        provided event. It returns the frame as a 2D array storing pixel information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A camera data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
+        """
+        opal_psana: Optional[NDArray[numpy.float_]] = self._detector_interface(
+            event["data"]
+        )
+        if opal_psana is None:
+            raise OmDataExtractionError(
+                "Could not retrieve data from psana for the following data source: "
+                f"{self._parameters.psana_name}"
+            )
+        return opal_psana
+
+
+class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -630,11 +668,14 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
         # Rearranges the data into 'slab' format.
         psana_data_shape: Tuple[int, ...] = psana_data.shape
-        psana_data_reshaped: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
-            psana_data.reshape(
+        if len(psana_data_shape) == 2:
+            psana_data_reshaped: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
+                psana_data
+            )
+        else:
+            psana_data_reshaped = psana_data.reshape(
                 psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]
             )
-        )
 
         if self._gain_map is not None:
             psana_data_reshaped = psana_data_reshaped * self._gain_map
