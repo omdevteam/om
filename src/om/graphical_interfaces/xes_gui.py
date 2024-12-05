@@ -185,12 +185,6 @@ class XesGui(OmGuiBase):
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
-
-# @click.command()
-# @click.argument("url", type=str, required=False)
-# @click.argument("time_resolved", type=bool, required=False)
-
-
 def main(
     *,
     url: Annotated[
@@ -204,7 +198,7 @@ def main(
             "-t",
             help="Whether the GUI should display time resolved data",
         ),
-    ],
+    ] = False,
 ) -> None:
     """
     OM Graphical User Interface for X-ray Emission Spectroscopy. This program must

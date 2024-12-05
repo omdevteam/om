@@ -310,6 +310,8 @@ class XesProcessing(OmProcessingProtocol):
         received_data: Dict[str, Any] = processed_data[0]
         return_dict: Dict[int, Dict[str, Any]] = {}
 
+        self._event_counter.add_hit_event()
+
         spectrum_for_gui = received_data["spectrum"]
 
         spectra_cumulative_sum: Optional[
