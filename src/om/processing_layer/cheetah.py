@@ -22,12 +22,12 @@ This module contains Cheetah, a data-processing program for Serial X-ray
 Crystallography, based on OM but not designed to be run in real time.
 """
 
-
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, Optional, Tuple, Type, TypeVar, Union
 
 import msgpack  # type: ignore
+import msgpack_numpy  # type: ignore
 import numpy
 from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
@@ -52,6 +52,9 @@ from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
 
 T = TypeVar("T")
+
+
+msgpack_numpy.patch()
 
 
 class _CheetahParameters(BaseModel):
@@ -103,7 +106,6 @@ class _MonitorParameters(BaseModel):
 
 
 class OmCheetahMixin:
-
     def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmCheetahMixin:
             raise TypeError(
