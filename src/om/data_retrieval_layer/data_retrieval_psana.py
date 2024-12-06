@@ -22,7 +22,6 @@ This module contains Data Retrieval classes that deal with the psana software fr
 (used at the LCLS facility).
 """
 
-
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
@@ -374,7 +373,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
             "timestamp": TimestampPsana,
             "event_id": EventIdPsana,
             "detector_data": AreaDetectorPsana,
-            "beam_energy": BeamEnergyPsana,
+            "beam_energy": BeamEnergyFromEpicsVariablePsana,
             "detector_distance": EpicsVariablePsana,
             "timetool_data": EpicsVariablePsana,
             "optical_laser_active": EvrCodesPsana,
