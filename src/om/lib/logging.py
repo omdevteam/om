@@ -22,15 +22,44 @@ This module contains classes and functions that OM uses to improve and augment i
 terminal console output, using the Rich python library.
 """
 
-
 import logging
 
 from rich.logging import RichHandler
 
+
+class RichHandlerWithAggregation(RichHandler):
+
+    def __init__(self, *, recurring_msg_emit_interval: int = 100, **kwargs):
+        super().__init__(**kwargs)
+        self._recurring_msg_emit_interval = recurring_msg_emit_interval
+        self._recurring_msg: str = ""
+        self._last_recurring_record: Optiona[logging.LogRecord]= None
+        self._recurring_msg_counter: int = 0
+
+    def format(self, record: logging.LogRecord):
+        if self._recurring_msg_counter != 0:
+            record.msg = f"{record.msg} (Repeated {self._recurring_msg_counter} times)"
+        return super().format(record)
+
+    def emit(self, record: logging.LogRecord):
+        if record.msg != self._recurring_msg:
+            if self._recurring_msg_counter != 0:
+                super().emit(self._reference_record)
+            self._reference_record = record
+            self._recurring_msg = record.msg
+            self._recurring_msg_counter = 0
+            super().emit(record)
+        else:
+            self._recurring_msg_counter += 1
+            self._last_recurring_record = record
+            if self._recurring_msg_counter % self._recurring_msg_emit_interval == 0:
+                super().emit(self._last_recurring_record)
+
+
 logging.basicConfig(
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, show_path=False)],
+    handlers=[RichHandlerWithAggregation(rich_tracebacks=True, show_path=False)],
 )
 
 
