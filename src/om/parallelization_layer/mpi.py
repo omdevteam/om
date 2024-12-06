@@ -133,7 +133,6 @@ class MpiParallelization(OmParallelizationProtocol):
                             # If the received message announces that a processing node
                             # has finished processing data, keeps track of how many
                             # processing nodes have already finished.
-                            log.info(f"{received_data[1]}")
                             self._num_no_more += 1
                             # When all processing nodes have finished, calls the
                             # 'end_processing_on_collecting_node' function then shuts
