@@ -23,6 +23,7 @@ Crystallography, based on OM but not designed to be run in real time.
 """
 
 from collections import deque
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Deque, Dict, Optional, Tuple, Type, TypeVar, Union
 
@@ -32,8 +33,6 @@ import numpy
 from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 from typing_extensions import Self
-
-from dataclasses import asdict
 
 from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
@@ -927,7 +926,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                     "event_id": received_data["event_id"],
                     "timestamp": received_data["timestamp"],
                     "source": self._parameters.om.source,
-                    "configuration_file": self._parameters.om.configuration_file,
+                    "configuration_file": str(self._parameters.om.configuration_file),
                 },
                 use_bin_type=True,
             )
