@@ -1360,6 +1360,11 @@ class LclsExtraPsana(OmDataSourceProtocol):
                     parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
                 )
                 lcls_extra_index += 1
+            elif data_type == "event_code_list":
+                self._lcls_extra[name] = EvrCodeListPsana(
+                    data_source_name=f"lcls_extra_{lcls_extra_index}",
+                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                )
             else:
                 raise OmWrongParameterTypeError(
                     f"The requested '{data_type}' LCLS-specific data type is "
