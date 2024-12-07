@@ -310,9 +310,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
         for source_name in self._required_data_sources:
-            #data[source_name] = self._instantiated_data_sources[
+            # data[source_name] = self._instantiated_data_sources[
             #    source_name
-            #].get_data(event=event)
+            # ].get_data(event=event)
             try:
                 data[source_name] = self._instantiated_data_sources[
                     source_name

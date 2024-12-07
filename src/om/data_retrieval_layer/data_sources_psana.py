@@ -94,7 +94,7 @@ class _EventCodeListPsanaParameters(BaseModel):
 
 
 class _LclsExtraPsanaParameters(BaseModel):
-    data: List[Tuple[str, str, str]]
+    required_data: List[Tuple[str, str, str]]
 
 
 class OmDetectorInterfacePsanaDataSourceMixin:
@@ -1165,6 +1165,8 @@ class EvrCodeListPsana(OmDataSourceProtocol):
                 f"{exception}"
             )
 
+        self._lcls_extra_parameters = parameters
+
     def initialize_data_source(self) -> None:
         """
         Initializes the psana EVR event code data source.
@@ -1267,6 +1269,9 @@ class LclsExtraPsana(OmDataSourceProtocol):
                 f"{exception}"
             )
 
+        self._lcls_extra_parameters = parameters["lcls_extra"]
+
+
     def initialize_data_source(self) -> None:
         """
         Initializes the psana LCLS-specific information data source.
@@ -1328,44 +1333,80 @@ class LclsExtraPsana(OmDataSourceProtocol):
         lcls_extra_index: int = 0
 
         data_item: Tuple[str, str, str]
-        for data_item in self._parameters.data:
+        for data_item in self._parameters.required_data:
             data_type, identifier, name = data_item
+
             if data_type == "acqiris_waveform":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = AcqirisPsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]},
                 )
                 lcls_extra_index += 1
             elif data_type == "epics_pv":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = EpicsVariablePsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]},
                 )
                 lcls_extra_index += 1
             elif data_type == "wave8_total_intensity":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = Wave8TotalIntensityPsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]}, 
                 )
                 lcls_extra_index += 1
             elif data_type == "opal_camera":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = OpalPsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]},
                 )
                 lcls_extra_index += 1
             elif data_type == "assembled_detector_data":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = AssembledDetectorPsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]},
                 )
                 lcls_extra_index += 1
             elif data_type == "event_code_list":
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 self._lcls_extra[name] = EvrCodeListPsana(
                     data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={f"lcls_extra_{lcls_extra_index}": {"name": identifier}},
+                    parameters={f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[identifier]},
                 )
             else:
+                if identifier not in self._lcls_extra_parameters:
+                    raise AttributeError(
+                        "The following section must be present in the configuration file: "
+                        f"data retrieval_layer/lcls_extra/{identifier}"
+                     )
                 raise OmWrongParameterTypeError(
                     f"The requested '{data_type}' LCLS-specific data type is "
                     "not supported."
