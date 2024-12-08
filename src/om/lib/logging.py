@@ -45,9 +45,9 @@ class RichHandlerWithAggregation(RichHandler):
 
     def emit(self, record: logging.LogRecord) -> None:
         if record.msg != self._recurring_msg:
-            if self._last_recurring_record is not None:
+            if self._recurring_msg_counter != 0 and self._last_recurring_record is not None:
                 super().emit(self._last_recurring_record)
-            self._reference_record = record
+            self._last_recurring_record = record
             self._recurring_msg = record.msg
             self._recurring_msg_counter = 0
             super().emit(record)
