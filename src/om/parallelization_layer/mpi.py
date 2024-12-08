@@ -1,4 +1,3 @@
-# This file is part of OM.
 #
 # OM is free software: you can redistribute it and/or modify it under the terms of
 # the GNU General Public License as published by the Free Software Foundation, either
@@ -215,8 +214,7 @@ class MpiParallelization(OmParallelizationProtocol):
                         event=event
                     )
                 except OmDataExtractionError as exc:
-                    log.warning(f"{exc}")
-                    log.warning("Skipping event...")
+                    log.warning(f"{exc}. Skipping event...")
                     continue
                 data.update(feedback_dict)
                 processed_data: Tuple[Dict[str, Any], int] = (

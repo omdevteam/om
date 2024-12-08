@@ -100,8 +100,7 @@ def _om_processing_node(
         try:
             data: Dict[str, Any] = data_event_handler.extract_data(event=event)
         except OmDataExtractionError as exc:
-            log.warning(f"{exc}")
-            log.warning("Skipping event...")
+            log.warning(f"{exc}. Skipping event...")
             continue
         data.update(feedback_dict)
         processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
