@@ -22,7 +22,6 @@ This module contains a graphical interface that displays reduced and aggregated 
 in X-ray Emission Spectroscopy experiments.
 """
 
-
 import signal
 import sys
 import time
@@ -184,6 +183,7 @@ class XesGui(OmGuiBase):
         time_now: float = time.time()
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
+
 
 def main(
     *,

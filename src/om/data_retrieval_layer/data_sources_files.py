@@ -21,7 +21,6 @@ File-based data sources.
 This module contains Data Source classes that deal with data stored in files.
 """
 
-
 from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
 
 import numpy

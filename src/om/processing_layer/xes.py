@@ -21,7 +21,6 @@ OnDA Monitor for X-ray Emission Spectroscopy.
 This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments.
 """
 
-
 from __future__ import absolute_import, division, print_function
 
 from typing import Any, Dict, Optional, Tuple, Union

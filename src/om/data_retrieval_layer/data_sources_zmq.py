@@ -22,7 +22,6 @@ This module contains Data Source classes that deal with data retrieved from ZMQ 
 streams.
 """
 
-
 from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
 
 import numpy

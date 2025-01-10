@@ -22,7 +22,6 @@ This module contains classes and functions that allow OnDA Monitors to broadcast
 to external programs over a ZMQ socket.
 """
 
-
 import socket
 import sys
 from typing import Any, Dict, Optional, Tuple, Union

@@ -22,7 +22,6 @@ This module contains Data Event Handler classes that manipulate events originati
 the HTTP/REST interface of detectors manufactured by company Dectris.
 """
 
-
 import sys
 import time
 from io import BytesIO
@@ -249,9 +248,9 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                 image_file: BytesIO = BytesIO(response.content)
                 data_event["additional_info"]["image_file"] = image_file
                 data_event["additional_info"]["timestamp"] = (
-                    self._instantiated_data_sources["timestamp"].get_data(
-                        event=data_event
-                    )
+                    self._instantiated_data_sources[
+                        "timestamp"
+                    ].get_data(event=data_event)
                 )
 
                 yield data_event

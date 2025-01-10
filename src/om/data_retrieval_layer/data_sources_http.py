@@ -22,7 +22,6 @@ This module contains Data Source classes that deal with data retrieved from the
 HTTP/REST interface of detectors manufactured by the company Dectris.
 """
 
-
 import datetime
 from typing import Any, Dict, Type, TypeVar, Union
 

@@ -22,7 +22,6 @@ This module contains a graphical interface that displays detector data frames an
 additional provided information.
 """
 
-
 import collections
 import copy
 import signal

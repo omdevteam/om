@@ -22,7 +22,6 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana software framework (used at the LCLS facility).
 """
 
-
 import sys
 from typing import Any, Dict, Generator, List, Optional, Type
 
@@ -382,10 +381,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = (
-            psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
-                int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
-            )
+        event_time: Any = psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
+            int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
         )
         retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:

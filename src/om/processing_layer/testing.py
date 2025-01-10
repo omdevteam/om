@@ -21,7 +21,6 @@ OnDA Test Monitor.
 This module contains an OnDA Monitor that can be used for testing.
 """
 
-
 import time
 from typing import Any, Dict, Optional, Tuple
 

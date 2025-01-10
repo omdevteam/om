@@ -22,7 +22,6 @@ This module contains classes and functions that allow OM to load data from files
 HDF5 format.
 """
 
-
 import sys
 from pathlib import Path
 from typing import Any, Dict, TextIO, Union

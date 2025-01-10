@@ -21,7 +21,6 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
 
-
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union

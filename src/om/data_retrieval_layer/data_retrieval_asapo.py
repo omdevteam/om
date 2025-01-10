@@ -22,7 +22,6 @@ This module contains Data Retrieval classes that deal with the ASAP::O software
 framework (used at the PETRA III facility).
 """
 
-
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler

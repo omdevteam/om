@@ -22,7 +22,6 @@ This module contains a graphical interface that displays reduced and aggregated 
 Serial Crystallography experiments.
 """
 
-
 import signal
 import sys
 import time

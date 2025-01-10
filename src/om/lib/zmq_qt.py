@@ -22,7 +22,6 @@ This module contains classes and functions that allow external programs to recei
 from OnDA Monitors over a ZMQ socket.
 """
 
-
 from builtins import str as unicode_str
 from typing import Any, Dict, Optional
 

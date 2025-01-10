@@ -23,7 +23,6 @@ operations for Serial Crystallography (peak finding, radial profile analysis, pl
 generation, etc.).
 """
 
-
 from collections import deque
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union, cast
 
@@ -470,9 +469,9 @@ class CrystallographyPlots:
             ]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
-            self._virtual_powder_plot_img[
-                int(y_in_frame), int(x_in_frame)
-            ] += peak_value
+            self._virtual_powder_plot_img[int(y_in_frame), int(x_in_frame)] += (
+                peak_value
+            )
 
             peak_radius: float = (
                 self._bin_size

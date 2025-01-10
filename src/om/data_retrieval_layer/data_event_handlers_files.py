@@ -21,7 +21,6 @@ Handling of file-based data events.
 This module contains Data Event Handler classes that manipulate file-based events.
 """
 
-
 import pathlib
 import re
 import sys
@@ -470,7 +469,6 @@ class Jungfrau1MFilesDataEventHandler(
 
         entry: Jungfrau1MFrameInfo
         for entry in self._frames_curr_node:
-
             data_event["additional_info"] = asdict(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(
                 self._frames_curr_node
@@ -1121,9 +1119,9 @@ class Lambda1M5FilesDataEventHandler(
                     ),
                 }
                 data_event["additional_info"]["timestamp"] = (
-                    self._instantiated_data_sources["timestamp"].get_data(
-                        event=data_event
-                    )
+                    self._instantiated_data_sources[
+                        "timestamp"
+                    ].get_data(event=data_event)
                 )
                 yield data_event
 
@@ -1224,16 +1222,12 @@ class Lambda1M5FilesDataEventHandler(
 
         frame_number: int = cast(
             int,
-            h5files[0][
-                "/entry/instrument/detector/sequence_number"
-            ][  # pyright: ignore[reportIndexIssue]
+            h5files[0]["/entry/instrument/detector/sequence_number"][  # pyright: ignore[reportIndexIssue]
                 index_m1
             ],
         )
         index_m2: int = numpy.where(
-            h5files[1][
-                "/entry/instrument/detector/sequence_number"
-            ][  # pyright: ignore[reportIndexIssue]
+            h5files[1]["/entry/instrument/detector/sequence_number"][  # pyright: ignore[reportIndexIssue]
                 :
             ]
             == frame_number

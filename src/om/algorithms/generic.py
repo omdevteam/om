@@ -23,15 +23,17 @@ tied to a specific experimental technique (e.g.: data accumulation, radial avera
 binning, etc.).
 """
 
-
 from typing import Any, Dict, Optional, TypeVar, Union, cast
 
+
+from pathlib import Path
 import numpy
 from numpy.typing import DTypeLike, NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
-from om.algorithms.crystallography import PeakList
+
+from om.algorithms.common import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import DetectorLayoutInformation, PixelMaps
@@ -159,7 +161,7 @@ class RadialProfile:
                 Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
                     hdf5_filename=(
-                        self._radial_profile_parameters.bad_pixel_map_filename
+                        Path(self._radial_profile_parameters.bad_pixel_map_filename)
                     ),
                     hdf5_path=self._radial_profile_parameters.bad_pixel_map_hdf5_path,
                 ),
@@ -349,7 +351,7 @@ class Binning:
             bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
                 Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
-                    hdf5_filename=self._binning_parameters.bad_pixel_map_filename,
+                    hdf5_filename=Path(self._binning_parameters.bad_pixel_map_filename),
                     hdf5_path=self._binning_parameters.bad_pixel_map_hdf5_path,
                 ),
             )

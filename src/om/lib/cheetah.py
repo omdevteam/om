@@ -22,7 +22,6 @@ This module contains classes and functions used by Cheetah, a data-processing pr
 for Serial X-ray Crystallography, based on OM but not designed to be run in real time.
 """
 
-
 import pathlib
 import time
 from dataclasses import dataclass

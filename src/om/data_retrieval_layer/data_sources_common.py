@@ -22,7 +22,6 @@ This module contains Data Source classes that deal with data whose origin is not
 to a specific facility or experiment.
 """
 
-
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Type, TypeVar, Union, cast
@@ -463,14 +462,6 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
             hdf5_filename=self._parameters.hdf5_filename,
             hdf5_path=self._parameters.hdf5_path,
         )
-
-
-
-
-
-
-
-
 
     def get_data(
         self, *, event: Dict[str, Any]

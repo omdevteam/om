@@ -22,7 +22,6 @@ This module contains a graphical interface that can be used to test peak-finding
 parameters in real time during crystallography experiments.
 """
 
-
 import collections
 import copy
 import signal
@@ -37,7 +36,8 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
-from om.algorithms.crystallography import Peakfinder8PeakDetection, PeakList
+from om.algorithms.crystallography import Peakfinder8PeakDetection
+from om.algorithms.common import PeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.files import load_configuration_parameters

@@ -23,7 +23,6 @@ between the processing and collecting nodes. Modules in this package contain fun
 and classes for specific communication approaches or techniques.
 """
 
-
 from typing import Any, Dict, Protocol
 
 try:

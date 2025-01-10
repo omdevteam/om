@@ -21,7 +21,6 @@ Retrieval of data from a ZMQ stream.
 This module contains Data Retrieval classes that deal with ZMQ data streams.
 """
 
-
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_zmq import (

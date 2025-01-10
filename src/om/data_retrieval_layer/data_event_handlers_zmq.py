@@ -22,7 +22,6 @@ This module contains Data Event Handler classes that deal with events retrieved 
 a ZMQ stream.
 """
 
-
 import sys
 from typing import Any, Dict, Generator, List, Tuple, Type
 

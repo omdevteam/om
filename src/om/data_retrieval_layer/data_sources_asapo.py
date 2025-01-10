@@ -22,7 +22,6 @@ This module contains Data Source classes that deal with data retrieved from the 
 software framework (used at the PETRA III facility).
 """
 
-
 from typing import Any, Dict, Optional, Type, TypeVar, Union, cast
 
 import numpy

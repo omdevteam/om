@@ -19,7 +19,6 @@
 TODO
 """
 
-
 from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy

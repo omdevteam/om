@@ -22,7 +22,6 @@ This module contains Data Event Handler classes that manipulate events originati
 from the ASAP::O software framework (used at the PETRA III facility).
 """
 
-
 import sys
 import time
 from dataclasses import dataclass
@@ -297,20 +296,24 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         source_items: List[str] = self._source.split(":")
         if len(source_items) > 1:
             stream_name: str = ":".join(source_items[1:])
-            asapo_events: Generator[_TypeAsapoEvent, None, None] = (
-                self._offline_event_generator(consumer, consumer_group_id, stream_name)
+            asapo_events: Generator[_AsapoEvent, None, None] = (
+                self._offline_event_generator(
+                    self._consumer, self._parameters.asapo_group_id, stream_name
+                )
             )
         else:
-            asapo_events = self._online_event_generator(consumer, consumer_group_id)
+            asapo_events = self._online_event_generator(
+                self._consumer, self._parameters.asapo_group_id
+            )
 
-        asapo_event: _TypeAsapoEvent
+        asapo_event: _AsapoEvent
         for asapo_event in asapo_events:
             data_event["data"] = asapo_event.event_data
             data_event["metadata"] = asapo_event.event_metadata
             data_event["additional_info"]["stream_name"] = asapo_event.stream_name
-            data_event["additional_info"][
-                "stream_metadata"
-            ] = asapo_event.stream_metadata
+            data_event["additional_info"]["stream_metadata"] = (
+                asapo_event.stream_metadata
+            )
 
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)

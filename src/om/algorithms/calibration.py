@@ -22,7 +22,6 @@ This module contains algorithms that calibrate raw detector data frames, prepari
 for data extraction,
 """
 
-
 from typing import Any, BinaryIO, List, Tuple
 
 import h5py  # type: ignore

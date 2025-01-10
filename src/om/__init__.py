@@ -22,5 +22,4 @@ This is the main OnDA Monitor package. It contains the full OM framework, subdiv
 into several subpackages.
 """
 
-
 __version__ = "23.8.3"

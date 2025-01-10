@@ -22,7 +22,6 @@ This module contains Data Retrieval classes that deal with the HTTP/REST interfa
 used by detectors manufactured by the company Dectris.
 """
 
-
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler

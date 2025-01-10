@@ -21,7 +21,6 @@ Multiprocessing Parallelization Layer for OM.
 This module contains a Parallelization Layer based on Python's multiprocessing module.
 """
 
-
 import queue
 import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
@@ -147,9 +146,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
 
-        multiprocessing_parallelization_parameters: (
-            _MultiProcessingParallelizationParameters
-        ) = _MultiProcessingParallelizationParameters.model_validate(parameters)
+        multiprocessing_parallelization_parameters: _MultiProcessingParallelizationParameters = _MultiProcessingParallelizationParameters.model_validate(
+            parameters
+        )
 
         self._node_pool_size: int = (
             multiprocessing_parallelization_parameters.node_pool_size

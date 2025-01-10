@@ -21,7 +21,6 @@ Data retrieval from files.
 This module contains Data Retrieval classes that deal with files.
 """
 
-
 from typing import Any, Dict, Type
 
 from om.data_retrieval_layer.data_event_handlers_files import (

@@ -22,7 +22,6 @@ This module contains common base classes and functions used by all of OM's graph
 user interfaces and viewers.
 """
 
-
 import copy
 from abc import ABCMeta
 from typing import Any, Callable, Dict, List, Union  # noqa: F401

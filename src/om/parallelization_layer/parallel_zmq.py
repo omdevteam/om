@@ -21,7 +21,6 @@ MPI-based Parallelization Layer for OM.
 This module contains a Parallelization Layer based on the MPI protocol.
 """
 
-
 import multiprocessing
 import sys
 from typing import Any, Dict, List, Optional, Tuple

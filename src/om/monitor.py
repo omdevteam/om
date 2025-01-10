@@ -21,7 +21,6 @@ OM's main function.
 This module contains the main function that tarts an OnDA Monitor.
 """
 
-
 import signal
 import sys
 from pathlib import Path
@@ -154,7 +153,6 @@ def main(
     monitor_parameters["data_retrieval_layer"]["node_pool_size"] = node_pool_size
 
     if event_list is not None:
-
         data_retrieval_layer: OmDataRetrievalProtocol = EventListDataRetrieval(
             parameters=monitor_parameters,
             source=source,
@@ -162,7 +160,6 @@ def main(
         )
 
     else:
-
         data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = (
             import_class_from_layer(
                 layer_name="data_retrieval_layer",

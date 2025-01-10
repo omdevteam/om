@@ -76,7 +76,6 @@ def data_source_overrides(
                 _DataRetrievalParameters.model_validate(parameters[data_source])
             )
             if data_source_parameters.data_source_type_override is not None:
-
                 data_source_type: Type[OmDataSourceProtocol] = (
                     _import_data_source_from_data_retrieval_layer(
                         class_name=data_source_parameters.data_source_type_override,

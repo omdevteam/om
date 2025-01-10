@@ -22,7 +22,6 @@ This module contains classes and functions that manage and count data events pro
 by OM.
 """
 
-
 import time
 from itertools import cycle
 from typing import Iterator, Optional
