@@ -64,8 +64,9 @@ class Jungfrau1MCalibration:
             (3, 512 * num_panels, 1024), dtype=numpy.float32
         )
         self._gain: NDArray[numpy.float_] = numpy.ndarray(
-            (3, 512 * num_panels, 1024), dtype=numpy.float64
+            (3, 512 * num_panels, 1024), dtype=numpy.float32
         )
+
         panel_id: int
         for panel_id in range(num_panels):
             gain_file: BinaryIO = open(gain_filenames[panel_id], "rb")
@@ -101,7 +102,7 @@ class Jungfrau1MCalibration:
 
             The calibrated data frame.
         """
-        calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
+        calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float_)
 
         where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
             numpy.where(data & 2**14 == 0),

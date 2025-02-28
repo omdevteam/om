@@ -38,9 +38,7 @@ from om.lib.exceptions import OmMissingDependencyError
 from om.lib.logging import log
 
 try:
-    from PyQt5 import QtCore  # type: ignore
-    from PyQt5 import QtGui  # type: ignore
-    from PyQt5 import QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"

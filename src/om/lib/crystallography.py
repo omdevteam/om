@@ -23,6 +23,7 @@ operations for Serial Crystallography (peak finding, radial profile analysis, pl
 generation, etc.).
 """
 
+import sys
 from collections import deque
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union, cast
 
@@ -43,11 +44,9 @@ from om.lib.geometry import (
 from om.lib.protocols import OmPeakDetectionProtocol
 
 try:
-    from om.algorithms.crystallography_ml import PeakNetPeakDetection
-
-    ml_available: bool = True
+    import om.algorithms.crystallography_ml  # noqa: F401
 except ImportError:
-    ml_available = False
+    pass
 
 
 class _CrystallographyParameters(BaseModel):
@@ -166,7 +165,14 @@ class CrystallographyPeakFinding:
                 radius_pixel_map=geometry_information.get_pixel_maps().radius,
                 layout_info=geometry_information.get_layout_info(),
             )
-        elif self._parameters.crystallography.peakfinding_algorithm == "peaknet":
+        elif (
+            self._parameters.crystallography.peakfinding_algorithm == "peaknet"
+            and "om.algorithms.crystallography_ml" in sys.modules
+        ):
+            from om.algorithms.crystallography_ml import (  # noqa: I001
+                PeakNetPeakDetection,
+            )
+
             self._peak_detection = PeakNetPeakDetection(
                 parameters=parameters["peaknet_peak_detection"],
             )
@@ -469,15 +475,13 @@ class CrystallographyPlots:
             ]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
-            self._virtual_powder_plot_img[int(y_in_frame), int(x_in_frame)] += (
-                peak_value
-            )
+            self._virtual_powder_plot_img[
+                int(y_in_frame), int(x_in_frame)
+            ] += peak_value
 
             peak_radius: float = (
                 self._bin_size
-                * cast(NDArray[numpy.float_], self._radius_pixel_map)[
-                    int(round(peak_ss)), int(round(peak_fs))
-                ]
+                * self._radius_pixel_map[int(round(peak_ss)), int(round(peak_fs))]
             )
             radius_index: int = int(
                 peak_radius

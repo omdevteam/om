@@ -36,8 +36,8 @@ from numpy.typing import NDArray
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
-from om.algorithms.crystallography import Peakfinder8PeakDetection
 from om.algorithms.common import PeakList
+from om.algorithms.crystallography import Peakfinder8PeakDetection
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.files import load_configuration_parameters
@@ -45,9 +45,7 @@ from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.logging import log
 
 try:
-    from PyQt5 import QtCore  # type: ignore
-    from PyQt5 import QtGui  # type: ignore
-    from PyQt5 import QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"

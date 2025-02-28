@@ -1119,9 +1119,9 @@ class Lambda1M5FilesDataEventHandler(
                     ),
                 }
                 data_event["additional_info"]["timestamp"] = (
-                    self._instantiated_data_sources[
-                        "timestamp"
-                    ].get_data(event=data_event)
+                    self._instantiated_data_sources["timestamp"].get_data(
+                        event=data_event
+                    )
                 )
                 yield data_event
 
@@ -1222,12 +1222,14 @@ class Lambda1M5FilesDataEventHandler(
 
         frame_number: int = cast(
             int,
-            h5files[0]["/entry/instrument/detector/sequence_number"][  # pyright: ignore[reportIndexIssue]
-                index_m1
-            ],
+            h5files[0][  # pyright: ignore[reportIndexIssue][
+                "/entry/instrument/detector/sequence_number"
+            ][index_m1],
         )
         index_m2: int = numpy.where(
-            h5files[1]["/entry/instrument/detector/sequence_number"][  # pyright: ignore[reportIndexIssue]
+            h5files[1][
+                "/entry/instrument/detector/sequence_number"
+            ][  # pyright: ignore[reportIndexIssue]
                 :
             ]
             == frame_number

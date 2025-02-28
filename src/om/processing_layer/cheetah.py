@@ -448,7 +448,9 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         log.info(f"Processing node {node_rank} starting")
 
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the collecting node for Cheetah.
 
@@ -747,7 +749,9 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         log.info(f"Processing node {node_rank} starting")
 
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the collecting node for Cheetah.
 

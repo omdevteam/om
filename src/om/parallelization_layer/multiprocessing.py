@@ -146,9 +146,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
 
-        multiprocessing_parallelization_parameters: _MultiProcessingParallelizationParameters = _MultiProcessingParallelizationParameters.model_validate(
-            parameters
-        )
+        multiprocessing_parallelization_parameters: (
+            _MultiProcessingParallelizationParameters
+        ) = _MultiProcessingParallelizationParameters.model_validate(parameters)
 
         self._node_pool_size: int = (
             multiprocessing_parallelization_parameters.node_pool_size

@@ -223,9 +223,13 @@ class XesAnalysisAndPlots:
                     numpy.abs(spectra_cumulative_sum_dark)
                 )
 
-            spectra_cumulative_sum_difference = (
-                spectra_cumulative_sum_pumped - spectra_cumulative_sum_dark
-            )
+            if (
+                spectra_cumulative_sum_pumped is not None
+                and spectra_cumulative_sum_dark is not None
+            ):
+                spectra_cumulative_sum_difference = (
+                    spectra_cumulative_sum_pumped - spectra_cumulative_sum_dark
+                )
 
         return (
             self._spectra_cumulative_sum,

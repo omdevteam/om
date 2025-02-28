@@ -40,11 +40,33 @@ def _import_data_source_from_data_retrieval_layer(
     *,
     class_name: str,
 ) -> Type[OmDataSourceProtocol]:
+    """"""
     try:
         imported_layer: ModuleType = import_module("data_retrieval_layer")
+        try:
+            imported_class: Type[OmDataSourceProtocol] = getattr(
+                imported_layer, class_name
+            )
+            return imported_class
+        except AttributeError:
+            raise OmMissingLayerClassError(
+                "The Data Source class for the following type override cannot be "
+                f"found in the Data Retrieval Layer: {class_name}"
+            )
+            assert False  # unreachable
+    # unreachable
     except ImportError:
         try:
             imported_layer = import_module("om.data_retrieval_layer")
+            try:
+                imported_class = getattr(imported_layer, class_name)
+                return imported_class
+            except AttributeError:
+                raise OmMissingLayerClassError(
+                    "The Data Source class for the following type override cannot be "
+                    f"found in the Data Retrieval Layer: {class_name}"
+                )
+                assert False  # unreachanle
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
@@ -54,14 +76,7 @@ def _import_data_source_from_data_retrieval_layer(
                     "found or loaded due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
-    try:
-        imported_class: Type[OmDataSourceProtocol] = getattr(imported_layer, class_name)
-        return imported_class
-    except AttributeError:
-        raise OmMissingLayerClassError(
-            "The Data Source class for the following type override cannot be found in "
-            f"the Data Retrieval Layer: {class_name}"
-        )
+            assert False  # unreachanle
 
 
 def data_source_overrides(

@@ -30,6 +30,12 @@ from .data_retrieval_files import (  # noqa: F401
     RayonixMccdFilesDataRetrieval,
 )
 from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
+from .data_sources_common import (  # noqa: F401
+    ArrayFromHdf5File,
+    FloatValueFromConfiguration,
+    IntValueFromConfiguration,
+    TimestampFromEvent,
+)
 from .data_sources_files import (  # noqa: F401
     Eiger16MFiles,
     EventIdEiger16MFiles,
@@ -46,12 +52,6 @@ from .data_sources_zmq import (  # noqa: F401
     EventIdJungfrau1MZmq,
     Jungfrau1MZmq,
     TimestampJungfrau1MZmq,
-)
-from .data_sources_common import (  # noqa: F401
-    TimestampFromEvent,
-    FloatValueFromConfiguration,
-    IntValueFromConfiguration,
-    ArrayFromHdf5File,
 )
 
 try:

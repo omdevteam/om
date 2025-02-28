@@ -86,9 +86,9 @@ class EnergySpectrumRetrieval:
         """
 
         try:
-            self._energy_spectrum_retrieval_parameters: _EnergySpectrumRetrievalParameters = _EnergySpectrumRetrievalParameters.model_validate(
-                parameters
-            )
+            self._energy_spectrum_retrieval_parameters: (
+                _EnergySpectrumRetrievalParameters
+            ) = _EnergySpectrumRetrievalParameters.model_validate(parameters)
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
                 "Error parsing parameters for the EnergySpectrumRetrieval algorithm: "

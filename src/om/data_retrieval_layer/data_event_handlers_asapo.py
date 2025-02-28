@@ -126,7 +126,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
+        self._data_sources: Dict[str,
+                                 Type[OmDataSourceProtocol]] = data_sources
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
@@ -227,7 +228,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         pass
 
     def initialize_event_handling_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Initializes ASAP::O event handling on the processing nodes.
@@ -316,7 +317,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             )
 
             data_event["additional_info"]["timestamp"] = (
-                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
+                self._instantiated_data_sources["timestamp"].get_data(
+                    event=data_event)
             )
 
             yield data_event
@@ -419,7 +421,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             stream=stream,
             meta_only=False,
         )
-        stream_metadata: Dict[str, Any] = self._consumer.get_stream_meta(stream)
+        stream_metadata: Dict[str,
+                              Any] = self._consumer.get_stream_meta(stream)
 
         data_event: Dict[str, Any] = {}
         data_event["data"] = event_data

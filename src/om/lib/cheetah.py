@@ -782,14 +782,17 @@ class HDF5Writer:
         )
 
         # Compression
-        if self._parameters.cheetah.hdf5_file_compression == "gzip":
+        if self._parameters.cheetah.hdf5_file_compression == _Hdf5Compression.gzip:
             self._compression_kwargs: Dict[str, Any] = {
                 "compression": "gzip",
                 "compression_opts": (
                     self._parameters.cheetah.hdf5_file_gzip_compression_level,
                 ),
             }
-        elif self._parameters.cheetah.hdf5_file_compression == "bitshuffle_with_zstd":
+        elif (
+            self._parameters.cheetah.hdf5_file_compression
+            == _Hdf5Compression.bitshuffle_with_zstd
+        ):
             self._compression_kwargs = dict(
                 hdf5plugin.Bitshuffle(
                     cname="zstd",

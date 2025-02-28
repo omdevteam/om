@@ -27,10 +27,7 @@ import sys
 from types import ModuleType
 from typing import Literal, Type, Union, overload
 
-from om.lib.exceptions import (
-    OmMissingLayerClassError,
-    OmMissingLayerModuleError,
-)
+from om.lib.exceptions import OmMissingLayerClassError, OmMissingLayerModuleError
 from om.lib.protocols import (
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
@@ -106,9 +103,29 @@ def import_class_from_layer(
 
     try:
         imported_layer: ModuleType = importlib.import_module(name=layer_name)
+        try:
+            imported_class: Union[
+                Type[OmParallelizationProtocol],
+                Type[OmDataRetrievalProtocol],
+                Type[OmProcessingProtocol],
+            ] = getattr(imported_layer, class_name)
+            return imported_class
+        except AttributeError:
+            raise OmMissingLayerClassError(
+                f"The {class_name} class cannot be found in the {layer_name} layer."
+            )
+            assert False  # unreachable
     except ImportError:
         try:
             imported_layer = importlib.import_module(f"om.{layer_name}")
+            try:
+                imported_class = getattr(imported_layer, class_name)
+                return imported_class
+            except AttributeError:
+                raise OmMissingLayerClassError(
+                    f"The {class_name} class cannot be found in the {layer_name} layer."
+                )
+                assert False  # unreachable
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
@@ -118,14 +135,4 @@ def import_class_from_layer(
                     f"due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
-    try:
-        imported_class: Union[
-            Type[OmParallelizationProtocol],
-            Type[OmDataRetrievalProtocol],
-            Type[OmProcessingProtocol],
-        ] = getattr(imported_layer, class_name)
-        return imported_class
-    except AttributeError:
-        raise OmMissingLayerClassError(
-            f"The {class_name} class cannot be found in the {layer_name} layer."
-        )
+            assert False  # unreachable

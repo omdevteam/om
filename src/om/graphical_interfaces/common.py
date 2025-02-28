@@ -30,8 +30,7 @@ from om.lib.exceptions import OmMissingDependencyError
 from om.lib.zmq_qt import ZmqDataListener
 
 try:
-    from PyQt5 import QtCore  # type: ignore
-    from PyQt5 import QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtWidgets  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"

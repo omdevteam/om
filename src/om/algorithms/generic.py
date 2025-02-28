@@ -23,15 +23,13 @@ tied to a specific experimental technique (e.g.: data accumulation, radial avera
 binning, etc.).
 """
 
+from pathlib import Path
 from typing import Any, Dict, Optional, TypeVar, Union, cast
 
-
-from pathlib import Path
 import numpy
 from numpy.typing import DTypeLike, NDArray
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
-
 
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
@@ -70,6 +68,7 @@ class _BinningParameters(BaseModel):
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
+
         if (
             self.bad_pixel_map_filename is not None
             and self.bad_pixel_map_hdf5_path is None
@@ -178,6 +177,7 @@ class RadialProfile:
         self._num_bins: int = int(
             radius_pixel_map.max() / self._radial_profile_parameters.radius_bin_size
         )
+
         radial_bins: NDArray[numpy.float_] = numpy.linspace(
             0,
             self._num_bins * self._radial_profile_parameters.radius_bin_size,
@@ -596,17 +596,15 @@ class Binning:
         """
 
         binned_pixel_maps: PixelMaps = PixelMaps(
-            x=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.x))
+            x=self._bin_data_array(data=pixel_maps.x)
             / self._binning_parameters.bin_size**3,
-            y=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.y))
+            y=self._bin_data_array(data=pixel_maps.y)
             / self._binning_parameters.bin_size**3,
-            z=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.z))
+            z=self._bin_data_array(data=pixel_maps.z)
             / self._binning_parameters.bin_size**3,
-            radius=self._bin_data_array(
-                data=cast(NDArray[numpy.float_], pixel_maps.radius)
-            )
+            radius=self._bin_data_array(data=pixel_maps.radius)
             / self._binning_parameters.bin_size**3,
-            phi=self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps.phi))
+            phi=self._bin_data_array(data=pixel_maps.phi)
             / self._binning_parameters.bin_size**2,
         )
 
