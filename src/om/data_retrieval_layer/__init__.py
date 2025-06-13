@@ -92,6 +92,25 @@ try:
 except ModuleNotFoundError:
     pass
 
+
+try:
+    import psana  # type: ignore  # noqa: F401
+
+    from .data_retrieval_psana2 import (  # noqa: F401
+        MfxLclsIIDataRetrieval,
+    )
+    from .data_sources_psana2 import (  # noqa: F401
+        AssembledDetectorPsana2,
+        EpicsVariablePsana2,
+        BeamEnergyFromEpicsVariablePsana2,
+        AreaDetectorPsana2,
+        TimestampPsana2,
+        EventIdPsana2,
+        BeamEnergyPsana2,
+    )
+except ModuleNotFoundError:
+    pass
+
 try:
     import asapo_consumer  # type: ignore  # noqa: F401
 

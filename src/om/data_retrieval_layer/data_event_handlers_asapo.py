@@ -25,7 +25,7 @@ from the ASAP::O software framework (used at the PETRA III facility).
 import sys
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Generator, List, Optional, Type, Union
+from typing import Any, Dict, Generator, List, Optional, Type, Union, Literal
 
 import numpy
 from numpy.typing import NDArray
@@ -126,12 +126,18 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str,
-                                 Type[OmDataSourceProtocol]] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
         )
+
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        return "first"
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
+        return False
 
     def _initialize_asapo_consumer(self) -> Any:
         consumer: Any = asapo_consumer.create_consumer(
@@ -254,6 +260,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 data_sources=self._data_sources,
                 data_retrieval_parameters=self._data_retrieval_parameters,
                 required_data_sources=self._required_data_sources,
+                additional_info={},
             )
         )
 
@@ -307,8 +314,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             ] = asapo_event.stream_metadata
 
             data_event["additional_info"]["timestamp"] = (
-                self._instantiated_data_sources["timestamp"].get_data(
-                    event=data_event)
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
             )
 
             yield data_event
@@ -378,6 +384,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
@@ -411,8 +418,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             stream=stream,
             meta_only=False,
         )
-        stream_metadata: Dict[str,
-                              Any] = self._consumer.get_stream_meta(stream)
+        stream_metadata: Dict[str, Any] = self._consumer.get_stream_meta(stream)
 
         data_event: Dict[str, Any] = {}
         data_event["data"] = event_data

@@ -583,7 +583,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[int, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and saves them to files.
 
@@ -877,7 +877,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[int, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 

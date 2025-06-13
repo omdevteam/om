@@ -50,6 +50,7 @@ class OmBaseZmqDataSourceMixin:
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additonal_info: Dict[str, Any],
     ):
         """
         Timestamp information from a Jungfrau 1M's ZMQ data stream.
@@ -71,6 +72,7 @@ class OmBaseZmqDataSourceMixin:
         """
         del data_source_name
         del parameters
+        del additonal_info
 
     def initialize_data_source(self) -> None:
         """

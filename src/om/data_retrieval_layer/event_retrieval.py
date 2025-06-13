@@ -20,7 +20,7 @@ This module contains classes that deals with the retrieval of single standalone 
 """
 
 from pathlib import Path
-from typing import Any, Dict, Generator, List, TextIO, Type
+from typing import Any, Dict, Generator, List, TextIO, Type, Literal
 
 from pydantic import BaseModel, ValidationError
 
@@ -202,6 +202,13 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
         self._source: str = source
         self._event_list_file: Path = event_list_file
         self._monitor_parameters: Dict[str, Any] = parameters
+
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        return "first"
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
+        return False
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int

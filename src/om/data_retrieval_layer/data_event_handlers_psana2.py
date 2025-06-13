@@ -16,14 +16,16 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Handling of psana-based data events.
+Handling of psana2-based data events.
 
 This module contains Data Event Handler classes that manipulate events originating from
-the psana software framework (used at the LCLS facility).
+the psana2 software framework (used at the LCLS facility).
 """
 
+
+import os
 import sys
-from typing import Any, Dict, Generator, List, Optional, Type, Literal
+from typing import Any, Dict, Generator, List, Literal, Optional, Type, Union, Sequence
 
 import numpy
 from pydantic import BaseModel, Field, ValidationError
@@ -49,12 +51,39 @@ except ImportError:
     )
 
 
-class _PsanaDataEventHandlerParameters(BaseModel):
+class _Psana2DataEventHandlerParameters(BaseModel):
     required_data: List[str]
     psana_calibration_directory: Optional[str] = Field(default=None)
 
 
-class PsanaDataEventHandler(OmDataEventHandlerProtocol):
+def _psana2_offline_event_generator(
+    *,
+    psana_source: Any,
+    data_sources: Dict[str, Type[OmDataSourceProtocol]],
+    required_data_sources: List[str],
+    data_retrieval_parameters: Dict[str, Any],
+) -> Any:
+    # Computes how many events the current processing node should process. Splits the
+    # events as equally as possible amongst the processing nodes. If the number of
+    # events cannot be exactly divided by the number of processing nodes, an additional
+    # processing node is assigned the residual events.
+    run: Any
+    for run in psana_source.runs():
+
+        instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=data_sources,
+                data_retrieval_parameters=data_retrieval_parameters,
+                required_data_sources=required_data_sources,
+                additional_info={"run": run},
+            )
+        )
+
+        for evt in run.events():
+            yield evt, instantiated_data_sources
+
+
+class Psana2DataEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -99,58 +128,62 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         self._data_retrieval_parameters: Dict[str, Any] = parameters
 
         try:
-            self._parameters: _PsanaDataEventHandlerParameters = (
-                _PsanaDataEventHandlerParameters.model_validate(parameters)
+            self._parameters: _Psana2DataEventHandlerParameters = (
+                _Psana2DataEventHandlerParameters.model_validate(parameters)
             )
         except ValidationError as exception:
             raise OmConfigurationFileSyntaxError(
                 "Error parsing Data Retrieval Layer parameters: " f"{exception}"
             )
 
-        self._source: str = source
         self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
         )
 
+        os.environ["PS_SRV_NODES"] = "1"
+
+        if "shmem" in source:
+            log.error("Online mode has not been implemented yet for psana2")
+            sys.exit(1)
+        else:
+            self._offline: bool = True
+
+        source_dict: Dict[str, Union[str, int]] = {}
+        source_items: List[str] = source.split(",")
+        item: str
+        for item in source_items:
+            if item.startswith("shmem="):
+                source_dict["shmem"] = item.split("shmem=")[1].strip().lstrip()
+            elif item.startswith("exp="):
+                source_dict["exp"] = item.split("exp=")[1].strip().lstrip()
+            elif item.startswith("run="):
+                source_dict["run"] = int(item.split("run=")[1].strip().lstrip())
+            elif item.startswith("files="):
+                source_dict["files"] = item.split("files=")[1].strip().lstrip()
+            elif item.startswith("drp="):
+                source_dict["drp"] = item.split("drp=")[1].strip().lstrip()
+            elif item.startswith("max_events="):
+                source_dict["max_events"] = int(
+                    item.split("max_events=")[1].strip().lstrip()
+                )
+            else:
+                log.error("Part of the source string for psana2 cannot be parsed:")
+                log.error(f"{item}")
+                sys.exit(1)
+        self._psana_source: Any = (
+            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+                **(source_dict)
+            )
+        )
+
     def designated_collector_rank(self) -> Literal["first", "last"]:
-        return "first"
+        return "last"
 
     def skip_rank_finalization(self) -> bool:
         """ """
-        return False
-
-    def _initialize_psana_data_source(
-        self,
-        *,
-        psana_calibration_directory: Optional[str],
-        mpi_data_source: bool,
-    ) -> Any:
-        # This private method contains all the common psana initialization code needed
-        # by other methods of the class
-
-        # If the psana calibration directory is provided in the configuration file, it
-        # is added as an option to psana before the DataSource is set.
-
-        if psana_calibration_directory is not None:
-            psana.setOption(  # pyright: ignore[reportAttributeAccessIssue]
-                "psana.calib-dir",
-                psana_calibration_directory,
-            )
-            log.warning(
-                "OM Warning: Using the following calibration directory: "
-                f"{psana_calibration_directory}"
-            )
-
-        if mpi_data_source is True:
-            return psana.MPIDataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                self._source
-            )
-        else:
-            return psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                self._source
-            )
+        return True
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -172,7 +205,6 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
 
     def initialize_event_handling_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -194,26 +226,17 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # Detects if data is being read from an online or offline source.
-        if "shmem" in self._source:
-            mpi_data_source: bool = False
-        else:
-            mpi_data_source = True
-
-        psana_source: Any = self._initialize_psana_data_source(
-            psana_calibration_directory=self._parameters.psana_calibration_directory,
-            mpi_data_source=mpi_data_source,
-        )
-
         # Initializes the psana event source and starts retrieving events.
-
-        self._psana_events = psana_source.events()
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
-            additional_info={},
-        )
+        if self._offline:
+            self._psana_events: Any = _psana2_offline_event_generator(
+                psana_source=self._psana_source,
+                data_sources=self._data_sources,
+                required_data_sources=self._required_data_sources,
+                data_retrieval_parameters=self._data_retrieval_parameters,
+            )
+        else:
+            log.error("Online mode has not been implemented yet for psana2")
+            sys.exit(1)
 
     def event_generator(
         self,
@@ -253,13 +276,15 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
         psana_event: Any
         for psana_event in self._psana_events:
-            data_event["data"] = psana_event
 
-            # Recovers the timestamp from the psana event (as seconds from the Epoch)
-            # and stores it in the event dictionary to be retrieved later.
-            data_event["additional_info"]["timestamp"] = (
-                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
-            )
+            instantiated_data_sources: Dict[str, OmDataSourceProtocol] = psana_event[1]
+            data_event["data"] = psana_event[0]
+            data_event["additional_info"]["timestamp"] = instantiated_data_sources[
+                "timestamp"
+            ].get_data(event=data_event)
+            data_event["additional_info"][
+                "instantiated_data_sources"
+            ] = instantiated_data_sources
 
             yield data_event
 
@@ -295,14 +320,19 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
+
+        instantiated_data_sources: Dict[str, OmDataSourceProtocol] = event[
+            "additional_info"
+        ]["instantiated_data_sources"]
+
         for source_name in self._required_data_sources:
             # data[source_name] = self._instantiated_data_sources[
             #    source_name
             # ].get_data(event=event)
             try:
-                data[source_name] = self._instantiated_data_sources[
-                    source_name
-                ].get_data(event=event)
+                data[source_name] = instantiated_data_sources[source_name].get_data(
+                    event=event
+                )
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -325,21 +355,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        if self._source[-4:] != ":idx":
-            self._source += ":idx"
-
-        psana_source: Any = self._initialize_psana_data_source(
-            psana_calibration_directory=self._parameters.psana_calibration_directory,
-            mpi_data_source=False,
-        )
-        self._run = next(psana_source.runs())
-
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
-            additional_info={},
-        )
+        raise NotImplementedError
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
@@ -366,28 +382,4 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             OmMissingDataEventError: Raised when an event cannot be retrieved from the
                 data source.
         """
-        event_id_parts: List[str] = event_id.split("-")
-        evt_id_timestamp: int = int(event_id_parts[0])
-        evt_id_timestamp_ns: int = int(event_id_parts[1])
-        evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = (
-            psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
-                int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
-            )
-        )
-        retrieved_event: Any = self._run.event(event_time)
-        if retrieved_event is None:
-            raise OmMissingDataEventError(
-                f"Data event {event_id} cannot be retrieved from the data event source"
-            )
-        data_event: Dict[str, Any] = {}
-        data_event["additional_info"] = {}
-        data_event["data"] = retrieved_event
-
-        # Recovers the timestamp from the psana event (as seconds from the Epoch)
-        # and stores it in the event dictionary.
-        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
-            "timestamp"
-        ].get_data(event=data_event)
-
-        return self.extract_data(event=data_event)
+        raise NotImplementedError

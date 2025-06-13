@@ -232,7 +232,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Optional[Dict[int, Dict[str, Any]]] = (
+                    feedback_data: Optional[Dict[str, Dict[str, Any]]] = (
                         self._processing_layer.collect_data(
                             node_rank=self._rank,
                             node_pool_size=self._node_pool_size,

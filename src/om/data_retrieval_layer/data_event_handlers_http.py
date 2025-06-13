@@ -110,6 +110,13 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             required_data=self._parameters.required_data,
         )
 
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        return "first"
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
+        return False
+
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
     ) -> Optional[Literal["enabled", "disabled"]]:
@@ -212,6 +219,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(
@@ -248,9 +256,9 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                 image_file: BytesIO = BytesIO(response.content)
                 data_event["additional_info"]["image_file"] = image_file
                 data_event["additional_info"]["timestamp"] = (
-                    self._instantiated_data_sources[
-                        "timestamp"
-                    ].get_data(event=data_event)
+                    self._instantiated_data_sources["timestamp"].get_data(
+                        event=data_event
+                    )
                 )
 
                 yield data_event

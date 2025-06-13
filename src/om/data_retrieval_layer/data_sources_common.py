@@ -100,6 +100,7 @@ class OmJungfrau1MDataSourceMixin:
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Detector data frames from Jungfrau 1M HDF5 files.
@@ -119,6 +120,7 @@ class OmJungfrau1MDataSourceMixin:
 
             parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -175,6 +177,7 @@ class TimestampFromEvent(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Timestamp information from data events.
@@ -196,8 +199,9 @@ class TimestampFromEvent(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        del parameters
         del data_source_name
+        del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -242,6 +246,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -261,6 +266,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -325,6 +331,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -344,6 +351,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -408,6 +416,7 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -427,7 +436,7 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-
+        del additional_info
         if data_source_name not in parameters:
             raise AttributeError(
                 "The following section must be present in the configuration file: "

@@ -66,9 +66,10 @@ def load_hdf5_data(
             file.
     """
 
+    hdf5_filename_path: Path = Path(hdf5_filename)
     try:
         hdf5_file_handle: Any
-        with h5py.File(hdf5_filename, "r") as hdf5_file_handle:
+        with h5py.File(hdf5_filename_path, "r") as hdf5_file_handle:
             data: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = hdf5_file_handle[
                 hdf5_path
             ][:]
@@ -92,9 +93,10 @@ def load_configuration_parameters(
     #TODO: Documentation
     """
 
+    config_path: Path = Path(config)
     try:
         open_file: TextIO
-        with open(config, "r") as open_file:
+        with open(config_path, "r") as open_file:
             monitor_params: Dict[str, Dict[str, Any]] = yaml.safe_load(open_file)
     except OSError:
         raise OmConfigurationFileReadingError(
@@ -112,6 +114,6 @@ def load_configuration_parameters(
         monitor_params[group]["name"] = group
 
     # Add configuration file path to the om group
-    monitor_params["om"]["configuration_file"] = str(config.absolute())
+    monitor_params["om"]["configuration_file"] = str(config_path.absolute())
 
     return monitor_params

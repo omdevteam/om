@@ -45,6 +45,6 @@ elif rank != 0:
     from psana import DataSource
 
     ds = DataSource("shmem=psana.0:stop=no")
-    evt = next(ds.events())
+    evt = next(ds.events())  # pyright: ignore[reportAttributeAccessIssue]
     comm.send(rank, dest=0)
     MPI.Finalize()

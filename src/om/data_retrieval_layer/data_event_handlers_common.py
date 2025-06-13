@@ -71,12 +71,15 @@ def instantiate_data_sources(
     data_sources: Dict[str, Type[OmDataSourceProtocol]],
     data_retrieval_parameters: Dict[str, Any],
     required_data_sources: List[str],
+    additional_info: Dict[str, Any],
 ) -> Dict[str, OmDataSourceProtocol]:
     """ """
 
     instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
         "timestamp": data_sources["timestamp"](
-            data_source_name="timestamp", parameters=data_retrieval_parameters
+            data_source_name="timestamp",
+            parameters=data_retrieval_parameters,
+            additional_info=additional_info,
         )
     }
     instantiated_data_sources["timestamp"].initialize_data_source()
@@ -84,7 +87,9 @@ def instantiate_data_sources(
     source_name: str
     for source_name in required_data_sources:
         instantiated_data_sources[source_name] = data_sources[source_name](
-            data_source_name=source_name, parameters=data_retrieval_parameters
+            data_source_name=source_name,
+            parameters=data_retrieval_parameters,
+            additional_info=additional_info,
         )
         instantiated_data_sources[source_name].initialize_data_source()
 

@@ -23,7 +23,7 @@ a ZMQ stream.
 """
 
 import sys
-from typing import Any, Dict, Generator, List, Tuple, Type
+from typing import Any, Dict, Generator, List, Tuple, Type, Literal
 
 import zmq
 from pydantic import BaseModel, ValidationError
@@ -106,6 +106,13 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             required_data=self._parameters.required_data,
         )
 
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        return "first"
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
+        return False
+
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -164,6 +171,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(

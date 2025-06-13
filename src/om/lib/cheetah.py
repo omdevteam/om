@@ -90,7 +90,7 @@ class _CheetahHdf5WriterParameters(BaseModel):
     processed_filename_extension: str = Field(default="h5")
     hdf5_fields: dict[str, str]
     hdf5_file_data_type: str
-    hdf5_file_compression: _Hdf5Compression = Field(default="none")
+    hdf5_file_compression: _Hdf5Compression = Field(default=_Hdf5Compression.none)
     hdf5_file_gzip_compression_level: int = Field(default=4)
     hdf5_file_zstd_compression_level: int = Field(default=3)
     hdf5_file_compression_shuffle: bool = Field(default=False)

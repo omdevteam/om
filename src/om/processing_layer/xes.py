@@ -277,7 +277,7 @@ class XesProcessing(OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[int, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Computes statistics on aggregated spectrum data and broadcasts them.
 
@@ -307,7 +307,7 @@ class XesProcessing(OmProcessingProtocol):
         del node_rank
         del node_pool_size
         received_data: Dict[str, Any] = processed_data[0]
-        return_dict: Dict[int, Dict[str, Any]] = {}
+        return_dict: Dict[str, Dict[str, Any]] = {}
 
         self._event_counter.add_hit_event()
 

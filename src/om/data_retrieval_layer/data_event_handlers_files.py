@@ -26,7 +26,18 @@ import re
 import sys
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, Generator, List, TextIO, Tuple, Type, TypeVar, cast
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    List,
+    TextIO,
+    Tuple,
+    Type,
+    TypeVar,
+    cast,
+    Literal,
+)
 
 import h5py  # type: ignore
 import numpy
@@ -128,6 +139,13 @@ class OmBaseFileDataEventHandlerMixin:
             required_data=self._parameters.required_data,
         )
 
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        return "first"
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
+        return False
+
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -194,6 +212,7 @@ class PilatusFilesEventHandler(
         self._instantiated_data_sources = instantiate_data_sources(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
+            additional_info={},
             required_data_sources=self._required_data_sources,
         )
 
@@ -314,6 +333,7 @@ class PilatusFilesEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
@@ -431,6 +451,7 @@ class Jungfrau1MFilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(  # noqa: C901
@@ -543,6 +564,7 @@ class Jungfrau1MFilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
@@ -646,6 +668,7 @@ class EigerFilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(
@@ -764,6 +787,7 @@ class EigerFilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
@@ -857,6 +881,7 @@ class RayonixMccdFilesEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(
@@ -973,6 +998,7 @@ class RayonixMccdFilesEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
@@ -1057,6 +1083,7 @@ class Lambda1M5FilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def event_generator(  # noqa: C901
@@ -1188,6 +1215,7 @@ class Lambda1M5FilesDataEventHandler(
             data_sources=self._data_sources,
             data_retrieval_parameters=self._data_retrieval_parameters,
             required_data_sources=self._required_data_sources,
+            additional_info={},
         )
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:

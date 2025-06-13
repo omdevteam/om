@@ -114,6 +114,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Area data frames from psana at the LCLS facility.
@@ -134,6 +135,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
 
             parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -164,7 +166,11 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        self._detector_interface: Any = psana.Detector(self._parameters.psana_name)
+        self._detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                self._parameters.psana_name
+            )
+        )
 
 
 class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
@@ -477,6 +483,7 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Beam energy information from psana at the LCLS facility.
@@ -498,6 +505,7 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         """
         del data_source_name
         del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -509,7 +517,11 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
         """
-        self._detector_interface: Any = psana.Detector("SIOC:SYS0:ML00:AO192")
+        self._detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                "SIOC:SYS0:ML00:AO192"
+            )
+        )
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
@@ -558,6 +570,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Area data frames from psana at the LCLS facility.
@@ -578,6 +591,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -607,7 +621,11 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = psana.Detector(self._parameters.psana_name)
+        detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                self._parameters.psana_name
+            )
+        )
 
         if self._parameters.calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
@@ -693,6 +711,7 @@ class CspadPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Area data frames from psana at the LCLS facility.
@@ -713,6 +732,7 @@ class CspadPsana(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -743,7 +763,11 @@ class CspadPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = psana.Detector(self._parameters.psana_name)
+        detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                self._parameters.psana_name
+            )
+        )
 
         if self._parameters.calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
@@ -821,6 +845,7 @@ class TimestampPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Timestamp information from psana at the LCLS facility.
@@ -842,6 +867,7 @@ class TimestampPsana(OmDataSourceProtocol):
         """
         del data_source_name
         del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -892,6 +918,7 @@ class EventIdPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Data event identifiers from psana at the LCLS facility.
@@ -913,6 +940,7 @@ class EventIdPsana(OmDataSourceProtocol):
         """
         del data_source_name
         del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -967,6 +995,7 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Beam energy information from psana at the LCLS facility.
@@ -988,6 +1017,7 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         """
         del data_source_name
         del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -999,7 +1029,8 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
         """
-        self._detector_interface: Any = psana.Detector("EBeam")
+        detector: Any = psana.Detector  # pyright: ignore[reportAttributeAccessIssue]
+        self._detector_interface: Any = detector("EBeam")
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
@@ -1034,6 +1065,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any] = {},
     ):
         """
         EVR event codes from psana at the LCLS facility.
@@ -1053,6 +1085,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -1084,7 +1117,11 @@ class EvrCodesPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = psana.Detector(self._parameters.evr_source)
+        self._detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                self._parameters.evr_source
+            )
+        )
 
     def get_data(self, *, event: Dict[str, Any]) -> bool:
         """
@@ -1127,6 +1164,7 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         EVR event codes from psana at the LCLS facility.
@@ -1146,6 +1184,8 @@ class EvrCodeListPsana(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
+
         if data_source_name not in parameters:
             raise AttributeError(
                 "The following section must be present in the configuration file: "
@@ -1180,7 +1220,11 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = psana.Detector(self._parameters.evr_source)
+        self._detector_interface: Any = (
+            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+                self._parameters.evr_source
+            )
+        )
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
@@ -1228,6 +1272,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Additional facility-specific information from psana at the LCLS facility.
@@ -1251,6 +1296,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del additional_info
 
         if data_source_name not in parameters:
             raise AttributeError(
@@ -1348,6 +1394,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
                 lcls_extra_index += 1
             elif data_type == "epics_pv":
@@ -1363,6 +1410,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
                 lcls_extra_index += 1
             elif data_type == "wave8_total_intensity":
@@ -1378,6 +1426,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
                 lcls_extra_index += 1
             elif data_type == "opal_camera":
@@ -1393,6 +1442,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
                 lcls_extra_index += 1
             elif data_type == "assembled_detector_data":
@@ -1408,6 +1458,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
                 lcls_extra_index += 1
             elif data_type == "event_code_list":
@@ -1423,6 +1474,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
                             identifier
                         ]
                     },
+                    additional_info={},
                 )
             else:
                 if identifier not in self._lcls_extra_parameters:

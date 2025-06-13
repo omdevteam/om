@@ -38,8 +38,8 @@ from om.lib.protocols import OmPeakDetectionProtocol
 
 
 class _PeakNetPeakDetectionParameters(BaseModel):
-    path_model_weight: str = Field(default=None)
-    path_config: str = Field(default=None)
+    path_model_weight: Optional[str] = Field(default=None)
+    path_config: Optional[str] = Field(default=None)
     cheetah_geom: str
     min_num_peaks: int
     bad_pixel_map_filename: Optional[Path] = Field(default=None)

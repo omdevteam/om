@@ -20,7 +20,7 @@ This module contains the definitions of several typed dictionaries that store da
 produced or required by OM's functions and classes.
 """
 
-from typing import Any, Dict, Generator, Optional, Protocol, Tuple, Type, Union
+from typing import Any, Dict, Generator, Optional, Protocol, Tuple, Type, Union, Literal
 
 import numpy
 from numpy.typing import NDArray
@@ -38,6 +38,7 @@ class OmDataSourceProtocol(Protocol):
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Data Source classes.
@@ -138,6 +139,14 @@ class OmDataEventHandlerProtocol(Protocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        ...
+
+    def designated_collector_rank(self) -> Literal["first", "last"]:
+        """ """
+        ...
+
+    def skip_rank_finalization(self) -> bool:
+        """ """
         ...
 
     def initialize_event_handling_on_collecting_node(
@@ -470,7 +479,7 @@ class OmProcessingProtocol(Protocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[int, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Collects processed data from a processing node.
 

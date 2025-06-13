@@ -51,7 +51,7 @@ while getopts ":p:enh" opt; do
 done
 
 om_python_version=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
-om_pyver=${om_python_version:0:3}
+om_pyver="${om_python_version%.*}"
 
 # Create sitecustomize.py file if needed
 if [ "${om_prefix}" != "" ]

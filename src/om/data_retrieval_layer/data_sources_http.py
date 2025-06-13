@@ -51,6 +51,7 @@ class OmBaseGenericDataSourceMixin:
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Detector data frames from Eiger 16M's HTTP/REST interface.
@@ -70,8 +71,9 @@ class OmBaseGenericDataSourceMixin:
 
             parameters: An object storing OM's configuration parameters
         """
-        del parameters
         del data_source_name
+        del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """

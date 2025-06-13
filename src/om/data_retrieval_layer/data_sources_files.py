@@ -57,6 +57,7 @@ class OmBaseFileDataSourceMixin:
         *,
         data_source_name: str,
         parameters: Dict[str, Any],
+        additional_info: Dict[str, Any],
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -78,6 +79,7 @@ class OmBaseFileDataSourceMixin:
         """
         del data_source_name
         del parameters
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """

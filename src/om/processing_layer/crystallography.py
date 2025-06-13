@@ -323,6 +323,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         processed_data["detector_distance"] = data["detector_distance"]
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
+        print(f"{data['event_id']}")
         processed_data["peak_list"] = peak_list
         if self._parameters.crystallography.pump_probe_experiment:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
@@ -388,7 +389,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[int, Dict[str, Any]]]:
+    ) -> Optional[Dict[str, Dict[str, Any]]]:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -417,7 +418,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         """
         self._handle_external_requests()
         received_data: Dict[str, Any] = processed_data[0]
-        return_dict: Dict[int, Dict[str, Any]] = {}
+        return_dict: Dict[str, Dict[str, Any]] = {}
 
         # Event counting
         if received_data["frame_is_hit"] is True:
@@ -541,10 +542,10 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         if self._event_counter.should_send_hit_frame():
             rank_for_request: int = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "hit_frame"}
+            return_dict["random"] = {"requests": "hit_frame"}
         if self._event_counter.should_send_non_hit_frame():
             rank_for_request = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
+            return_dict["random"] = {"requests": "non_hit_frame"}
 
         self._event_counter.report_speed()
 
