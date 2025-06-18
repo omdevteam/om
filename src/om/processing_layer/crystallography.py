@@ -24,6 +24,7 @@ This module contains an OnDA Monitor for Serial X-ray Crystallography experiment
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
+from dataclasses import asdict
 
 import numpy
 from numpy.typing import NDArray
@@ -431,13 +432,15 @@ class CrystallographyProcessing(OmProcessingProtocol):
             if received_data["frame_is_hit"] is True:
                 data_to_send: Any = msgpack.packb(
                     {
-                        "peak_list": received_data["peak_list"],
+                        "peak_list": asdict(received_data["peak_list"]),
                         "beam_energy": received_data["beam_energy"],
                         "detector_distance": received_data["detector_distance"],
                         "event_id": received_data["event_id"],
                         "timestamp": received_data["timestamp"],
                         "source": self._parameters.om.source,
-                        "configuration_file": self._parameters.om.configuration_file,
+                        "configuration_file": str(
+                            self._parameters.om.configuration_file
+                        ),
                     },
                     use_bin_type=True,
                 )
