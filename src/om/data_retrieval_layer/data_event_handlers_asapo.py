@@ -57,6 +57,7 @@ class _AsapoDataEventHandlerParameters(BaseModel):
     asapo_has_filesystem: bool
     asapo_token: str
     asapo_group_id: str = Field(default="default_om_group")
+    asapo_request_timeout_ms: int = Field(default=3000)
     required_data: List[str]
 
 
@@ -126,8 +127,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         self._source: str = source
-        self._data_sources: Dict[str,
-                                 Type[OmDataSourceProtocol]] = data_sources
+        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
         self._required_data_sources: List[str] = filter_data_sources(
             data_sources=self._data_sources,
             required_data=self._parameters.required_data,
@@ -141,7 +141,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             self._source.split(":")[0],
             self._parameters.asapo_data_source,
             self._parameters.asapo_token,
-            3000,
+            self._parameters.asapo_request_timeout_ms,
             instance_id="auto",
             pipeline_step="onda_monitor",
         )
@@ -307,8 +307,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             ] = asapo_event.stream_metadata
 
             data_event["additional_info"]["timestamp"] = (
-                self._instantiated_data_sources["timestamp"].get_data(
-                    event=data_event)
+                self._instantiated_data_sources["timestamp"].get_data(event=data_event)
             )
 
             yield data_event
@@ -411,8 +410,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             stream=stream,
             meta_only=False,
         )
-        stream_metadata: Dict[str,
-                              Any] = self._consumer.get_stream_meta(stream)
+        stream_metadata: Dict[str, Any] = self._consumer.get_stream_meta(stream)
 
         data_event: Dict[str, Any] = {}
         data_event["data"] = event_data
