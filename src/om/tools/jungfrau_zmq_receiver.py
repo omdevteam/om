@@ -136,5 +136,5 @@ def main(
                     socket.send_pyobj((fr0, fr1))
 
 
-if __name__ == "__main__":
+def run() -> None:
     typer.run(main)

@@ -86,5 +86,5 @@ def main(
         f.create_dataset("/gain2", data=dark[2].reshape(512, 1024))
 
 
-if __name__ == "__main__":
+def run() -> None:
     typer.run(main)
