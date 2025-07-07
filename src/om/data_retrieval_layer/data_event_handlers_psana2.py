@@ -22,25 +22,19 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana2 software framework (used at the LCLS facility).
 """
 
-
 import os
 import sys
-from typing import Any, Dict, Generator, List, Literal, Optional, Type, Union, Sequence
-
-import numpy
-from pydantic import BaseModel, Field, ValidationError
+from typing import Any, Dict, Generator, List, Literal, Union
 
 from om.data_retrieval_layer.data_event_handlers_common import (
-    filter_data_sources,
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
-    OmMissingDataEventError,
     OmMissingDependencyError,
 )
 from om.lib.logging import log
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -51,17 +45,10 @@ except ImportError:
     )
 
 
-class _Psana2DataEventHandlerParameters(BaseModel):
-    required_data: List[str]
-    psana_calibration_directory: Optional[str] = Field(default=None)
-
-
 def _psana2_offline_event_generator(
     *,
     psana_source: Any,
-    data_sources: Dict[str, Type[OmDataSourceProtocol]],
-    required_data_sources: List[str],
-    data_retrieval_parameters: Dict[str, Any],
+    data_retrieval_parameters: DataRetrievalLayerParameters,
 ) -> Any:
     # Computes how many events the current processing node should process. Splits the
     # events as equally as possible amongst the processing nodes. If the number of
@@ -69,13 +56,10 @@ def _psana2_offline_event_generator(
     # processing node is assigned the residual events.
     run: Any
     for run in psana_source.runs():
-
         instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
-                data_sources=data_sources,
-                data_retrieval_parameters=data_retrieval_parameters,
-                required_data_sources=required_data_sources,
-                additional_info={"run": run},
+                data_sources=data_retrieval_parameters.data_sources,
+                additional_info={},
             )
         )
 
@@ -92,8 +76,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Data Event Handler for psana events.
@@ -125,22 +108,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        self._data_retrieval_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _Psana2DataEventHandlerParameters = (
-                _Psana2DataEventHandlerParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
-            )
-
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
+        self._data_retrieval_parameters: DataRetrievalLayerParameters = parameters
 
         os.environ["PS_SRV_NODES"] = "1"
 
@@ -172,10 +140,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                 log.error("Part of the source string for psana2 cannot be parsed:")
                 log.error(f"{item}")
                 sys.exit(1)
-        self._psana_source: Any = (
-            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                **(source_dict)
-            )
+        self._psana_source: Any = psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+            **(source_dict)
         )
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
@@ -230,8 +196,6 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         if self._offline:
             self._psana_events: Any = _psana2_offline_event_generator(
                 psana_source=self._psana_source,
-                data_sources=self._data_sources,
-                required_data_sources=self._required_data_sources,
                 data_retrieval_parameters=self._data_retrieval_parameters,
             )
         else:
@@ -276,15 +240,14 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
 
         psana_event: Any
         for psana_event in self._psana_events:
-
             instantiated_data_sources: Dict[str, OmDataSourceProtocol] = psana_event[1]
             data_event["data"] = psana_event[0]
             data_event["additional_info"]["timestamp"] = instantiated_data_sources[
                 "timestamp"
             ].get_data(event=data_event)
-            data_event["additional_info"][
-                "instantiated_data_sources"
-            ] = instantiated_data_sources
+            data_event["additional_info"]["instantiated_data_sources"] = (
+                instantiated_data_sources
+            )
 
             yield data_event
 
@@ -325,7 +288,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             "additional_info"
         ]["instantiated_data_sources"]
 
-        for source_name in self._required_data_sources:
+        for source_name in instantiated_data_sources:
             # data[source_name] = self._instantiated_data_sources[
             #    source_name
             # ].get_data(event=event)

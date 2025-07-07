@@ -25,26 +25,19 @@ the HTTP/REST interface of detectors manufactured by company Dectris.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Literal, Optional, Type, cast
+from typing import Any, Dict, Generator, Literal, Optional, Type, cast
 
 import requests  # type: ignore
-from pydantic import BaseModel, ValidationError
 
 from om.data_retrieval_layer.data_event_handlers_common import (
-    filter_data_sources,
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmHttpInterfaceInitializationError,
 )
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
-
-
-class _HttpDataEventHandlerParameters(BaseModel):
-    required_data: List[str]
-    buffer_size: int
 
 
 class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
@@ -54,11 +47,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
     """
 
     def __init__(
-        self,
-        *,
-        source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        self, *, source: str, parameters: DataRetrievalLayerParameters
     ) -> None:
         """
         Data Event Handler for Eiger's HTTP/REST events.
@@ -92,23 +81,8 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        self._data_retrieval_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _HttpDataEventHandlerParameters = (
-                _HttpDataEventHandlerParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
-            )
-
+        self._data_retrieval_parameters: DataRetrievalLayerParameters = parameters
         self._source: str = source
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "first"
@@ -184,7 +158,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         response = requests.put(
             f"{self._source}/config/buffer_size",
-            json={"value": self._parameters.buffer_size},
+            json={"value": self._data_retrieval_parameters.buffer_size},
         )
         if not response.status_code == 200:
             raise OmHttpInterfaceInitializationError(
@@ -215,11 +189,11 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         while self._check_detector_monitor_mode() != "enabled":
             time.sleep(0.5)
 
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
-            additional_info={},
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_retrieval_parameters.data_sources,
+                additional_info={},
+            )
         )
 
     def event_generator(
@@ -307,7 +281,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
-        for source_name in self._required_data_sources:
+        for source_name in self._instantiated_data_sources:
             try:
                 data[source_name] = self._instantiated_data_sources[
                     source_name

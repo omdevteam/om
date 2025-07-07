@@ -23,23 +23,19 @@ the psana software framework (used at the LCLS facility).
 """
 
 import sys
-from typing import Any, Dict, Generator, List, Optional, Type, Literal
-
-import numpy
-from pydantic import BaseModel, Field, ValidationError
+from typing import Any, Dict, Generator, List, Literal, Optional
 
 from om.data_retrieval_layer.data_event_handlers_common import (
-    filter_data_sources,
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
 )
 from om.lib.logging import log
-from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
+from om.lib.parameters import DataRetrievalLayerParameters
+from om.lib.protocols import OmDataEventHandlerProtocol
 
 try:
     import psana  # type: ignore
@@ -47,11 +43,6 @@ except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
     )
-
-
-class _PsanaDataEventHandlerParameters(BaseModel):
-    required_data: List[str]
-    psana_calibration_directory: Optional[str] = Field(default=None)
 
 
 class PsanaDataEventHandler(OmDataEventHandlerProtocol):
@@ -63,8 +54,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Data Event Handler for psana events.
@@ -96,23 +86,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        self._data_retrieval_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _PsanaDataEventHandlerParameters = (
-                _PsanaDataEventHandlerParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
-            )
-
+        self._data_retrieval_parameters: DataRetrievalLayerParameters = parameters
         self._source: str = source
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "first"
@@ -370,10 +345,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = (
-            psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
-                int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
-            )
+        event_time: Any = psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
+            int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
         )
         retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:

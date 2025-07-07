@@ -24,22 +24,17 @@ This module contains a Parallelization Layer based on Python's multiprocessing m
 import queue
 import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
-from typing import Any, Dict, List, Optional, Tuple
-
-from pydantic import BaseModel
+from random import randrange
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
-    OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
-
-
-class _MultiProcessingParallelizationParameters(BaseModel):
-    node_pool_size: int
 
 
 def _om_processing_node(
@@ -115,9 +110,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalProtocol,
+        data_retrieval_layer: OmDataEventHandlerProtocol,
         processing_layer: OmProcessingProtocol,
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -141,30 +136,37 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        self._data_event_handler: OmDataEventHandlerProtocol = (
-            data_retrieval_layer.get_data_event_handler()
-        )
+        self._data_event_handler: OmDataEventHandlerProtocol = data_retrieval_layer
         self._processing_layer: OmProcessingProtocol = processing_layer
 
-        multiprocessing_parallelization_parameters: (
-            _MultiProcessingParallelizationParameters
-        ) = _MultiProcessingParallelizationParameters.model_validate(parameters)
+        self._node_pool_size: int = parameters.node_pool_size
 
-        self._node_pool_size: int = (
-            multiprocessing_parallelization_parameters.node_pool_size
+        designated_collector: Literal["first", "last"] = (
+            self._data_event_handler.designated_collector_rank()
+        )
+
+        if designated_collector == "first":
+            self._collector_rank: int = 0
+        else:
+            self._collector_rank = self._node_pool_size - 1
+
+        self._skip_rank_finalization: bool = (
+            self._data_event_handler.skip_rank_finalization()
         )
 
         self._processing_nodes: List[Process] = []
-        self._message_pipes: List[connection.Connection] = []
+        self._message_pipes: Dict[int, connection.Connection] = {}
         self._data_queue: queues.Queue[Tuple[Dict[str, Any], int]] = Queue()
 
         processing_node_rank: int
-        for processing_node_rank in range(1, self._node_pool_size):
+        for processing_node_rank in range(0, self._node_pool_size):
+            if processing_node_rank == self._collector_rank:
+                continue
             message_pipe: Tuple[
                 connection.Connection,
                 connection.Connection,
             ] = Pipe(duplex=False)
-            self._message_pipes.append(message_pipe[1])
+            self._message_pipes[processing_node_rank] = message_pipe[1]
             processing_node = Process(
                 target=_om_processing_node,
                 kwargs={
@@ -178,12 +180,13 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
             )
             self._processing_nodes.append(processing_node)
 
-        self._rank: int = 0
+        self._rank: int = self._collector_rank
         self._data_event_handler.initialize_event_handling_on_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
         self._num_no_more: int = 0
-        self._num_collected_events: int = 0
+        self._deceased_ranks: List[bool] = [False] * self._node_pool_size
+        self._deceased_ranks[self._collector_rank] = True
 
     def start(self) -> None:  # noqa: C901
         """
@@ -216,11 +219,12 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
                         # nodes have already finished.
-                        log.info(f"Finalizing {received_data[1]}")
-                        self._num_no_more += 1
+                        self._deceased_ranks[received_data[1]] = True
+
                         # When all processing nodes have finished, calls the
-                        # 'end_processing_on_collecting_node' function then shuts down.
-                        if self._num_no_more == self._node_pool_size - 1:
+                        # 'end_processing_on_collecting_node' function then shuts
+                        # down.
+                        if all(self._deceased_ranks):
                             log.info("All processing nodes have run out of events.")
                             log.info("Shutting down.")
                             self._processing_layer.end_processing_on_collecting_node(
@@ -239,17 +243,34 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                             processed_data=received_data,
                         )
                     )
+
                     self._num_collected_events += 1
                     if feedback_data is not None:
-                        receiving_rank: int
+                        receiving_rank: str
                         for receiving_rank in feedback_data.keys():
-                            if receiving_rank == 0:
-                                message_pipe: connection.Connection
-                                for message_pipe in self._message_pipes:
-                                    message_pipe.send(feedback_data[0])
+                            if receiving_rank == "all":
+                                processing_node_rank: int
+                                for processing_node_rank in range(
+                                    0, self._node_pool_size
+                                ):
+                                    if processing_node_rank == self._collector_rank:
+                                        continue
+                                    self._message_pipes[processing_node_rank].send(
+                                        feedback_data["all"]
+                                    )
+                            elif receiving_rank == "random":
+                                random_rank: int = 0
+                                while True:
+                                    random_rank = randrange(0, self._node_pool_size)
+                                    if self._deceased_ranks[random_rank] is False:
+                                        break
+                                self._message_pipes[random_rank].send(
+                                    feedback_data["random"]
+                                )
                             else:
-                                self._message_pipes[receiving_rank - 1].send(
-                                    feedback_data[receiving_rank]
+                                log.error(
+                                    "The target for feedback data must be one of "
+                                    "the following: 'random', 'all'"
                                 )
                 except queue.Empty:
                     self._processing_layer.wait_for_data(
@@ -285,15 +306,16 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
             # messages from the nodes (MPI cannot shut down if there are unreceived
             # messages).
             try:
-                message_pipe: connection.Connection
-                for message_pipe in self._message_pipes:
-                    message_pipe.send({"stop": True})
-                num_shutdown_confirm = 0
+                node_num: int
+                for node_num in range(0, self._node_pool_size):
+                    if self._deceased_ranks[node_num] is True:
+                        continue
+                    self._message_pipes[node_num].send({"stop": True})
                 while True:
                     message: Tuple[Dict[str, Any], int] = self._data_queue.get()
-                    if "stopped" in message:
-                        num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self._node_pool_size - 1:
+                    if "stopped" in message[0]:
+                        self._deceased_ranks[message[1]] = True
+                    if all(self._deceased_ranks):
                         break
                 # When all the processing nodes have confirmed, shuts down the
                 # collecting node.

@@ -23,13 +23,6 @@ and data events to be processed. Modules in this package contain functions and c
 for specific detectors, facilities or software frameworks.
 """
 
-from .data_retrieval_files import (  # noqa: F401
-    EigerFilesDataRetrieval,
-    Jungfrau1MFilesDataRetrieval,
-    Lambda1M5FilesDataRetrieval,
-    RayonixMccdFilesDataRetrieval,
-)
-from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
 from .data_sources_common import (  # noqa: F401
     ArrayFromHdf5File,
     FloatValueFromConfiguration,
@@ -57,7 +50,6 @@ from .data_sources_zmq import (  # noqa: F401
 try:
     import fabio  # type: ignore  # noqa: F401
 
-    from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
     from .data_sources_files import PilatusSingleFrameFiles  # noqa: F401
 except ModuleNotFoundError:
     pass
@@ -66,13 +58,6 @@ except ModuleNotFoundError:
 try:
     import psana  # type: ignore  # noqa: F401
 
-    from .data_retrieval_psana import (  # noqa: F401
-        CxiLclsCspadDataRetrieval,
-        CxiLclsDataRetrieval,
-        LclsEpix100DataRetrieval,
-        MfxLclsDataRetrieval,
-        MfxLclsRayonixDataRetrieval,
-    )
     from .data_sources_psana import (  # noqa: F401
         AcqirisPsana,
         AreaDetectorPsana,
@@ -96,17 +81,14 @@ except ModuleNotFoundError:
 try:
     import psana  # type: ignore  # noqa: F401
 
-    from .data_retrieval_psana2 import (  # noqa: F401
-        MfxLclsIIDataRetrieval,
-    )
     from .data_sources_psana2 import (  # noqa: F401
-        AssembledDetectorPsana2,
-        EpicsVariablePsana2,
-        BeamEnergyFromEpicsVariablePsana2,
         AreaDetectorPsana2,
-        TimestampPsana2,
-        EventIdPsana2,
+        AssembledDetectorPsana2,
+        BeamEnergyFromEpicsVariablePsana2,
         BeamEnergyPsana2,
+        EpicsVariablePsana2,
+        EventIdPsana2,
+        TimestampPsana2,
     )
 except ModuleNotFoundError:
     pass
@@ -114,10 +96,6 @@ except ModuleNotFoundError:
 try:
     import asapo_consumer  # type: ignore  # noqa: F401
 
-    from .data_retrieval_asapo import (  # noqa: F401
-        EigerAsapoDataRetrieval,
-        PilatusAsapoDataRetrieval,
-    )
     from .data_sources_asapo import (  # noqa: F401
         BeamEnergyAsapo,
         DetectorDataAsapo,
@@ -131,7 +109,6 @@ except ModuleNotFoundError:
 try:
     import PIL  # type: ignore  # noqa: F401
 
-    from .data_retrieval_http import EigerHttpDataRetrieval  # noqa: F401
     from .data_sources_http import (  # noqa: F401
         Eiger16MHttp,
         EventIdEiger16MHttp,

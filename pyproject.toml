@@ -18,7 +18,3 @@
 [build-system]
 requires = ["setuptools", "numpy", "cython"]
 build-backend = "setuptools.build_meta"
-
-[tool.isort]
-py_version = 39
-profile = "black"

@@ -29,6 +29,7 @@ import numpy
 from numpy.typing import NDArray
 from PIL import Image  # type: ignore
 
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 
@@ -50,7 +51,7 @@ class OmBaseGenericDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """

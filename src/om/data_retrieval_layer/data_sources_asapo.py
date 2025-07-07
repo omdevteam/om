@@ -26,10 +26,10 @@ from typing import Any, Dict, Optional, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError
 from scipy import constants  # type: ignore
 
-from om.lib.exceptions import OmConfigurationFileSyntaxError, OmMissingDependencyError
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -40,10 +40,6 @@ except ImportError:
     )
 
 T = TypeVar("T")
-
-
-class _TimestampAsapoParameters(BaseModel):
-    asapo_timestamp_metadata_key: Optional[str] = Field(default=None)
 
 
 class OmBaseAsapoDataSourceMixin:
@@ -62,7 +58,7 @@ class OmBaseAsapoDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -197,7 +193,7 @@ class BeamEnergyAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
                 "beam"
             ]["incident_wavelength"]["()"]
         )
-        return cast(float, constants.h * constants.c / (wavelength * constants.e))
+        return constants.h * constants.c / (wavelength * constants.e)
 
 
 class DetectorDistanceAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
@@ -241,7 +237,7 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -261,22 +257,16 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        self._data_source_name: str = data_source_name
+        self._parameters: DataSourceParameters = parameters
+        self._asapo_timestamp_metadata_key: Optional[str] = None
 
-        try:
-            self._parameters: _TimestampAsapoParameters = (
-                _TimestampAsapoParameters.model_validate(parameters[data_source_name])
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = self._parameters.__pydantic_extra__
+        if extra_parameters is not None:
+            if "asapo_timestamp_metadata_key" in extra_parameters:
+                self._asapo_timstamp_metadata_key = extra_parameters[
+                    "asapo_timestamp_metadata_key"
+                ]
 
     def initialize_data_source(self) -> None:
         """
@@ -308,10 +298,9 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
 
             The timestamp for the data event.
         """
-        if self._parameters.asapo_timestamp_metadata_key is not None:
+        if self._asapo_timestamp_metadata_key is not None:
             timestamp: float = (
-                event["metadata"]["meta"][self._parameters.asapo_timestamp_metadata_key]
-                / 1e9
+                event["metadata"]["meta"][self._asapo_timestamp_metadata_key] / 1e9
             )
         else:
             timestamp = event["metadata"]["timestamp"] / 1e9

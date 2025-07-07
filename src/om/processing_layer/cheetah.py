@@ -22,6 +22,7 @@ This module contains Cheetah, a data-processing program for Serial X-ray
 Crystallography, based on OM but not designed to be run in real time.
 """
 
+import sys
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
@@ -49,61 +50,19 @@ from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
+from om.lib.parameters import (
+    CheetahParameters,
+    CrystallographyParameters,
+    MonitorParameters,
+)
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
+from src.om.lib import parameters
 
 T = TypeVar("T")
 
 
 msgpack_numpy.patch()
-
-
-class _CheetahParameters(BaseModel):
-    processed_directory: str
-    status_file_update_interval: int
-    responding_url: Optional[str] = Field(default=None)
-    external_data_request_list_size: int = Field(default=20)
-
-    @field_validator("status_file_update_interval")
-    def check_status_file_update_interval(cls: Self, v: int) -> int:
-        if v < 1:
-            raise ValueError(
-                "The following entry in the configuration file must have a value of 1 "
-                "or higher: cheetah/status_file_update_interval"
-            )
-        return v
-
-
-class _CrystallographyParameters(BaseModel):
-    geometry_file: str
-    post_processing_binning: bool = Field(default=False)
-    min_num_peaks_for_hit: int
-    max_num_peaks_for_hit: int
-    speed_report_interval: int
-
-
-class _OmParameters(BaseModel):
-    source: str
-    configuration_file: Path
-
-
-class _MonitorParameters(BaseModel):
-    cheetah: _CheetahParameters
-    crystallography: _CrystallographyParameters
-    om: _OmParameters
-    binning: Optional[Dict[str, Any]] = None
-
-    @model_validator(mode="after")
-    def check_binning_parameters(self) -> Self:
-        if (
-            self.crystallography.post_processing_binning is True
-            and self.binning is None
-        ):
-            raise ValueError(
-                "When post processing binning is requested, the following section must "
-                "be present in OM's configuration parameters: binning"
-            )
-        return self
 
 
 class OmCheetahMixin:
@@ -114,7 +73,7 @@ class OmCheetahMixin:
             )
         return object.__new__(cls)
 
-    def __init__(self, *, parameters: Dict[str, Any]) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         Cheetah.
 
@@ -133,25 +92,32 @@ class OmCheetahMixin:
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-
-        self._monitor_parameters = parameters
-
-        try:
-            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
-                self._monitor_parameters
+        if parameters.cheetah is None:
+            log.error("'cheetah' section is not present in the configuration file")
+            sys.exit(1)
+        if parameters.crystallography is None:
+            log.error(
+                "'crystallography' section is not present in the configuration file"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing OM's configuration parameters: " f"{exception}"
-            )
+            sys.exit(1)
+
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
+        self._monitor_parameters: MonitorParameters = parameters
 
         # Processed data directory
-        if not Path(self._parameters.cheetah.processed_directory).exists():
-            Path(self._parameters.cheetah.processed_directory).mkdir()
+        if not Path(parameters.cheetah.processed_directory).exists():
+            Path(parameters.cheetah.processed_directory).mkdir()
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=self._parameters.crystallography.geometry_file
+            geometry_filename=self._crystallography_parameters.geometry_file
+        )
+
+        self._post_processing_binning_enabled: bool = (
+            self._crystallography_parameters.post_processing_binning
         )
 
     def _common_initialize_processing_node(
@@ -181,9 +147,12 @@ class OmCheetahMixin:
         )
 
         # Post-processing binning
-        if self._parameters.crystallography.post_processing_binning:
+        if self._post_processing_binning_enabled:
+            if self._monitor_parameters.binning is None:
+                log.error("'binning' section is not present in the configuration file")
+                sys.exit(1)
             self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
-                parameters=self._monitor_parameters["binning"],
+                parameters=self._monitor_parameters.binning,
                 layout_info=self._geometry_information.get_layout_info(),
             )
         else:
@@ -208,7 +177,7 @@ class OmCheetahMixin:
         # Class sums accumulation
         self._class_sum_accumulator: CheetahClassSumsAccumulator = (
             CheetahClassSumsAccumulator(
-                parameters=self._monitor_parameters,
+                parameters=self._cheetah_parameters,
                 num_classes=2,
             )
         )
@@ -234,29 +203,29 @@ class OmCheetahMixin:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        # Status file
+        self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
+            parameters=self._cheetah_parameters
+        )
+        self._status_file_writer.update_status(status="Not finished")
+
         # Event counting
         self._event_counter: EventCounter = EventCounter(
             speed_report_interval=(
-                self._parameters.crystallography.speed_report_interval
+                self._crystallography_parameters.speed_report_interval
             ),
             node_pool_size=node_pool_size,
         )
 
-        # Status file
-        self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
-            parameters=self._monitor_parameters,
-        )
-        self._status_file_writer.update_status(status="Not finished")
-
         # List files
         self._list_files_writer: CheetahListFilesWriter = CheetahListFilesWriter(
-            parameters=self._monitor_parameters,
+            parameters=self._cheetah_parameters,
         )
 
         # Class sums collection
         self._class_sum_collector: CheetahClassSumsCollector = (
             CheetahClassSumsCollector(
-                parameters=self._monitor_parameters, num_classes=2
+                parameters=self._cheetah_parameters, num_classes=2
             )
         )
 
@@ -302,9 +271,9 @@ class OmCheetahMixin:
             detector_data=data["detector_data"]
         )
         frame_is_hit: bool = (
-            self._parameters.crystallography.min_num_peaks_for_hit
+            self._crystallography_parameters.min_num_peaks_for_hit
             < peak_list.num_peaks
-            < self._parameters.crystallography.max_num_peaks_for_hit
+            < self._crystallography_parameters.max_num_peaks_for_hit
         )
 
         # Binning
@@ -442,7 +411,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         # HDF5 file writer
         self._file_writer: HDF5Writer = HDF5Writer(
-            parameters=self._monitor_parameters,
+            parameters=self._cheetah_parameters,
             node_rank=node_rank,
         )
 
@@ -635,7 +604,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         # Update status file
         num_events: int = self._event_counter.get_num_events()
-        if num_events % self._parameters.cheetah.status_file_update_interval == 0:
+        if num_events % self._cheetah_parameters.status_file_update_interval == 0:
             self._status_file_writer.update_status(
                 status="Not finished",
                 num_frames=num_events,
@@ -776,12 +745,15 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         # Streaming to CrystFEL
         self._request_list: Deque[Tuple[bytes, bytes]] = deque(
-            maxlen=self._parameters.cheetah.external_data_request_list_size
+            maxlen=self._crystallography_parameters.external_data_request_list_size
         )
 
         self._responding_socket: ZmqResponder = ZmqResponder(
-            responding_url=self._parameters.cheetah.responding_url
+            responding_url=self._crystallography_parameters.responding_url
         )
+
+        self._source: str = self._monitor_parameters.om.source
+        self._configuration_file: Path = self._monitor_parameters.om.configuration_file
 
         # Console
         log.info("Starting the monitor...")
@@ -929,8 +901,8 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                     "detector_distance": received_data["detector_distance"],
                     "event_id": received_data["event_id"],
                     "timestamp": received_data["timestamp"],
-                    "source": self._parameters.om.source,
-                    "configuration_file": str(self._parameters.om.configuration_file),
+                    "source": self._source,
+                    "configuration_file": str(self._configuration_file),
                 },
                 use_bin_type=True,
             )
@@ -955,7 +927,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         # Update status file
         num_events: int = self._event_counter.get_num_events()
-        if num_events % self._parameters.cheetah.status_file_update_interval == 0:
+        if num_events % self._cheetah_parameters.status_file_update_interval == 0:
             self._status_file_writer.update_status(
                 status="Not finished",
                 num_frames=num_events,

@@ -59,6 +59,7 @@ class Jungfrau1MCalibration:
             photon_energy_kev: the photon energy (in Kev) at which the detector is
                 operated.
         """
+
         num_panels: int = len(dark_filenames)
         self._dark: NDArray[numpy.float_] = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float32

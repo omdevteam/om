@@ -23,26 +23,20 @@ a ZMQ stream.
 """
 
 import sys
-from typing import Any, Dict, Generator, List, Tuple, Type, Literal
+from typing import Any, Dict, Generator, Literal, Tuple
 
 import zmq
-from pydantic import BaseModel, ValidationError
 
 from om.data_retrieval_layer.data_event_handlers_common import (
-    filter_data_sources,
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmInvalidZmqUrl,
 )
 from om.lib.logging import log
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
-
-
-class _ZmqDataEventHandlerParameters(BaseModel):
-    required_data: List[str]
 
 
 class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
@@ -54,8 +48,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M's ZMQ stream.
@@ -88,23 +81,8 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._data_retrieval_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _ZmqDataEventHandlerParameters = (
-                _ZmqDataEventHandlerParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
-            )
-
+        self._data_retrieval_parameters: DataRetrievalLayerParameters = parameters
         self._source: str = source
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "first"
@@ -167,11 +145,11 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
                 "correct permissions to access the socket."
             ) from exc
 
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
-            additional_info={},
+        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_retrieval_parameters.data_sources,
+                additional_info={},
+            )
         )
 
     def event_generator(
@@ -245,7 +223,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         data: Dict[str, Any] = {}
         source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
-        for source_name in self._required_data_sources:
+        for source_name in self._instantiated_data_sources:
             try:
                 data[source_name] = self._instantiated_data_sources[
                     source_name

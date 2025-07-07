@@ -44,7 +44,7 @@
         "Python": {
             "language_servers": ["pyright", "pylsp", "ruff"],
             "format_on_save": "on",
-            "formatter": {
+            "formatter": [
                 // {
                 //     "code_actions": {
                 //         "source.organizeImports.ruff": true,
@@ -60,11 +60,19 @@
                 //         "name": "pylsp"
                 //     }
                 // }
-                "external": {
-                    "command": "black",
-                    "arguments": ["-"]
+                {
+                    "external": {
+                        "command": "isort",
+                        "arguments": ["-"]
+                    }
+                },
+                {
+                    "external": {
+                        "command": "black",
+                        "arguments": ["-"]
+                    }
                 }
-            }
+            ]
         }
     }
 }

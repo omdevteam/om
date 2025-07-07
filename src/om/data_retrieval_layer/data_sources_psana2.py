@@ -48,9 +48,9 @@ from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDependencyError,
-    OmWrongParameterTypeError,
 )
 from om.lib.files import load_hdf5_data
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -64,37 +64,7 @@ except ImportError:
 T = TypeVar("T")
 
 
-class _DetectorInterfacePsanaParameters(BaseModel):
-    psana_name: str
-
-
-class _AreaDetectorPsana2Parameters(BaseModel):
-    psana_name: str
-    gain_map_filename: Optional[Path] = Field(default=None)
-    gain_map_hdf5_path: Optional[str] = Field(default=None)
-    calibration: bool = Field(default=True)
-
-    @model_validator(mode="after")
-    def check_gain_map(self) -> Self:
-        if self.gain_map_filename is not None and self.gain_map_hdf5_path is None:
-            raise ValueError(
-                "If the gain_map_filename parameter is specified for a specific "
-                "detector, the gain_map_hdf5_path parameter must also be provided"
-            )
-        return self
-
-
-class _EvrCodesPsanaParameters(BaseModel):
-    evr_source: str
-    event_code: int
-
-
-class _EventCodeListPsanaParameters(BaseModel):
-    evr_source: str
-
-
-class _LclsExtraPsana2Parameters(BaseModel):
-    required_data: List[Tuple[str, str, str]]
+a: int = 4.5
 
 
 class OmDetectorInterfacePsana2DataSourceMixin:
@@ -113,7 +83,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -136,26 +106,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
             parameters: An object storing OM's configuration parameters.
         """
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
-
         self._run: Any = additional_info["run"]
-
-        try:
-            self._parameters: _DetectorInterfacePsanaParameters = (
-                _DetectorInterfacePsanaParameters.model_validate(
-                    parameters[data_source_name]
-                )
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
 
     def initialize_data_source(self) -> None:
         """

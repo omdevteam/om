@@ -22,56 +22,21 @@ This module contains Data Source classes that deal with data whose origin is not
 to a specific facility or experiment.
 """
 
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Type, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from typing_extensions import Self
 
 from om.algorithms.calibration import Jungfrau1MCalibration
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
+from om.lib.logging import log
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 T = TypeVar("T")
-
-
-class _Jungfrau1MFilesParameters(BaseModel):
-    calibration: bool = Field(default=True)
-    dark_filenames: List[str]
-    gain_filenames: List[str]
-    photon_energy_kev: float
-
-    @model_validator(mode="after")
-    def check_calibration_parameters(self) -> Self:
-        if self.calibration and (
-            self.dark_filenames is None
-            or self.gain_filenames is None
-            or self.photon_energy_kev is None
-        ):
-            raise ValueError(
-                "If calibration is requested for a Jungfrau1M detector, the "
-                "following entries must be present in the set of parameters "
-                "related to the detector, and cannot values of None: "
-                "dark_filenames, gain_filenames, photon_energy_kev"
-            )
-        return self
-
-
-class _FloatValueParameters(BaseModel):
-    value: float
-
-
-class _IntValueParameters(BaseModel):
-    value: int
-
-
-class _ArrayParameters(BaseModel):
-    hdf5_filename: Path
-    hdf5_path: str
 
 
 @dataclass
@@ -99,7 +64,7 @@ class OmJungfrau1MDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -121,28 +86,41 @@ class OmJungfrau1MDataSourceMixin:
             parameters: An object storing OM's configuration parameters.
         """
         del additional_info
+        self._calibration: bool = False
+        self._dark_filenames: List[str] = []
+        self._gain_filenames: List[str] = []
+        self._photon_energy_kev: float = 0
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        if extra_parameters is not None:
+            if "calibration" in extra_parameters:
+                self._calibration = extra_parameters["calibration"]
+            if "dark_filenames" in extra_parameters:
+                self._dark_filenames = extra_parameters["dark_filenames"]
+            if "gain_filenames" in extra_parameters:
+                self._gain_filenames = extra_parameters["gain_filenames"]
+            if "photon_energy_kev" in extra_parameters:
+                self._photon_energy_kev = extra_parameters["photon_energy_kev"]
 
-        try:
-            self._parameters: _Jungfrau1MFilesParameters = (
-                _Jungfrau1MFilesParameters.model_validate(parameters[data_source_name])
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
-
-        self._calibrated_data_required: bool = self._parameters.calibration
-        self._dark_filenames: List[str] = self._parameters.dark_filenames
-        self._gain_filenames: List[str] = self._parameters.gain_filenames
-        self._photon_energy_kev: float = self._parameters.photon_energy_kev
+        if self._calibration is True:
+            if len(self._dark_filenames) == 0:
+                log.error(
+                    f"The entry 'dark_filenames' needed by the {data_source_name} "
+                    "data source is not defined"
+                )
+                sys.exit(1)
+            if len(self._gain_filenames) == 0:
+                log.error(
+                    f"The entry 'gain_filenames' needed by the {data_source_name} "
+                    "data source is not defined"
+                )
+                sys.exit(1)
+            if self._photon_energy_kev == 0:
+                log.error(
+                    f"The entry 'photon_energy_kev' needed by the {data_source_name} "
+                    "data source is not defined"
+                )
+                sys.exit(1)
 
     def initialize_data_source(self) -> None:
         """
@@ -159,8 +137,8 @@ class OmJungfrau1MDataSourceMixin:
         the required calibration constants from the entries `dark_filenames` and
         `gain_filenames` in the `calibration` parameter group.
         """
-        if self._calibrated_data_required:
-            self._calibration = Jungfrau1MCalibration(
+        if self._calibration is True:
+            self._calibration_algorithm = Jungfrau1MCalibration(
                 dark_filenames=self._dark_filenames,
                 gain_filenames=self._gain_filenames,
                 photon_energy_kev=self._photon_energy_kev,
@@ -176,7 +154,7 @@ class TimestampFromEvent(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -245,7 +223,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -268,22 +246,18 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-
-        try:
-            self._parameters: _FloatValueParameters = (
-                _FloatValueParameters.model_validate(parameters[data_source_name])
+            sys.exit(1)
+        if "value" not in extra_parameters:
+            log.error(
+                f"Entry 'value' is not defined for data source {data_source_name}"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
+            sys.exit(1)
+        self._value: float = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -318,7 +292,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
 
             The value of the configuration parameter.
         """
-        return self._parameters.value
+        return self._value
 
 
 class IntValueFromConfiguration(OmDataSourceProtocol):
@@ -330,7 +304,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -353,22 +327,18 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-
-        try:
-            self._parameters: _IntValueParameters = _IntValueParameters.model_validate(
-                parameters[data_source_name]
+            sys.exit(1)
+        if "value" not in extra_parameters:
+            log.error(
+                f"Entry 'value' is not defined for data source {data_source_name}"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
+            sys.exit(1)
+        self._value: int = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -403,7 +373,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
 
             The value of the configuration parameter.
         """
-        return self._parameters.value
+        return self._value
 
 
 class ArrayFromHdf5File(OmDataSourceProtocol):
@@ -415,7 +385,7 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -437,22 +407,27 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         del additional_info
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
 
-        try:
-            self._parameters: _ArrayParameters = _ArrayParameters.model_validate(
-                parameters[data_source_name]
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
+            sys.exit(1)
+        if "hd5_filename" not in extra_parameters:
+            log.error(
+                "Entry 'hdf5_filename' is not defined for data source "
+                f"{data_source_name}"
             )
+            sys.exit(1)
+        if "hd5_path" not in extra_parameters:
+            log.error(
+                "Entry 'hdf5_filename' is not defined for data source "
+                f"{data_source_name}"
+            )
+            sys.exit(1)
+        self._hdf5_filename: Path = Path(extra_parameters["hdf5_filename"])
+        self._hdf5_path: str = extra_parameters["hdf5_path"]
 
     def initialize_data_source(self) -> None:
         """
@@ -468,8 +443,8 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         value to be a float number.
         """
         self._array: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = load_hdf5_data(
-            hdf5_filename=self._parameters.hdf5_filename,
-            hdf5_path=self._parameters.hdf5_path,
+            hdf5_filename=self._hdf5_filename,
+            hdf5_path=self._hdf5_path,
         )
 
     def get_data(

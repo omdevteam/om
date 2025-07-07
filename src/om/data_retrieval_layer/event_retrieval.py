@@ -22,8 +22,6 @@ This module contains classes that deals with the retrieval of single standalone 
 from pathlib import Path
 from typing import Any, Dict, Generator, List, TextIO, Type, Literal
 
-from pydantic import BaseModel, ValidationError
-
 from om.lib.exceptions import OmConfigurationFileSyntaxError, OmInvalidSourceError
 from om.lib.layer_management import import_class_from_layer
 from om.lib.protocols import (
@@ -31,15 +29,6 @@ from om.lib.protocols import (
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,
 )
-
-
-class _OmParameters(BaseModel):
-    data_retrieval_layer: str
-
-
-class _MonitorParameters(BaseModel):
-    om: _OmParameters
-    data_retrieval_layer: Dict[str, Any]
 
 
 class OmEventDataRetrieval:

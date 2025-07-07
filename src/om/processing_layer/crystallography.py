@@ -21,22 +21,26 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
 
+import sys
 from collections import deque
 from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from typing_extensions import Self
 
 from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPlots
 from om.lib.event_management import EventCounter
-from om.lib.exceptions import OmConfigurationFileSyntaxError, OmMissingDependencyError
+from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
 from om.lib.logging import log
+from om.lib.parameters import (
+    CheetahParameters,
+    CrystallographyParameters,
+    MonitorParameters,
+)
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 
@@ -48,51 +52,12 @@ except ImportError:
     )
 
 
-class _CrystallographyParameters(BaseModel):
-    geometry_file: str
-    geometry_is_optimized: bool
-    post_processing_binning: bool = Field(default=False)
-    min_num_peaks_for_hit: int
-    max_num_peaks_for_hit: int
-    external_data_request_list_size: int = Field(default=20)
-    pump_probe_experiment: bool = Field(default=False)
-    data_broadcast_url: Optional[str] = Field(default=None)
-    responding_url: Optional[str] = Field(default=None)
-    speed_report_interval: int
-    data_broadcast_interval: int
-    hit_frame_sending_interval: Optional[int] = Field(default=None)
-    non_hit_frame_sending_interval: Optional[int] = Field(default=None)
-
-
-class _OmParameters(BaseModel):
-    source: str
-    configuration_file: Path
-
-
-class _MonitorParameters(BaseModel):
-    crystallography: _CrystallographyParameters
-    om: _OmParameters
-    binning: Optional[Dict[str, Any]] = Field(default=None)
-
-    @model_validator(mode="after")
-    def check_binning_parameters(self) -> Self:
-        if (
-            self.crystallography.post_processing_binning is True
-            and self.binning is None
-        ):
-            raise ValueError(
-                "When post processing binning is requested, the following section must "
-                "be present in OM's configuration parameters: binning"
-            )
-        return self
-
-
 class CrystallographyProcessing(OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, parameters: Dict[str, Any]) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         OnDA Monitor for Crystallography.
 
@@ -117,26 +82,32 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._monitor_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
-                self._monitor_parameters
+        if parameters.cheetah is None:
+            log.error("'cheetah' section is not present in the configuration file")
+            sys.exit(1)
+        if parameters.crystallography is None:
+            log.error(
+                "'crystallography' section is not present in the configuration file"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing OM's configuration parameters: " f"{exception}"
-            )
+            sys.exit(1)
 
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
+        self._monitor_parameters: MonitorParameters = parameters
         # Geometry
-        self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=self._parameters.crystallography.geometry_file
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=self._crystallography_parameters.geometry_file
         )
 
         # Post-processing binning
-        if self._parameters.crystallography.post_processing_binning:
+        if parameters.crystallography.post_processing_binning:
+            if parameters.binning is None:
+                log.error("'binning' section is not present in the configuration file")
+                sys.exit(1)
             self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
-                parameters=self._monitor_parameters["binning"],
+                parameters=parameters.binning,
                 layout_info=self._geometry_information.get_layout_info(),
             )
         else:
@@ -169,6 +140,13 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self._peak_detection: CrystallographyPeakFinding = CrystallographyPeakFinding(
             parameters=self._monitor_parameters,
             geometry_information=self._geometry_information,
+        )
+
+        self._min_num_peaks_for_hit = (
+            self._crystallography_parameters.min_num_peaks_for_hit
+        )
+        self._max_num_peaks_for_hit = (
+            self._crystallography_parameters.max_num_peaks_for_hit
         )
 
         # Frame sending
@@ -220,7 +198,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            data_broadcast_url=self._parameters.crystallography.data_broadcast_url
+            data_broadcast_url=self._crystallography_parameters.data_broadcast_url
         )
 
         # Plots
@@ -228,33 +206,37 @@ class CrystallographyProcessing(OmProcessingProtocol):
             parameters=self._monitor_parameters,
             data_visualizer=self._data_visualizer,
             pump_probe_experiment=(
-                self._parameters.crystallography.pump_probe_experiment
+                self._crystallography_parameters.pump_probe_experiment
             ),
             bin_size=self._post_processing_binning.get_bin_size(),
         )
 
         # Streaming to CrystFEL
         self._request_list: Deque[Tuple[bytes, bytes]] = deque(
-            maxlen=self._parameters.crystallography.external_data_request_list_size
+            maxlen=self._crystallography_parameters.external_data_request_list_size
         )
 
         self._responding_socket: ZmqResponder = ZmqResponder(
-            responding_url=self._parameters.crystallography.responding_url
+            responding_url=self._crystallography_parameters.responding_url
+        )
+
+        self._geometry_is_optimized: bool = (
+            self._crystallography_parameters.geometry_is_optimized
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
             speed_report_interval=(
-                self._parameters.crystallography.speed_report_interval
+                self._crystallography_parameters.speed_report_interval
             ),
             data_broadcast_interval=(
-                self._parameters.crystallography.data_broadcast_interval
+                self._crystallography_parameters.data_broadcast_interval
             ),
             hit_frame_sending_interval=(
-                self._parameters.crystallography.hit_frame_sending_interval
+                self._crystallography_parameters.hit_frame_sending_interval
             ),
             non_hit_frame_sending_interval=(
-                self._parameters.crystallography.non_hit_frame_sending_interval
+                self._crystallography_parameters.non_hit_frame_sending_interval
             ),
             node_pool_size=node_pool_size,
         )
@@ -312,9 +294,9 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         frame_is_hit: bool = (
-            self._parameters.crystallography.min_num_peaks_for_hit
+            self._min_num_peaks_for_hit
             < len(peak_list.intensity)
-            < self._parameters.crystallography.max_num_peaks_for_hit
+            < self._max_num_peaks_for_hit
         )
 
         # Data to send
@@ -325,7 +307,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         processed_data["event_id"] = data["event_id"]
         print(f"{data['event_id']}")
         processed_data["peak_list"] = peak_list
-        if self._parameters.crystallography.pump_probe_experiment:
+        if self._crystallography_parameters.pump_probe_experiment:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
 
         # Frame sending
@@ -437,8 +419,8 @@ class CrystallographyProcessing(OmProcessingProtocol):
                         "detector_distance": received_data["detector_distance"],
                         "event_id": received_data["event_id"],
                         "timestamp": received_data["timestamp"],
-                        "source": self._parameters.om.source,
-                        "configuration_file": self._parameters.om.configuration_file,
+                        "source": self._monitor_parameters.om.source,
+                        "configuration_file": self._monitor_parameters.om.configuration_file,
                     },
                     use_bin_type=True,
                 )
@@ -447,7 +429,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 )
                 _ = self._request_list.popleft()
 
-        if self._parameters.crystallography.pump_probe_experiment:
+        if self._crystallography_parameters.pump_probe_experiment:
             optical_laser_active: bool = received_data["optical_laser_active"]
         else:
             optical_laser_active = False
@@ -483,9 +465,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         if self._event_counter.should_broadcast_data():
             omdata_message: Dict[str, Any] = {
-                "geometry_is_optimized": (
-                    self._parameters.crystallography.geometry_is_optimized
-                ),
+                "geometry_is_optimized": (self._geometry_is_optimized),
                 "timestamp": received_data["timestamp"],
                 "hit_rate_timestamp_history": curr_hit_rate_timestamp_history,
                 "hit_rate_history": curr_hit_rate_history,
@@ -495,14 +475,14 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 "detector_distance_offset": self._detector_distance_offset,
                 "pixel_size": self._pixel_size,
                 "pump_probe_experiment": (
-                    self._parameters.crystallography.pump_probe_experiment
+                    self._crystallography_parameters.pump_probe_experiment
                 ),
                 "start_timestamp": self._event_counter.get_start_timestamp(),
                 "peakogram": curr_peakogram,
                 "peakogram_radius_bin_size": peakogram_radius_bin_size,
                 "peakogram_intensity_bin_size": peakogram_intensity_bin_size,
             }
-            if self._parameters.crystallography.pump_probe_experiment:
+            if self._crystallography_parameters.pump_probe_experiment:
                 omdata_message["hit_rate_timestamp_history_dark"] = (
                     curr_hit_rate_timestamp_history_dark
                 )
@@ -614,12 +594,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
             if request[1] == b"next":
                 self._request_list.append(request)
             elif request[1] == b"resetplots":
-                log.warn("Resetting plots.")
+                log.warning("Resetting plots.")
                 self._plots.clear_plots()
 
                 self._responding_socket.send_data(identity=request[0], message=b"Ok")
             else:
-                log.warn(
+                log.warning(
                     f"Could not understand the following request: {str(request[1])}.",
                 )
                 self._responding_socket.send_data(identity=request[0], message=b"What?")

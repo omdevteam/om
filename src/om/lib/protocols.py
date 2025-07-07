@@ -20,12 +20,17 @@ This module contains the definitions of several typed dictionaries that store da
 produced or required by OM's functions and classes.
 """
 
-from typing import Any, Dict, Generator, Optional, Protocol, Tuple, Type, Union, Literal
+from typing import Any, Dict, Generator, Literal, Optional, Protocol, Tuple, Type, Union
 
 import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.common import PeakList
+from om.lib.parameters import (
+    DataRetrievalLayerParameters,
+    DataSourceParameters,
+    MonitorParameters,
+)
 
 
 class OmDataSourceProtocol(Protocol):
@@ -37,7 +42,7 @@ class OmDataSourceProtocol(Protocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ) -> None:
         """
@@ -109,7 +114,7 @@ class OmDataEventHandlerProtocol(Protocol):
         *,
         source: str,
         data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Protocol class for OM's Data Event Handler classes.
@@ -293,58 +298,12 @@ class OmDataEventHandlerProtocol(Protocol):
         ...
 
 
-class OmDataRetrievalProtocol(Protocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def __init__(
-        self,
-        *,
-        parameters: Dict[str, Any],
-        source: str,
-    ) -> None:
-        """
-        Protocol for OM's Data Retrieval classes.
-
-        Data Retrieval classes implement OM's Data Retrieval Layer for a specific
-        beamline, experiment or facility. They describe how data is retrieved and
-        data events are managed.
-
-        This Protocol class describes the interface that every Data Retrieval class in
-        OM must implement.
-
-        A Data Retrieval class must be initialized with a string describing a data
-        event source, and the full set of OM's configuration parameters.
-
-        Arguments:
-
-            parameters: An object storing OM's configuration parameters.
-
-            source: A string describing the data event source.
-        """
-        ...
-
-    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
-        """
-        Retrieves the Data Event Handler used by the class.
-
-        This function returns the Data Event Handler used by the Data Retrieval class
-        to manipulate data events.
-
-        Returns:
-
-            The Data Event Handler used by the Data Retrieval class.
-        """
-        ...
-
-
 class OmProcessingProtocol(Protocol):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, parameters: Dict[str, Any]) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         Protocol for OM's Processing classes.
 
@@ -589,7 +548,7 @@ class OmParallelizationProtocol(Protocol):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalProtocol,
+        data_retrieval_layer: OmDataEventHandlerProtocol,
         processing_layer: OmProcessingProtocol,
         parameters: Dict[str, Any],
     ) -> None:

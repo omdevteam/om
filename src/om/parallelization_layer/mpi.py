@@ -21,23 +21,23 @@ This module contains a Parallelization Layer based on the MPI protocol.
 """
 
 import sys
-from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Literal, List
-from random import randrange
 import time
+from enum import Enum
+from random import randrange
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from mpi4py import MPI
 
+from om.data_retrieval_layer.data_event_handlers_psana2 import Psana2DataEventHandler
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
-    OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
-
-from om.data_retrieval_layer.data_event_handlers_psana2 import Psana2DataEventHandler
+from src.om.lib.parameters import DataRetrievalLayerParameters
 
 
 class MpiTags(int, Enum):
@@ -58,9 +58,9 @@ class MpiParallelization(OmParallelizationProtocol):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalProtocol,
+        data_retrieval_layer: OmDataEventHandlerProtocol,
         processing_layer: OmProcessingProtocol,
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         MPI-based Parallelization Layer for OM.
@@ -83,16 +83,14 @@ class MpiParallelization(OmParallelizationProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         del parameters
-        self._data_event_handler: OmDataEventHandlerProtocol = (
-            data_retrieval_layer.get_data_event_handler()
-        )
+        self._data_event_handler: OmDataEventHandlerProtocol = data_retrieval_layer
 
         self._processing_layer: OmProcessingProtocol = processing_layer
         self._mpi_size: int = MPI.COMM_WORLD.Get_size()
         self._rank: int = MPI.COMM_WORLD.Get_rank()
 
         designated_collector: Literal["first", "last"] = (
-            data_retrieval_layer.get_data_event_handler().designated_collector_rank()
+            self._data_event_handler.designated_collector_rank()
         )
 
         if designated_collector == "first":
@@ -101,7 +99,7 @@ class MpiParallelization(OmParallelizationProtocol):
             self._collector_rank = self._mpi_size - 1
 
         self._skip_rank_finalization: bool = (
-            data_retrieval_layer.get_data_event_handler().skip_rank_finalization()
+            self._data_event_handler.skip_rank_finalization()
         )
 
         if self._rank == self._collector_rank:
@@ -148,7 +146,7 @@ class MpiParallelization(OmParallelizationProtocol):
                         received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
                             source=MPI.ANY_SOURCE, tag=MpiTags.data, status=mpi_status
                         )
-                        if "end" in received_data[0].keys():
+                        if "end" in received_data[0]:
 
                             # If the received message announces that a processing node
                             # has finished processing data, keeps track of how many
@@ -208,6 +206,11 @@ class MpiParallelization(OmParallelizationProtocol):
                                         feedback_data["random"],
                                         dest=random_rank,
                                         tag=MpiTags.feedback,
+                                    )
+                                else:
+                                    log.error(
+                                        "The target for feedback data must be one of "
+                                        "the following: 'random', 'all'"
                                     )
                     else:
                         self._processing_layer.wait_for_data(

@@ -25,6 +25,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.xes import EnergySpectrumRetrieval
+from om.lib.parameters import XesParameters
 
 
 class XesAnalysisAndPlots:
@@ -32,7 +33,7 @@ class XesAnalysisAndPlots:
     TODO
     """
 
-    def __init__(self, *, parameters: Dict[str, Any], time_resolved: bool) -> None:
+    def __init__(self, *, parameters: XesParameters, time_resolved: bool) -> None:
         """
         Data analysis and plot generation for X-ray Emission Spectroscopy data.
 

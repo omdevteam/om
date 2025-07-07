@@ -36,6 +36,7 @@ from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
     OmHdf5FileReadingError,
 )
+from om.lib.parameters import MonitorParameters
 
 
 def load_hdf5_data(
@@ -88,7 +89,7 @@ def load_hdf5_data(
 def load_configuration_parameters(
     *,
     config: Path,
-) -> Dict[str, Dict[str, Any]]:
+) -> MonitorParameters:
     """
     #TODO: Documentation
     """
@@ -97,7 +98,7 @@ def load_configuration_parameters(
     try:
         open_file: TextIO
         with open(config_path, "r") as open_file:
-            monitor_params: Dict[str, Dict[str, Any]] = yaml.safe_load(open_file)
+            loaded_yaml_file: Dict[str, Dict[str, Any]] = yaml.safe_load(open_file)
     except OSError:
         raise OmConfigurationFileReadingError(
             f"Cannot open or read the following configuration file: {config}."
@@ -109,11 +110,8 @@ def load_configuration_parameters(
             f"Syntax error in the configuration file: {exc}."
         ) from exc
 
-    # Store group name within the group
-    for group in monitor_params:
-        monitor_params[group]["name"] = group
+    monitor_parameters: MonitorParameters = MonitorParameters.model_validate(
+        loaded_yaml_file
+    )  # Store group name within the group
 
-    # Add configuration file path to the om group
-    monitor_params["om"]["configuration_file"] = str(config_path.absolute())
-
-    return monitor_params
+    return monitor_parameters

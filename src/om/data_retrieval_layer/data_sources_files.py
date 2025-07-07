@@ -28,6 +28,7 @@ from numpy.typing import NDArray
 
 from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMixin
 from om.lib.exceptions import OmMissingDependencyError
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -56,7 +57,7 @@ class OmBaseFileDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -447,7 +448,7 @@ class Jungfrau1MFiles(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
             "/entry/data/data"
         ][event["additional_info"]["index"]]
 
-        if self._calibrated_data_required:
-            return self._calibration.apply_calibration(data=data)
+        if self._calibration:
+            return self._calibration_algorithm.apply_calibration(data=data)
         else:
             return data

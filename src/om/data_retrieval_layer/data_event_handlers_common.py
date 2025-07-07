@@ -15,82 +15,41 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
-"""
-"""
+""" """
 
-from typing import Any, Dict, List, Type
+import sys
+from typing import Any, Dict, Type
 
-from om.lib.exceptions import OmMissingDataSourceClassError
+from om.lib.layer_management import import_data_source_class
+from om.lib.logging import log
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 
-def filter_data_sources(
-    *,
-    data_sources: Dict[str, Type[OmDataSourceProtocol]],
-    required_data: List[str],
-) -> List[str]:
-    """
-    Filters a list Data Sources.
-
-    This function filters the list of all Data Sources associated with a
-    Data Retrieval class, returning only the subset of Data Sources needed to retrieve
-    the data requested by the user.
-
-    Arguments:
-
-        data_sources: A list containing the names of all Data Sources available for a
-            Data Retrieval class.
-
-        required_data: A list containing the names of the data items requested by the
-            user.
-
-    Returns:
-
-        A list of Data Source names containing only the needed Data Sources.
-
-    Raises:
-
-        OmMissingDataSourceClassError: Raised when one of the required Data Source
-            class cannot be found in the list of Data Source available for the Data
-            Retrieval.
-    """
-
-    required_data_sources: List[str] = []
-    entry: str
-    for entry in required_data:
-        if entry == "timestamp":
-            continue
-        if entry in data_sources:
-            required_data_sources.append(entry)
-        else:
-            raise OmMissingDataSourceClassError(f"Data source {entry} is not defined")
-    return required_data_sources
-
-
 def instantiate_data_sources(
-    data_sources: Dict[str, Type[OmDataSourceProtocol]],
-    data_retrieval_parameters: Dict[str, Any],
-    required_data_sources: List[str],
+    data_sources: Dict[str, DataSourceParameters],
     additional_info: Dict[str, Any],
 ) -> Dict[str, OmDataSourceProtocol]:
     """ """
+    if "timestamp" not in data_sources:
+        log.error(
+            "Data source 'timestamp' (mandatory) is not defined in"
+            "the configuration file"
+        )
+        sys.exit(1)
 
-    instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {
-        "timestamp": data_sources["timestamp"](
-            data_source_name="timestamp",
-            parameters=data_retrieval_parameters,
+    instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {}
+    data_source_name: str
+    for data_source_name in data_sources:
+        data_source_class: Type[OmDataSourceProtocol] = import_data_source_class(
+            module_names=["data_sources_psana", "data_sources_common"],
+            class_name=data_sources[data_source_name].type,
+        )
+        instantiated_data_sources[data_source_name] = data_source_class(
+            data_source_name=data_source_name,
+            parameters=data_sources[data_source_name],
             additional_info=additional_info,
         )
-    }
-    instantiated_data_sources["timestamp"].initialize_data_source()
-
-    source_name: str
-    for source_name in required_data_sources:
-        instantiated_data_sources[source_name] = data_sources[source_name](
-            data_source_name=source_name,
-            parameters=data_retrieval_parameters,
-            additional_info=additional_info,
-        )
-        instantiated_data_sources[source_name].initialize_data_source()
+        instantiated_data_sources[data_source_name].initialize_data_source()
 
     return instantiated_data_sources

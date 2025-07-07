@@ -25,11 +25,12 @@ extraction layers.
 import importlib
 import sys
 from types import ModuleType
-from typing import Literal, Type, Union, overload
+from typing import List, Literal, Type, Union, overload
 
 from om.lib.exceptions import OmMissingLayerClassError, OmMissingLayerModuleError
 from om.lib.protocols import (
-    OmDataRetrievalProtocol,
+    OmDataEventHandlerProtocol,
+    OmDataSourceProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
@@ -46,7 +47,7 @@ def import_class_from_layer(
 @overload
 def import_class_from_layer(
     *, layer_name: Literal["data_retrieval_layer"], class_name: str
-) -> Type[OmDataRetrievalProtocol]:
+) -> Type[OmDataEventHandlerProtocol]:
     """ """
     ...
 
@@ -69,7 +70,7 @@ def import_class_from_layer(
     class_name: str,
 ) -> Union[
     Type[OmParallelizationProtocol],
-    Type[OmDataRetrievalProtocol],
+    Type[OmDataEventHandlerProtocol],
     Type[OmProcessingProtocol],
 ]:
     """
@@ -106,7 +107,7 @@ def import_class_from_layer(
         try:
             imported_class: Union[
                 Type[OmParallelizationProtocol],
-                Type[OmDataRetrievalProtocol],
+                Type[OmDataEventHandlerProtocol],
                 Type[OmProcessingProtocol],
             ] = getattr(imported_layer, class_name)
             return imported_class
@@ -136,3 +137,65 @@ def import_class_from_layer(
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
             assert False  # unreachable
+
+
+def import_data_source_class(
+    *,
+    module_names: List[str],
+    class_name: str,
+) -> Type[OmDataSourceProtocol]:
+    """
+    Imports a class from an OM's layer.
+
+    This function imports a class, identified by the `class_name` argument, from a
+    layer identified by the `layer_name` argument. The function looks for a python
+    module containing the layer code in the current working directory first.
+    Specifically, it looks for a python file with the same name as the layer. If the
+    function cannot find the file, it imports the layer from OM's normal installation
+    directories. It then proceeds to import the requested class from the layer module.
+
+    Arguments:
+
+        layer_name: The name of the layer from which the class should be imported.
+
+        class_name: The name of the class to import.
+
+    Returns:
+
+        The imported class.
+
+    Raises:
+
+        OmMissingLayerClass: Raised if the requested class cannot be found in the
+            specified Python module.
+
+        OmMissingLayerModuleFile: Raised if the requested python module cannot be
+            found.
+    """
+
+    module_name: str
+    for module_name in module_names:
+        try:
+            imported_layer: ModuleType = importlib.import_module(name=module_name)
+            try:
+                imported_class: Type[OmDataSourceProtocol] = getattr(
+                    imported_layer, class_name
+                )
+                return imported_class
+            except AttributeError:
+                pass
+        except ImportError as exc:
+            exc_type, exc_value = sys.exc_info()[:2]
+            # TODO: Fix types
+            if exc_type is not None:
+                raise OmMissingLayerModuleError(
+                    f"The python module file {module_name}.py cannot be found or loaded "
+                    f"due to the following error: "
+                    f"{exc_type.__name__}: {exc_value}"
+                ) from exc
+                assert False  # unreachable
+
+    raise OmMissingLayerClassError(
+        f"The Data Source Class {class_name} connot be found in the provided "
+        "python modules"
+    )

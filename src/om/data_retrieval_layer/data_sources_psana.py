@@ -25,6 +25,7 @@ This module contains Data Source classes that deal with data retrieved from  the
 software framework (used at the LCLS facility).
 """
 
+import sys
 from pathlib import Path
 from typing import (
     Any,
@@ -41,16 +42,15 @@ from typing import (
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from typing_extensions import Self
 
 from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
     OmDataExtractionError,
     OmMissingDependencyError,
     OmWrongParameterTypeError,
 )
 from om.lib.files import load_hdf5_data
+from om.lib.logging import log
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
@@ -62,39 +62,6 @@ except ImportError:
 
 
 T = TypeVar("T")
-
-
-class _DetectorInterfacePsanaParameters(BaseModel):
-    psana_name: str
-
-
-class _AreaDetectorPsanaParameters(BaseModel):
-    psana_name: str
-    gain_map_filename: Optional[Path] = Field(default=None)
-    gain_map_hdf5_path: Optional[str] = Field(default=None)
-    calibration: bool = Field(default=True)
-
-    @model_validator(mode="after")
-    def check_gain_map(self) -> Self:
-        if self.gain_map_filename is not None and self.gain_map_hdf5_path is None:
-            raise ValueError(
-                "If the gain_map_filename parameter is specified for a specific "
-                "detector, the gain_map_hdf5_path parameter must also be provided"
-            )
-        return self
-
-
-class _EvrCodesPsanaParameters(BaseModel):
-    evr_source: str
-    event_code: int
-
-
-class _EventCodeListPsanaParameters(BaseModel):
-    evr_source: str
-
-
-class _LclsExtraPsanaParameters(BaseModel):
-    required_data: List[Tuple[str, str, str]]
 
 
 class OmDetectorInterfacePsanaDataSourceMixin:
@@ -113,7 +80,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -136,25 +103,20 @@ class OmDetectorInterfacePsanaDataSourceMixin:
             parameters: An object storing OM's configuration parameters.
         """
         del additional_info
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-
-        try:
-            self._parameters: _DetectorInterfacePsanaParameters = (
-                _DetectorInterfacePsanaParameters.model_validate(
-                    parameters[data_source_name]
-                )
+            sys.exit(1)
+        if "psana_name" not in extra_parameters:
+            log.error(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name} "
-                f"{exception}"
-            )
+            sys.exit(1)
+            sys.exit(1)
+        self._psana_name: str = extra_parameters["psana_name"]
 
     def initialize_data_source(self) -> None:
         """
@@ -166,10 +128,8 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        self._detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                self._parameters.psana_name
-            )
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            self._psana_name
         )
 
 
@@ -206,7 +166,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
         if rayonix_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
         return rayonix_psana
 
@@ -244,7 +204,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
         if opal_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
         return opal_psana
 
@@ -282,7 +242,7 @@ class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtoco
         if opal_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
         return opal_psana
 
@@ -332,7 +292,7 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
         if wftime is None or waveform is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         return (wftime, waveform)
@@ -374,7 +334,7 @@ class AssembledDetectorPsana(
         if assembled_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         return assembled_data
@@ -412,7 +372,7 @@ class Wave8TotalIntensityPsana(
         if wave8_total_intensity_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         return wave8_total_intensity_data
@@ -482,7 +442,7 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -517,10 +477,8 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
         """
-        self._detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                "SIOC:SYS0:ML00:AO192"
-            )
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            "SIOC:SYS0:ML00:AO192"
         )
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
@@ -569,7 +527,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -591,25 +549,39 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        del additional_info
+        self._gain_map_filename: Path = Path("")
+        self._gain_map_hdf5_path: str = ""
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        try:
-            self._parameters: _AreaDetectorPsanaParameters = (
-                _AreaDetectorPsanaParameters.model_validate(
-                    parameters[data_source_name]
+            sys.exit(1)
+        if "psana_name" not in extra_parameters:
+            log.error(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+        if "calibration" not in extra_parameters:
+            log.error(
+                f"Entry 'calibration' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+        if "gain_map_filename" in extra_parameters:
+            gain_map_filename = extra_parameters["gain_map_filename"]
+
+            if "gain_map_hdf5_path" not in extra_parameters:
+                log.error(
+                    "Entry 'gain_map_filename' is defined for data source "
+                    f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
                 )
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
-            )
+                sys.exit(1)
+
+            gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+
+        del additional_info
 
     def initialize_data_source(self) -> None:
         """
@@ -621,10 +593,9 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                self._parameters.psana_name
-            )
+
+        detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            self._parameters.psana_name
         )
 
         if self._parameters.calibration:
@@ -710,7 +681,7 @@ class CspadPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -734,24 +705,26 @@ class CspadPsana(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
 
-        try:
-            self._parameters: _AreaDetectorPsanaParameters = (
-                _AreaDetectorPsanaParameters.model_validate(
-                    parameters[data_source_name]
-                )
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
+            sys.exit(1)
+        if "psana_name" not in extra_parameters:
+            log.error(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
             )
+            sys.exit(1)
+        if "calibration" not in extra_parameters:
+            log.error(
+                f"Entry 'calibration' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+
+        self._psana_name = extra_parameters["psana_name"]
+        self._calibration = extra_parameters["calibration"]
 
     def initialize_data_source(self) -> None:
         """
@@ -763,13 +736,11 @@ class CspadPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                self._parameters.psana_name
-            )
+        detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            self._psana_name
         )
 
-        if self._parameters.calibration:
+        if self._calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
                 detector_interface.calib
             )
@@ -809,7 +780,7 @@ class CspadPsana(OmDataSourceProtocol):
         if cspad_psana is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         # Rearranges the data into 'slab' format.
@@ -844,7 +815,7 @@ class TimestampPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -917,7 +888,7 @@ class EventIdPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -994,7 +965,7 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -1064,7 +1035,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any] = {},
     ):
         """
@@ -1087,22 +1058,26 @@ class EvrCodesPsana(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
 
-        try:
-            self._parameters: _EvrCodesPsanaParameters = (
-                _EvrCodesPsanaParameters.model_validate(parameters[data_source_name])
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
+            sys.exit(1)
+        if "evr_source" not in extra_parameters:
+            log.error(
+                f"Entry 'evr_source' is not defined for data source {data_source_name}"
             )
+            sys.exit(1)
+        if "event_code" not in extra_parameters:
+            log.error(
+                f"Entry 'event_code' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+
+        self._evr_source: str = extra_parameters["evr_source"]
+        self._event_code: int = extra_parameters["event_code"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1117,10 +1092,8 @@ class EvrCodesPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                self._parameters.evr_source
-            )
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            self._evr_source
         )
 
     def get_data(self, *, event: Dict[str, Any]) -> bool:
@@ -1151,7 +1124,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
         if current_evr_codes is None:
             raise OmDataExtractionError("Could not retrieve event codes from psana.")
 
-        return self._parameters.event_code in current_evr_codes
+        return self._event_code in current_evr_codes
 
 
 class EvrCodeListPsana(OmDataSourceProtocol):
@@ -1163,7 +1136,7 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -1186,26 +1159,20 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
 
-        try:
-            self._parameters: _EventCodeListPsanaParameters = (
-                _EventCodeListPsanaParameters.model_validate(
-                    parameters[data_source_name]
-                )
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
+            sys.exit(1)
+        if "evr_source" not in extra_parameters:
+            log.error(
+                f"Entry 'evr_source' is not defined for data source {data_source_name}"
             )
+            sys.exit(1)
 
-        self._lcls_extra_parameters = parameters
+        self._evr_source: str = extra_parameters["evr_source"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1220,10 +1187,8 @@ class EvrCodeListPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = (
-            psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-                self._parameters.evr_source
-            )
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+            self._evr_source
         )
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
@@ -1271,7 +1236,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additional_info: Dict[str, Any],
     ):
         """
@@ -1298,24 +1263,20 @@ class LclsExtraPsana(OmDataSourceProtocol):
         """
         del additional_info
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
-            )
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
 
-        try:
-            self._parameters: _LclsExtraPsanaParameters = (
-                _LclsExtraPsanaParameters.model_validate(parameters[data_source_name])
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
+            sys.exit(1)
+        if "data_sources" not in extra_parameters:
+            log.error(
+                f"Entry 'data_sources' is not defined for data source {data_source_name}"
             )
+            sys.exit(1)
 
-        self._lcls_extra_parameters = parameters["lcls_extra"]
+        self._data_sources: List[Tuple[str, str, str]] = extra_parameters["lcls_extra"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1378,7 +1339,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
         lcls_extra_index: int = 0
 
         data_item: Tuple[str, str, str]
-        for data_item in self._parameters.required_data:
+        for data_item in self._data_sources:
             data_type, identifier, name = data_item
 
             if data_type == "acqiris_waveform":

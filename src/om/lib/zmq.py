@@ -143,7 +143,7 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        responding_url: Union[str, Any],
+        responding_url: Optional[str],
         blocking: bool = False,
     ) -> None:
         """

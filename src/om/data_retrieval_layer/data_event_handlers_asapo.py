@@ -25,21 +25,14 @@ from the ASAP::O software framework (used at the PETRA III facility).
 import sys
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Generator, List, Optional, Type, Union, Literal
+from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError
 
-from om.data_retrieval_layer.data_event_handlers_common import (
-    filter_data_sources,
-    instantiate_data_sources,
-)
-from om.lib.exceptions import (
-    OmConfigurationFileSyntaxError,
-    OmDataExtractionError,
-    OmMissingDependencyError,
-)
+from om.data_retrieval_layer.data_event_handlers_common import instantiate_data_sources
+from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -48,16 +41,6 @@ except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: asapo_consumer"
     )
-
-
-class _AsapoDataEventHandlerParameters(BaseModel):
-    asapo_url: str
-    asapo_path: str
-    asapo_data_source: str
-    asapo_has_filesystem: bool
-    asapo_token: str
-    asapo_group_id: str = Field(default="default_om_group")
-    required_data: List[str]
 
 
 @dataclass
@@ -79,8 +62,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
-        parameters: Dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Data Event Handler for ASAP::O events.
@@ -114,23 +96,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
-        self._data_retrieval_parameters: Dict[str, Any] = parameters
-
-        try:
-            self._parameters: _AsapoDataEventHandlerParameters = (
-                _AsapoDataEventHandlerParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing Data Retrieval Layer parameters: " f"{exception}"
-            )
-
+        self._data_retrieval_parameters: DataRetrievalLayerParameters = parameters
         self._source: str = source
-        self._data_sources: Dict[str, Type[OmDataSourceProtocol]] = data_sources
-        self._required_data_sources: List[str] = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=self._parameters.required_data,
-        )
+        self._data_retrieval_parameters = parameters
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "first"
@@ -141,12 +109,12 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
     def _initialize_asapo_consumer(self) -> Any:
         consumer: Any = asapo_consumer.create_consumer(
-            self._parameters.asapo_url,
-            self._parameters.asapo_path,
-            self._parameters.asapo_has_filesystem,
+            self._data_retrieval_parameters.asapo_url,
+            self._data_retrieval_parameters.asapo_path,
+            self._data_retrieval_parameters.asapo_has_filesystem,
             self._source.split(":")[0],
-            self._parameters.asapo_data_source,
-            self._parameters.asapo_token,
+            self._data_retrieval_parameters.asapo_data_source,
+            self._data_retrieval_parameters.asapo_token,
             3000,
             instance_id="auto",
             pipeline_step="onda_monitor",
@@ -257,9 +225,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
-                data_sources=self._data_sources,
-                data_retrieval_parameters=self._data_retrieval_parameters,
-                required_data_sources=self._required_data_sources,
+                data_sources=self._data_retrieval_parameters.data_sources,
                 additional_info={},
             )
         )
@@ -269,12 +235,14 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             stream_name: str = ":".join(source_items[1:])
             self._asapo_events: Generator[_AsapoEvent, None, None] = (
                 self._offline_event_generator(
-                    consumer, self._parameters.asapo_group_id, stream_name
+                    consumer,
+                    self._data_retrieval_parameters.asapo_group_id,
+                    stream_name,
                 )
             )
         else:
             self._asapo_events = self._online_event_generator(
-                consumer, self._parameters.asapo_group_id
+                consumer, self._data_retrieval_parameters.asapo_group_id
             )
 
     def event_generator(
@@ -309,9 +277,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             data_event["data"] = asapo_event.event_data
             data_event["metadata"] = asapo_event.event_metadata
             data_event["additional_info"]["stream_name"] = asapo_event.stream_name
-            data_event["additional_info"][
-                "stream_metadata"
-            ] = asapo_event.stream_metadata
+            data_event["additional_info"]["stream_metadata"] = (
+                asapo_event.stream_metadata
+            )
 
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)
@@ -351,7 +319,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
-        for source_name in self._required_data_sources:
+        for source_name in self._instantiated_data_sources:
             try:
                 data[source_name] = self._instantiated_data_sources[
                     source_name
@@ -380,10 +348,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         """
         self._consumer: Any = self._initialize_asapo_consumer()
 
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
+        self._instantiated_data_sources_for_retrieval: Dict[
+            str, OmDataSourceProtocol
+        ] = instantiate_data_sources(
+            data_sources=self._data_retrieval_parameters.data_sources,
             additional_info={},
         )
 
@@ -430,8 +398,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
         # Recovers the timestamp from the ASAP::O event (as seconds from the Epoch)
         # and stores it in the event dictionary.
-        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
-            "timestamp"
-        ].get_data(event=data_event)
+        data_event["additional_info"]["timestamp"] = (
+            self._instantiated_data_sources_for_retrieval["timestamp"].get_data(
+                event=data_event
+            )
+        )
 
         return self.extract_data(event=data_event)

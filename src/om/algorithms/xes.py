@@ -24,18 +24,11 @@ from typing import Any, Dict, Optional, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError
 from scipy import ndimage  # type: ignore
 from scipy.ndimage import gaussian_filter1d  # type: ignore
 
 from om.lib.exceptions import OmConfigurationFileSyntaxError
-
-
-class _EnergySpectrumRetrievalParameters(BaseModel):
-    intensity_threshold: Optional[float] = Field(default=None)
-    rotation_in_degrees: float
-    min_row_in_pix_for_integration: int
-    max_row_in_pix_for_integration: int
+from om.lib.parameters import XesParameters
 
 
 class EnergySpectrumRetrieval:
@@ -46,7 +39,7 @@ class EnergySpectrumRetrieval:
     def __init__(
         self,
         *,
-        parameters: Dict[str, Any],
+        parameters: XesParameters,
     ) -> None:
         """
         Beam energy spectrum retrieval.
@@ -84,16 +77,7 @@ class EnergySpectrumRetrieval:
                     section of the camera data frame containing the spectrum
                     information (pixels outside this area are ignored).
         """
-
-        try:
-            self._energy_spectrum_retrieval_parameters: (
-                _EnergySpectrumRetrievalParameters
-            ) = _EnergySpectrumRetrievalParameters.model_validate(parameters)
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing parameters for the EnergySpectrumRetrieval algorithm: "
-                f"{exception}"
-            )
+        self._xes_parameters: XesParameters = parameters
 
     # TODO: Enforce return dict content for the function below
 
@@ -136,24 +120,18 @@ class EnergySpectrumRetrieval:
         # Apply a threshold
 
         # TODO: Perhaps better type hints can be found for this
-        if self._energy_spectrum_retrieval_parameters.intensity_threshold is not None:
-            data[
-                data < self._energy_spectrum_retrieval_parameters.intensity_threshold
-            ] = 0
+        if self._xes_parameters.intensity_threshold is not None:
+            data[data < self._xes_parameters.intensity_threshold] = 0
         imr: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = cast(
             Union[NDArray[numpy.float_], NDArray[numpy.int_]],
             ndimage.rotate(
                 data,
-                self._energy_spectrum_retrieval_parameters.rotation_in_degrees,
+                self._xes_parameters.rotation_in_degrees,
                 order=0,
             ),
         )
-        min_row: int = (
-            self._energy_spectrum_retrieval_parameters.min_row_in_pix_for_integration
-        )
-        max_row: int = (
-            self._energy_spectrum_retrieval_parameters.max_row_in_pix_for_integration
-        )
+        min_row: int = self._xes_parameters.min_row_in_pix_for_integration
+        max_row: int = self._xes_parameters.max_row_in_pix_for_integration
         spectrum: NDArray[numpy.float_] = numpy.mean(
             imr[
                 :,

@@ -24,10 +24,9 @@ This module contains the main function that tarts an OnDA Monitor.
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Type
+from typing import Optional, Type
 
 import typer
-from pydantic import BaseModel, ValidationError
 from typing_extensions import Annotated
 
 from om.data_retrieval_layer.event_retrieval import EventListDataRetrieval
@@ -35,22 +34,12 @@ from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
 from om.lib.logging import log
+from om.lib.parameters import MonitorParameters
 from om.lib.protocols import (
-    OmDataRetrievalProtocol,
+    OmDataEventHandlerProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
-
-
-class _OmParameters(BaseModel):
-    parallelization_layer: str
-    data_retrieval_layer: str
-    processing_layer: str
-
-
-class _MonitorParameters(BaseModel):
-    om: _OmParameters
-    data_retrieval_layer: Dict[str, Any]
 
 
 def main(
@@ -104,15 +93,13 @@ def main(
     if not config.exists():
         raise RuntimeError(f"The following file cannot be found: {config}")
 
-    monitor_parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(
-        config=config
-    )
+    monitor_parameters: MonitorParameters = load_configuration_parameters(config=config)
 
     try:
-        parameters: _MonitorParameters = _MonitorParameters.model_validate(
+        parameters: MonitorParameters = MonitorParameters.model_validate(
             monitor_parameters
         )
-    except ValidationError as exception:
+    except TypeError as exception:
         raise OmConfigurationFileSyntaxError(
             "Error parsing monitor parameters: " f"{exception}"
         )
@@ -148,9 +135,9 @@ def main(
             )
             sys.exit(1)
 
-    monitor_parameters["om"]["source"] = source
-    monitor_parameters["om"]["configuration_file"] = config
-    monitor_parameters["data_retrieval_layer"]["node_pool_size"] = node_pool_size
+    monitor_parameters.om.source = source
+    monitor_parameters.om.configuration_file = config
+    monitor_parameters.data_retrieval_layer.node_pool_size = node_pool_size
 
     if event_list is not None:
         data_retrieval_layer: OmDataRetrievalProtocol = EventListDataRetrieval(
@@ -158,22 +145,23 @@ def main(
             source=source,
             event_list_file=event_list,
         )
-
     else:
-        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = (
+        data_event_handler_class: Type[OmDataEventHandlerProtocol] = (
             import_class_from_layer(
                 layer_name="data_retrieval_layer",
-                class_name=parameters.om.data_retrieval_layer,
+                class_name=parameters.data_retrieval_layer,
             )
         )
 
-        data_retrieval_layer = data_retrieval_layer_class(
-            parameters=monitor_parameters["data_retrieval_layer"],
+
+
+        data_event_handler = data_event_handler_class(
+            parameters=monitor_parameters.data_retrieval_layer,
             source=source,
         )
-
+s
     processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
-        layer_name="processing_layer", class_name=parameters.om.processing_layer
+        layer_name="processing_layer", class_name=monitor_parameters.om.processing_layer
     )
 
     processing_layer: OmProcessingProtocol = processing_layer_class(

@@ -28,56 +28,17 @@ from typing import Any, Dict, Optional, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import DTypeLike, NDArray
-from pydantic import BaseModel, Field, ValidationError, model_validator
 from typing_extensions import Self
 
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import DetectorLayoutInformation, PixelMaps
+from om.lib.parameters import BinningParameters, RadialProfileParameters
 
 from ._generic_cython import bin_detector_data  # type: ignore
 
 A = TypeVar("A", numpy.float_, numpy.int_)
-
-
-class _RadialProfileParameters(BaseModel):
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
-    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
-    radius_bin_size: float
-
-    @model_validator(mode="after")
-    def check_hd5_path(self) -> Self:
-        if (
-            self.bad_pixel_map_filename is not None
-            and self.bad_pixel_map_hdf5_path is None
-        ):
-            raise ValueError(
-                "If the bad_pixel_map_filename parameter is specified, "
-                "the bad_pixel_map_hdf5_path must also be provided"
-            )
-        return self
-
-
-class _BinningParameters(BaseModel):
-    bin_size: int
-    min_good_pix_count: Optional[int] = Field(default=None)
-    bad_pixel_value: Optional[Union[int, float]] = Field(default=None)
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
-    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
-
-    @model_validator(mode="after")
-    def check_hd5_path(self) -> Self:
-
-        if (
-            self.bad_pixel_map_filename is not None
-            and self.bad_pixel_map_hdf5_path is None
-        ):
-            raise ValueError(
-                "If the bad_pixel_map_filename parameter is specified, "
-                "the bad_pixel_map_hdf5_path must also be provided"
-            )
-        return self
 
 
 class RadialProfile:
@@ -89,7 +50,7 @@ class RadialProfile:
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
-        parameters: Dict[str, Any],
+        parameters: RadialProfileParameters,
     ) -> None:
         """
         Radial average calculation.
@@ -141,28 +102,15 @@ class RadialProfile:
                       must also be provided, and cannot be None. Otherwise it is
                       ignored.
         """
-
-        try:
-            self._radial_profile_parameters: _RadialProfileParameters = (
-                _RadialProfileParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing parameters for the RadialAverage algorithm: "
-                f"{exception}"
-            )
-
         if (
-            self._radial_profile_parameters.bad_pixel_map_filename is not None
-            and self._radial_profile_parameters.bad_pixel_map_hdf5_path is not None
+            parameters.bad_pixel_map_filename is not None
+            and parameters.bad_pixel_map_hdf5_path is not None
         ):
             bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
                 Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
-                    hdf5_filename=(
-                        Path(self._radial_profile_parameters.bad_pixel_map_filename)
-                    ),
-                    hdf5_path=self._radial_profile_parameters.bad_pixel_map_hdf5_path,
+                    hdf5_filename=(Path(parameters.bad_pixel_map_filename)),
+                    hdf5_path=parameters.bad_pixel_map_hdf5_path,
                 ),
             )
         else:
@@ -174,13 +122,11 @@ class RadialProfile:
             self._mask = bad_pixel_map.astype(bool)
 
         # Calculates the radial bins
-        self._num_bins: int = int(
-            radius_pixel_map.max() / self._radial_profile_parameters.radius_bin_size
-        )
+        self._num_bins: int = int(radius_pixel_map.max() / parameters.radius_bin_size)
 
         radial_bins: NDArray[numpy.float_] = numpy.linspace(
             0,
-            self._num_bins * self._radial_profile_parameters.radius_bin_size,
+            self._num_bins * parameters.radius_bin_size,
             self._num_bins + 1,
         )
 
@@ -267,7 +213,7 @@ class Binning:
         self,
         *,
         layout_info: DetectorLayoutInformation,
-        parameters: Dict[str, Any],
+        parameters: BinningParameters,
     ) -> None:
         """
         Binning of detector data frames.
@@ -324,35 +270,31 @@ class Binning:
                   are excluded by the calculation). Defaults to `MAXINT` if the data to
                   bin is of integer type, otherwise defaults to `numpy.nan`.
         """
-        try:
-            self._binning_parameters: _BinningParameters = (
-                _BinningParameters.model_validate(parameters)
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing parameters for the Binning algorithm: " f"{exception}"
-            )
-        self._layout_info: DetectorLayoutInformation = layout_info
+        if parameters is None:
+            log.error("'binning' section is not present in the configuration file")
+            sys.exit(1)
 
-        if self._binning_parameters.min_good_pix_count is None:
-            self._min_good_pix_count: int = self._binning_parameters.bin_size**2
+        if parameters.min_good_pix_count is None:
+            self._min_good_pix_count: int = parameters.bin_size**2
         else:
-            self._min_good_pix_count = self._binning_parameters.min_good_pix_count
+            self._min_good_pix_count = parameters.min_good_pix_count
 
-        self._original_asic_nx: int = self._layout_info.asic_ny
-        self._original_asic_ny: int = self._layout_info.asic_nx
-        self._original_nx: int = self._layout_info.asic_ny * self._layout_info.nasics_y
-        self._original_ny: int = self._layout_info.asic_nx * self._layout_info.nasics_x
+        self._original_asic_nx: int = layout_info.asic_ny
+        self._original_asic_ny: int = layout_info.asic_nx
+        self._nasics_x: int = layout_info.nasics_x
+        self._nasics_y: int = layout_info.nasics_y
+        self._original_nx: int = layout_info.asic_ny * layout_info.nasics_y
+        self._original_ny: int = layout_info.asic_nx * layout_info.nasics_x
 
         if (
-            self._binning_parameters.bad_pixel_map_filename is not None
-            and self._binning_parameters.bad_pixel_map_hdf5_path is not None
+            parameters.bad_pixel_map_filename is not None
+            and parameters.bad_pixel_map_hdf5_path is not None
         ):
             bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
                 Optional[NDArray[numpy.int_]],
                 load_hdf5_data(
-                    hdf5_filename=Path(self._binning_parameters.bad_pixel_map_filename),
-                    hdf5_path=self._binning_parameters.bad_pixel_map_hdf5_path,
+                    hdf5_filename=Path(parameters.bad_pixel_map_filename),
+                    hdf5_path=parameters.bad_pixel_map_hdf5_path,
                 ),
             )
         else:
@@ -365,25 +307,23 @@ class Binning:
         else:
             self._mask = bad_pixel_map.astype(numpy.int8)
 
+        self._bin_size = parameters.bin_size
+
         self._extended_asic_nx: int = (
-            int(numpy.ceil(self._original_asic_nx / self._binning_parameters.bin_size))
-            * self._binning_parameters.bin_size
+            int(numpy.ceil(self._original_asic_nx / self._bin_size))
+            * parameters.bin_size
         )
         self._extended_asic_ny: int = (
-            int(numpy.ceil(self._original_asic_ny / self._binning_parameters.bin_size))
-            * self._binning_parameters.bin_size
+            int(numpy.ceil(self._original_asic_ny / self._bin_size))
+            * parameters.bin_size
         )
-        self._extended_nx: int = self._extended_asic_nx * self._layout_info.nasics_y
-        self._extended_ny: int = self._extended_asic_ny * self._layout_info.nasics_x
+        self._extended_nx: int = self._extended_asic_nx * layout_info.nasics_y
+        self._extended_ny: int = self._extended_asic_ny * layout_info.nasics_x
 
-        self._binned_asic_nx: int = (
-            self._extended_asic_nx // self._binning_parameters.bin_size
-        )
-        self._binned_asic_ny: int = (
-            self._extended_asic_ny // self._binning_parameters.bin_size
-        )
-        self._binned_nx: int = self._extended_nx // self._binning_parameters.bin_size
-        self._binned_ny: int = self._extended_ny // self._binning_parameters.bin_size
+        self._binned_asic_nx: int = self._extended_asic_nx // self._bin_size
+        self._binned_asic_ny: int = self._extended_asic_ny // self._bin_size
+        self._binned_nx: int = self._extended_nx // self._bin_size
+        self._binned_ny: int = self._extended_ny // self._bin_size
 
         # # Binned mask = num good pixels per bin
         self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
@@ -394,6 +334,7 @@ class Binning:
         self._binned_data_array: NDArray[numpy.float_] = numpy.zeros(
             (self._binned_nx, self._binned_ny), dtype=numpy.float64
         )
+        self._bad_pixel_value: Optional[Union[int, float]] = parameters.bad_pixel_value
 
         # TODO: What is the following?
         self._saturation_value: float = -1.0
@@ -406,8 +347,8 @@ class Binning:
         )
         i: int
         j: int
-        for i in range(self._layout_info.nasics_x):
-            for j in range(self._layout_info.nasics_y):
+        for i in range(self._nasics_x):
+            for j in range(self._nasics_y):
                 extended_data[
                     i * self._extended_asic_nx : i * self._extended_asic_nx
                     + self._original_asic_nx,
@@ -426,9 +367,9 @@ class Binning:
         binned_data: NDArray[A] = (
             extended_data.reshape(
                 self._binned_nx,
-                self._binning_parameters.bin_size,
+                self._bin_size,
                 self._binned_ny,
-                self._binning_parameters.bin_size,
+                self._bin_size,
             )
             .sum(3)
             .sum(1)
@@ -464,7 +405,7 @@ class Binning:
 
             The length of the edge of the binning area.
         """
-        return self._binning_parameters.bin_size
+        return self._bin_size
 
     def get_binned_layout_info(self) -> DetectorLayoutInformation:
         """
@@ -480,8 +421,8 @@ class Binning:
         return DetectorLayoutInformation(
             asic_nx=self._binned_asic_ny,
             asic_ny=self._binned_asic_nx,
-            nasics_x=self._layout_info.nasics_x,
-            nasics_y=self._layout_info.nasics_y,
+            nasics_x=self._nasics_x,
+            nasics_y=self._nasics_y,
         )
 
     def bin_detector_data(
@@ -509,14 +450,14 @@ class Binning:
         """
 
         data_type: DTypeLike = data.dtype
-        if self._binning_parameters.bad_pixel_value is None:
+        if self._bad_pixel_value is None:
             if numpy.issubdtype(data_type, numpy.integer):
                 # TODO: is self._bad_pixel_value int or float?
                 bad_pixel_value: Union[int, float] = numpy.iinfo(data_type).max
             else:
                 bad_pixel_value = -1.0e10
         else:
-            bad_pixel_value = self._binning_parameters.bad_pixel_value
+            bad_pixel_value = self._bad_pixel_value
         if numpy.issubdtype(data_type, numpy.integer):
             self._saturation_value = float(numpy.iinfo(data_type).max)
 
@@ -525,14 +466,14 @@ class Binning:
             self._float_data_array,
             self._binned_data_array,
             self._mask,
-            self._binning_parameters.bin_size,
+            self._bin_size,
             self._min_good_pix_count,
             bad_pixel_value,
             self._saturation_value,
             self._original_asic_ny,
             self._original_asic_nx,
-            self._layout_info.nasics_y,
-            self._layout_info.nasics_x,
+            self._nasics_y,
+            self._nasics_x,
         )
         return self._binned_data_array
 
@@ -573,9 +514,7 @@ class Binning:
         if mask is None:
             return None
         else:
-            return (
-                self._bin_data_array(data=mask) // self._binning_parameters.bin_size**2
-            )
+            return self._bin_data_array(data=mask) // self._bin_size**2
 
     def bin_pixel_maps(self, *, pixel_maps: PixelMaps) -> PixelMaps:
         """
@@ -596,16 +535,11 @@ class Binning:
         """
 
         binned_pixel_maps: PixelMaps = PixelMaps(
-            x=self._bin_data_array(data=pixel_maps.x)
-            / self._binning_parameters.bin_size**3,
-            y=self._bin_data_array(data=pixel_maps.y)
-            / self._binning_parameters.bin_size**3,
-            z=self._bin_data_array(data=pixel_maps.z)
-            / self._binning_parameters.bin_size**3,
-            radius=self._bin_data_array(data=pixel_maps.radius)
-            / self._binning_parameters.bin_size**3,
-            phi=self._bin_data_array(data=pixel_maps.phi)
-            / self._binning_parameters.bin_size**2,
+            x=self._bin_data_array(data=pixel_maps.x) / self._bin_size**3,
+            y=self._bin_data_array(data=pixel_maps.y) / self._bin_size**3,
+            z=self._bin_data_array(data=pixel_maps.z) / self._bin_size**3,
+            radius=self._bin_data_array(data=pixel_maps.radius) / self._bin_size**3,
+            phi=self._bin_data_array(data=pixel_maps.phi) / self._bin_size**2,
         )
 
         return binned_pixel_maps
@@ -632,10 +566,10 @@ class Binning:
         for peak_index in range(peak_list.num_peaks):
             peak_list.fs[peak_index] = (
                 peak_list.fs[peak_index] + 0.5
-            ) / self._binning_parameters.bin_size - 0.5
+            ) / self._bin_size - 0.5
             peak_list.ss[peak_index] = (
                 peak_list.ss[peak_index] + 0.5
-            ) / self._binning_parameters.bin_size - 0.5
+            ) / self._bin_size - 0.5
         return peak_list
 
 
