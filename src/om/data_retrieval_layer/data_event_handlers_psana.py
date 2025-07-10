@@ -35,7 +35,7 @@ from om.lib.exceptions import (
 )
 from om.lib.logging import log
 from om.lib.parameters import DataRetrievalLayerParameters
-from om.lib.protocols import OmDataEventHandlerProtocol
+from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import psana  # type: ignore
@@ -176,18 +176,19 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             mpi_data_source = True
 
         psana_source: Any = self._initialize_psana_data_source(
-            psana_calibration_directory=self._parameters.psana_calibration_directory,
+            psana_calibration_directory=self._data_retrieval_parameters.psana_calibration_directory,
             mpi_data_source=mpi_data_source,
         )
 
         # Initializes the psana event source and starts retrieving events.
 
         self._psana_events = psana_source.events()
-        self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
-            additional_info={},
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_psana", "data_sources_common"],
+                additional_info={},
+            )
         )
 
     def event_generator(
@@ -270,7 +271,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
-        for source_name in self._required_data_sources:
+        for source_name in self._instantiated_data_sources:
             # data[source_name] = self._instantiated_data_sources[
             #    source_name
             # ].get_data(event=event)
@@ -304,15 +305,14 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             self._source += ":idx"
 
         psana_source: Any = self._initialize_psana_data_source(
-            psana_calibration_directory=self._parameters.psana_calibration_directory,
+            psana_calibration_directory=self._data_retrieval_parameters.psana_calibration_directory,
             mpi_data_source=False,
         )
         self._run = next(psana_source.runs())
 
         self._instantiated_data_sources = instantiate_data_sources(
-            data_sources=self._data_sources,
-            data_retrieval_parameters=self._data_retrieval_parameters,
-            required_data_sources=self._required_data_sources,
+            data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_psana", "data_sources_common"],
             additional_info={},
         )
 

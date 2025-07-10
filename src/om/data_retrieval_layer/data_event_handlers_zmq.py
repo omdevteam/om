@@ -148,6 +148,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_zmq", "data_sources_common"],
                 additional_info={},
             )
         )

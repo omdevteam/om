@@ -184,9 +184,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         self._data_event_handler.initialize_event_handling_on_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
-        self._num_no_more: int = 0
         self._deceased_ranks: List[bool] = [False] * self._node_pool_size
         self._deceased_ranks[self._collector_rank] = True
+        self._num_collected_events: int = 0
 
     def start(self) -> None:  # noqa: C901
         """

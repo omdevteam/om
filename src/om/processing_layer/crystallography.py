@@ -37,7 +37,6 @@ from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
 from om.lib.logging import log
 from om.lib.parameters import (
-    CheetahParameters,
     CrystallographyParameters,
     MonitorParameters,
 )
@@ -82,16 +81,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        if parameters.cheetah is None:
-            log.error("'cheetah' section is not present in the configuration file")
-            sys.exit(1)
         if parameters.crystallography is None:
             log.error(
                 "'crystallography' section is not present in the configuration file"
             )
             sys.exit(1)
 
-        self._cheetah_parameters: CheetahParameters = parameters.cheetah
         self._crystallography_parameters: CrystallographyParameters = (
             parameters.crystallography
         )
@@ -305,7 +300,6 @@ class CrystallographyProcessing(OmProcessingProtocol):
         processed_data["detector_distance"] = data["detector_distance"]
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
-        print(f"{data['event_id']}")
         processed_data["peak_list"] = peak_list
         if self._crystallography_parameters.pump_probe_experiment:
             processed_data["optical_laser_active"] = data["optical_laser_active"]

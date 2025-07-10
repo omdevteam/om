@@ -28,16 +28,14 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from mpi4py import MPI
 
-from om.data_retrieval_layer.data_event_handlers_psana2 import Psana2DataEventHandler
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
-from om.lib.parameters import DataSourceParameters
+from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
-from src.om.lib.parameters import DataRetrievalLayerParameters
 
 
 class MpiTags(int, Enum):
@@ -147,7 +145,6 @@ class MpiParallelization(OmParallelizationProtocol):
                             source=MPI.ANY_SOURCE, tag=MpiTags.data, status=mpi_status
                         )
                         if "end" in received_data[0]:
-
                             # If the received message announces that a processing node
                             # has finished processing data, keeps track of how many
                             # processing nodes have already finished.
@@ -163,7 +160,7 @@ class MpiParallelization(OmParallelizationProtocol):
                                 self._processing_layer.end_processing_on_collecting_node(  # noqa: E501
                                     node_rank=self._rank, node_pool_size=self._mpi_size
                                 )
-                                req: Any = MPI.COMM_WORLD.Ibarrier()
+                                req = MPI.COMM_WORLD.Ibarrier()
                                 while req.Test() is False:
                                     time.sleep(0.05)
                                 if self._skip_rank_finalization is False:
@@ -302,7 +299,7 @@ class MpiParallelization(OmParallelizationProtocol):
             if req:
                 req.Wait()
 
-            req: Any = MPI.COMM_WORLD.Ibarrier()
+            req = MPI.COMM_WORLD.Ibarrier()
             while req.Test() is False:
                 if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.feedback):
                     _: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
@@ -353,7 +350,7 @@ class MpiParallelization(OmParallelizationProtocol):
                         break
                 # When all the processing nodes have confirmed, shuts down the
                 # collecting node.
-                req: Any = MPI.COMM_WORLD.Ibarrier()
+                req = MPI.COMM_WORLD.Ibarrier()
                 while req.Test() is False:
                     time.sleep(0.05)
                 if self._skip_rank_finalization is False:
@@ -364,7 +361,7 @@ class MpiParallelization(OmParallelizationProtocol):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            req: Any = MPI.COMM_WORLD.Ibarrier()
+            req = MPI.COMM_WORLD.Ibarrier()
             while req.Test() is False:
                 if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.feedback):
                     _: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(

@@ -23,96 +23,47 @@ and data events to be processed. Modules in this package contain functions and c
 for specific detectors, facilities or software frameworks.
 """
 
-from .data_sources_common import (  # noqa: F401
-    ArrayFromHdf5File,
-    FloatValueFromConfiguration,
-    IntValueFromConfiguration,
-    TimestampFromEvent,
-)
-from .data_sources_files import (  # noqa: F401
-    Eiger16MFiles,
-    EventIdEiger16MFiles,
-    EventIdFromFilePath,
-    EventIdJungfrau1MFiles,
-    EventIdLambda1M5Files,
-    Jungfrau1MFiles,
-    Lambda1M5Files,
-    RayonixMccdSingleFrameFiles,
-    TimestampFromFileModificationTime,
-    TimestampJungfrau1MFiles,
-)
-from .data_sources_zmq import (  # noqa: F401
-    EventIdJungfrau1MZmq,
-    Jungfrau1MZmq,
-    TimestampJungfrau1MZmq,
-)
-
-try:
-    import fabio  # type: ignore  # noqa: F401
-
-    from .data_sources_files import PilatusSingleFrameFiles  # noqa: F401
-except ModuleNotFoundError:
-    pass
-
-
-try:
-    import psana  # type: ignore  # noqa: F401
-
-    from .data_sources_psana import (  # noqa: F401
-        AcqirisPsana,
-        AreaDetectorPsana,
-        AssembledDetectorPsana,
-        BeamEnergyFromEpicsVariablePsana,
-        BeamEnergyPsana,
-        CspadPsana,
-        DiodeTotalIntensityPsana,
-        EpicsVariablePsana,
-        EventIdPsana,
-        EvrCodesPsana,
-        LclsExtraPsana,
-        OpalPsana,
-        TimestampPsana,
-        Wave8TotalIntensityPsana,
-    )
-except ModuleNotFoundError:
-    pass
-
-
-try:
-    import psana  # type: ignore  # noqa: F401
-
-    from .data_sources_psana2 import (  # noqa: F401
-        AreaDetectorPsana2,
-        AssembledDetectorPsana2,
-        BeamEnergyFromEpicsVariablePsana2,
-        BeamEnergyPsana2,
-        EpicsVariablePsana2,
-        EventIdPsana2,
-        TimestampPsana2,
-    )
-except ModuleNotFoundError:
-    pass
-
 try:
     import asapo_consumer  # type: ignore  # noqa: F401
 
-    from .data_sources_asapo import (  # noqa: F401
-        BeamEnergyAsapo,
-        DetectorDataAsapo,
-        DetectorDistanceAsapo,
-        EventIdAsapo,
-        TimestampAsapo,
-    )
+    from .data_event_handlers_asapo import AsapoDataEventHandler  # noqa: F401
 except ModuleNotFoundError:
     ...
 
 try:
-    import PIL  # type: ignore  # noqa: F401
+    import fabio  # type: ignore  # noqa: F401
 
-    from .data_sources_http import (  # noqa: F401
-        Eiger16MHttp,
-        EventIdEiger16MHttp,
-        TimestampEiger16MHttp,
-    )
+    from .data_event_handlers_files import PilatusFilesEventHandler  # noqa: F401
 except ModuleNotFoundError:
     pass
+
+try:
+    import PIL  # type: ignore  # noqa: F401
+
+    from .data_event_handlers_http import EigerHttpDataEventHandler  # noqa: F401
+except ModuleNotFoundError:
+    pass
+
+try:
+    import psana  # type: ignore  # noqa: F401
+
+    from .data_event_handlers_psana import PsanaDataEventHandler  # noqa: F401
+except ModuleNotFoundError:
+    pass
+
+
+try:
+    import psana  # type: ignore  # noqa: F401
+
+    from .data_event_handlers_psana2 import Psana2DataEventHandler  # noqa: F401
+except ModuleNotFoundError:
+    pass
+
+from .data_event_handlers_files import (
+    EigerFilesDataEventHandler,  # noqa: F401
+    Jungfrau1MFilesDataEventHandler,  # noqa: F401
+    Lambda1M5FilesDataEventHandler,  # noqa: F401
+    RayonixMccdFilesEventHandler,  # noqa: F401
+)
+
+from .data_event_handlers_zmq import Jungfrau1MZmqDataEventHandler  # noqa: F401

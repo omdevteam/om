@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import Self
@@ -33,14 +33,14 @@ class DataSourceParameters(CustomBaseModel):
 
 class DataRetrievalLayerParameters(CustomBaseModel):
     # asapo
-    asapo_url: Optional[str]
-    asapo_path: Optional[str]
-    asapo_data_source: Optional[str]
-    asapo_has_filesystem: Optional[bool]
-    asapo_token: Optional[str]
+    asapo_url: Optional[str] = Field(default=None)
+    asapo_path: Optional[str] = Field(default=None)
+    asapo_data_source: Optional[str] = Field(default=None)
+    asapo_has_filesystem: Optional[bool] = Field(default=None)
+    asapo_token: Optional[str] = Field(default=None)
     asapo_group_id: str = Field(default="default_om_group")
     # http
-    buffer_size: Optional[int]
+    buffer_size: Optional[int] = Field(default=None)
     # psana
     psana_calibration_directory: Optional[str] = Field(default=None)
     # all
@@ -218,30 +218,3 @@ class MonitorParameters(CustomBaseModel):
                 "be present in OM's configuration parameters: binning"
             )
         return self
-
-
-# Data Sources
-
-
-class _AreaDetectorPsanaParameters(BaseModel):
-    psana_name: str
-    gain_map_filename: Optional[Path] = Field(default=None)
-    gain_map_hdf5_path: Optional[str] = Field(default=None)
-    calibration: bool = Field(default=True)
-
-    @model_validator(mode="after")
-    def check_gain_map(self) -> Self:
-        if self.gain_map_filename is not None and self.gain_map_hdf5_path is None:
-            raise ValueError(
-                "If the gain_map_filename parameter is specified for a specific "
-                "detector, the gain_map_hdf5_path parameter must also be provided"
-            )
-        return self
-
-
-class _LclsExtraPsana2Parameters(BaseModel):
-    required_data: List[Tuple[str, str, str]]
-
-
-class _DetectorInterfacePsanaParameters(BaseModel):
-    psana_name: str

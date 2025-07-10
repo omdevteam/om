@@ -59,6 +59,7 @@ def _psana2_offline_event_generator(
         instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=data_retrieval_parameters.data_sources,
+                modules=["data_sources_psana2", "data_sources_common"],
                 additional_info={},
             )
         )

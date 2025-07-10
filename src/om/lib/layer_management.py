@@ -176,7 +176,9 @@ def import_data_source_class(
     module_name: str
     for module_name in module_names:
         try:
-            imported_layer: ModuleType = importlib.import_module(name=module_name)
+            imported_layer: ModuleType = importlib.import_module(
+                name=f"om.data_retrieval_layer.{module_name}"
+            )
             try:
                 imported_class: Type[OmDataSourceProtocol] = getattr(
                     imported_layer, class_name

@@ -29,7 +29,6 @@ from typing import Optional, Type
 import typer
 from typing_extensions import Annotated
 
-from om.data_retrieval_layer.event_retrieval import EventListDataRetrieval
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
@@ -101,7 +100,7 @@ def main(
         )
     except TypeError as exception:
         raise OmConfigurationFileSyntaxError(
-            "Error parsing monitor parameters: " f"{exception}"
+            f"Error parsing monitor parameters: {exception}"
         )
 
     if parameters.om.parallelization_layer == "MpiParallelization":
@@ -149,17 +148,15 @@ def main(
         data_event_handler_class: Type[OmDataEventHandlerProtocol] = (
             import_class_from_layer(
                 layer_name="data_retrieval_layer",
-                class_name=parameters.data_retrieval_layer,
+                class_name=parameters.om.data_retrieval_layer,
             )
         )
 
-
-
-        data_event_handler = data_event_handler_class(
+        data_retrieval_layer: OmDataEventHandlerProtocol = data_event_handler_class(
             parameters=monitor_parameters.data_retrieval_layer,
             source=source,
         )
-s
+
     processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
         layer_name="processing_layer", class_name=monitor_parameters.om.processing_layer
     )
@@ -178,7 +175,7 @@ s
     parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
-        parameters=monitor_parameters["data_retrieval_layer"],
+        parameters=monitor_parameters.data_retrieval_layer,
     )
 
     parallelization_layer.start()

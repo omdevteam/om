@@ -23,12 +23,15 @@ between the processing and collecting nodes. Modules in this package contain fun
 and classes for specific communication approaches or techniques.
 """
 
-from typing import Any, Dict, Protocol
+import mpi4py  # noqa: F401
+
+from .mpi import MpiParallelization  # noqa: F401
 
 try:
     import mpi4py  # noqa: F401
 
     from .mpi import MpiParallelization  # noqa: F401
+
 except ModuleNotFoundError:
     ...
 

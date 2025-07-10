@@ -177,6 +177,7 @@ class PilatusFilesEventHandler(
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_files", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -298,6 +299,7 @@ class PilatusFilesEventHandler(
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_files", "data_sources_common"],
             additional_info={},
         )
 
@@ -417,6 +419,7 @@ class Jungfrau1MFilesDataEventHandler(
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_files", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -531,6 +534,7 @@ class Jungfrau1MFilesDataEventHandler(
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_files", "data_sources_common"],
             additional_info={},
         )
 
@@ -636,6 +640,7 @@ class EigerFilesDataEventHandler(
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_files", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -756,6 +761,7 @@ class EigerFilesDataEventHandler(
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_files", "data_sources_common"],
             additional_info={},
         )
 
@@ -851,6 +857,7 @@ class RayonixMccdFilesEventHandler(
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_files", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -969,6 +976,7 @@ class RayonixMccdFilesEventHandler(
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_files", "data_sources_common"],
             additional_info={},
         )
 
@@ -1055,6 +1063,7 @@ class Lambda1M5FilesDataEventHandler(
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_files", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -1188,6 +1197,7 @@ class Lambda1M5FilesDataEventHandler(
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_files", "data_sources_common"],
             additional_info={},
         )
 

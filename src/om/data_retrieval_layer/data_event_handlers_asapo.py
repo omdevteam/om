@@ -30,6 +30,7 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Union
 import numpy
 from numpy.typing import NDArray
 
+from om.data_retrieval_layer import data_sources_psana
 from om.data_retrieval_layer.data_event_handlers_common import instantiate_data_sources
 from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
 from om.lib.parameters import DataRetrievalLayerParameters
@@ -226,6 +227,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_asapo", "data_sources_common"],
                 additional_info={},
             )
         )
@@ -352,6 +354,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
+            modules=["data_sources_asapo", "data_sources_common"],
             additional_info={},
         )
 

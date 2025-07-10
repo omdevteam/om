@@ -25,7 +25,7 @@ the HTTP/REST interface of detectors manufactured by company Dectris.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, Literal, Optional, Type, cast
+from typing import Any, Dict, Generator, Literal, Optional, cast
 
 import requests  # type: ignore
 
@@ -192,6 +192,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_http", "data_sources_common"],
                 additional_info={},
             )
         )

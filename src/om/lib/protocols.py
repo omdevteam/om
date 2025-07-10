@@ -113,7 +113,6 @@ class OmDataEventHandlerProtocol(Protocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, Type[OmDataSourceProtocol]],
         parameters: DataRetrievalLayerParameters,
     ) -> None:
         """

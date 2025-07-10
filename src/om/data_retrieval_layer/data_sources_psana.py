@@ -46,9 +46,9 @@ from numpy.typing import NDArray
 from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDependencyError,
-    OmWrongParameterTypeError,
 )
 from om.lib.files import load_hdf5_data
+from om.lib.layer_management import import_data_source_class
 from om.lib.logging import log
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
@@ -114,7 +114,6 @@ class OmDetectorInterfacePsanaDataSourceMixin:
             log.error(
                 f"Entry 'psana_name' is not defined for data source {data_source_name}"
             )
-            sys.exit(1)
             sys.exit(1)
         self._psana_name: str = extra_parameters["psana_name"]
 
@@ -570,8 +569,6 @@ class AreaDetectorPsana(OmDataSourceProtocol):
             )
             sys.exit(1)
         if "gain_map_filename" in extra_parameters:
-            gain_map_filename = extra_parameters["gain_map_filename"]
-
             if "gain_map_hdf5_path" not in extra_parameters:
                 log.error(
                     "Entry 'gain_map_filename' is defined for data source "
@@ -579,7 +576,11 @@ class AreaDetectorPsana(OmDataSourceProtocol):
                 )
                 sys.exit(1)
 
-            gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+            self._gain_map_filename = extra_parameters["gain_map_filename"]
+            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+
+        self._psana_name = extra_parameters["psana_name"]
+        self._calibration = extra_parameters["calibration"]
 
         del additional_info
 
@@ -595,25 +596,22 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         """
 
         detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-            self._parameters.psana_name
+            self._psana_name
         )
 
-        if self._parameters.calibration:
+        if self._calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
                 detector_interface.calib
             )
         else:
             self._data_retrieval_function = detector_interface.raw
 
-        if (
-            self._parameters.gain_map_filename is not None
-            and self._parameters.gain_map_hdf5_path is not None
-        ):
+        if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
             self._gain_map: Optional[NDArray[numpy.float_]] = cast(
                 Optional[NDArray[numpy.float_]],
                 load_hdf5_data(
-                    hdf5_filename=self._parameters.gain_map_filename,
-                    hdf5_path=self._parameters.gain_map_hdf5_path,
+                    hdf5_filename=self._gain_map_filename,
+                    hdf5_path=self._gain_map_hdf5_path,
                 ),
             )
         else:
@@ -652,7 +650,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         if psana_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         # Rearranges the data into 'slab' format.
@@ -1270,13 +1268,15 @@ class LclsExtraPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "data_sources" not in extra_parameters:
+        if "extra_data" not in extra_parameters:
             log.error(
-                f"Entry 'data_sources' is not defined for data source {data_source_name}"
+                f"Entry 'extra_data' is not defined for data source {data_source_name}"
             )
             sys.exit(1)
 
-        self._data_sources: List[Tuple[str, str, str]] = extra_parameters["lcls_extra"]
+        self._extra_data: List[Tuple[str, Dict[str, Any], str]] = extra_parameters[
+            "extra_data"
+        ]
 
     def initialize_data_source(self) -> None:
         """
@@ -1335,119 +1335,25 @@ class LclsExtraPsana(OmDataSourceProtocol):
                 data that is not supported yet.
         """
 
-        self._lcls_extra: Dict[str, Any] = {}
-        lcls_extra_index: int = 0
+        self._lcls_extra: Dict[str, OmDataSourceProtocol] = {}
 
-        data_item: Tuple[str, str, str]
-        for data_item in self._data_sources:
-            data_type, identifier, name = data_item
+        data_item: Tuple[str, Dict[str, Any], str]
+        for data_item in self._extra_data:
+            source_class_name, source_parameters, source_name = data_item
 
-            if data_type == "acqiris_waveform":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = AcqirisPsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-                lcls_extra_index += 1
-            elif data_type == "epics_pv":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = EpicsVariablePsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-                lcls_extra_index += 1
-            elif data_type == "wave8_total_intensity":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = Wave8TotalIntensityPsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-                lcls_extra_index += 1
-            elif data_type == "opal_camera":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = OpalPsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-                lcls_extra_index += 1
-            elif data_type == "assembled_detector_data":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = AssembledDetectorPsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-                lcls_extra_index += 1
-            elif data_type == "event_code_list":
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                self._lcls_extra[name] = EvrCodeListPsana(
-                    data_source_name=f"lcls_extra_{lcls_extra_index}",
-                    parameters={
-                        f"lcls_extra_{lcls_extra_index}": self._lcls_extra_parameters[
-                            identifier
-                        ]
-                    },
-                    additional_info={},
-                )
-            else:
-                if identifier not in self._lcls_extra_parameters:
-                    raise AttributeError(
-                        "The following section must be present in the configuration "
-                        f"file: data retrieval_layer/lcls_extra/{identifier}"
-                    )
-                raise OmWrongParameterTypeError(
-                    f"The requested '{data_type}' LCLS-specific data type is "
-                    "not supported."
-                )
-            self._lcls_extra[name].initialize_data_source()
+            data_source_class: Type[OmDataSourceProtocol] = import_data_source_class(
+                module_names=["data_sources_psana", "data_sources_common"],
+                class_name=source_class_name,
+            )
+            data_source_parameters: DataSourceParameters = (
+                DataSourceParameters.model_validate(source_parameters)
+            )
+            self._lcls_extra[source_name] = data_source_class(
+                data_source_name=f"lcls_extra_{source_name}",
+                parameters=data_source_parameters,
+                additional_info={},
+            )
+            self._lcls_extra[source_name].initialize_data_source()
 
     def get_data(self, *, event: Dict[str, Any]) -> Dict[str, Any]:
         """

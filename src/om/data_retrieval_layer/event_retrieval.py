@@ -20,133 +20,14 @@ This module contains classes that deals with the retrieval of single standalone 
 """
 
 from pathlib import Path
-from typing import Any, Dict, Generator, List, TextIO, Type, Literal
+from typing import Any, Dict, Generator, List, Literal, TextIO, Type
 
-from om.lib.exceptions import OmConfigurationFileSyntaxError, OmInvalidSourceError
-from om.lib.layer_management import import_class_from_layer
+from om.lib.exceptions import OmInvalidSourceError
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
-    OmDataRetrievalProtocol,
     OmDataSourceProtocol,
 )
-
-
-class OmEventDataRetrieval:
-    """
-    See documentation for the `__init__` function.
-    """
-
-    def __init__(self, *, parameters: Dict[str, Dict[str, Any]], source: str) -> None:
-        """
-        Retrieval of single standalone data events.
-
-        This class deals with the retrieval of single standalone data events from a
-        data source.
-
-        Arguments:
-
-            monitor_parameters: An object storing OM's configuration parameters.
-
-            source: A string describing the data event source.
-        """
-
-        try:
-            self._parameters = _MonitorParameters.model_validate(parameters)
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing OM's configuration parameters: " f"{exception}"
-            )
-
-        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = (
-            import_class_from_layer(
-                layer_name="data_retrieval_layer",
-                class_name=self._parameters.om.data_retrieval_layer,
-            )
-        )
-
-        data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-            parameters=parameters["data_retrieval_layer"],
-            source=source,
-        )
-
-        self._data_event_handler: OmDataEventHandlerProtocol = (
-            data_retrieval_layer.get_data_event_handler()
-        )
-
-        self._data_event_handler.initialize_event_data_retrieval()
-
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
-        """
-        Retrieves all data attached to the requested data event.
-
-        This function retrieves all the information associated with the data event
-        specified by the provided identifier. The data is returned in the form of a
-        dictionary.
-
-        * Each dictionary key identifies a Data Source in the event for which
-          information has been retrieved.
-
-        * The corresponding dictionary values store the data associated with each
-          Data Source.
-
-        Arguments:
-
-            event_id: a string that uniquely identifies a data event.
-
-        Returns:
-
-            A dictionary storing all data related the retrieved event.
-        """
-        return self._data_event_handler.retrieve_event_data(event_id=event_id)
-
-
-class EventListDataRetrieval(OmDataRetrievalProtocol):
-    """
-    See documentation for the `__init__` function.
-    """
-
-    def __init__(
-        self, *, parameters: Dict[str, Any], source: str, event_list_file: Path
-    ) -> None:
-        """
-        Data retrieval from event lists.
-
-        This class implements OM's Data Retrieval Layer for a set of event IDs for a
-        certain data retrieval protocol.
-
-        This class implements the interface described by its base Protocol class.
-        Please see the documentation of that class for additional information about
-        the interface.
-
-        TODO: write documentation.
-
-        Arguments:
-
-            monitor_parameters: An object storing OM's configuration parameters.
-
-            source: A string describing the data event source.
-
-            event_list_file: A string describing the path to the event list file.
-        """
-        self._data_event_handler: EventListEventHandler = EventListEventHandler(
-            source=source,
-            event_list_file=event_list_file,
-            data_sources={},
-            parameters=parameters,
-        )
-
-    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
-        """
-        Retrieves the Data Event Handler used by the class.
-
-        This function returns the Data Event Handler used by the Data Retrieval class
-        to manipulate data events.
-
-        Returns:
-
-            The Data Event Handler used by the Data Retrieval class.
-        """
-        return self._data_event_handler
+from om.lib.layer_management import import_class_from_layer
 
 
 class EventListEventHandler(OmDataEventHandlerProtocol):
@@ -235,6 +116,13 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        data_event_handler_class: Type[OmDataEventHandlerProtocol] = (
+            import_class_from_layer(
+                layer_name="data_retrieval_layer",
+                class_name=parameters.data_retrieval_layer,
+            )
+        )
+
         self._event_retrieval = OmEventDataRetrieval(
             parameters=self._monitor_parameters,
             source=self._source,

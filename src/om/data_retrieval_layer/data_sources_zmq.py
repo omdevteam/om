@@ -28,6 +28,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMixin
+from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 T = TypeVar("T")
@@ -49,7 +50,7 @@ class OmBaseZmqDataSourceMixin:
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
+        parameters: DataSourceParameters,
         additonal_info: Dict[str, Any],
     ):
         """
@@ -177,7 +178,7 @@ class Jungfrau1MZmq(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
             ]
         )
 
-        if self._calibrated_data_required:
-            return self._calibration.apply_calibration(data=data)
+        if self._calibration:
+            return self._calibration_algorithm.apply_calibration(data=data)
         else:
             return data

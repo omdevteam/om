@@ -32,8 +32,6 @@ import msgpack  # type: ignore
 import msgpack_numpy  # type: ignore
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
-from typing_extensions import Self
 
 from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
@@ -47,7 +45,6 @@ from om.lib.cheetah import (
 )
 from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
 from om.lib.parameters import (
@@ -57,7 +54,6 @@ from om.lib.parameters import (
 )
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
-from src.om.lib import parameters
 
 T = TypeVar("T")
 

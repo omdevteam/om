@@ -30,7 +30,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    List,
     Optional,
     Tuple,
     Type,
@@ -41,8 +40,6 @@ from typing import (
 
 import numpy
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from typing_extensions import Self
 
 from om.lib.exceptions import (
     OmConfigurationFileSyntaxError,
@@ -62,9 +59,6 @@ except ImportError:
 
 
 T = TypeVar("T")
-
-
-a: int = 4.5
 
 
 class OmDetectorInterfacePsana2DataSourceMixin:
@@ -105,7 +99,6 @@ class OmDetectorInterfacePsana2DataSourceMixin:
 
             parameters: An object storing OM's configuration parameters.
         """
-
         self._run: Any = additional_info["run"]
 
     def initialize_data_source(self) -> None:
