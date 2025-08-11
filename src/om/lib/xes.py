@@ -19,7 +19,7 @@
 TODO
 """
 
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -224,10 +224,6 @@ class XesAnalysisAndPlots:
                     numpy.abs(spectra_cumulative_sum_dark)
                 )
 
-            if (
-                spectra_cumulative_sum_pumped is not None
-                and spectra_cumulative_sum_dark is not None
-            ):
                 spectra_cumulative_sum_difference = (
                     spectra_cumulative_sum_pumped - spectra_cumulative_sum_dark
                 )

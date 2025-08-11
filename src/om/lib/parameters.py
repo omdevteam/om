@@ -118,8 +118,16 @@ class BinningParameters(CustomBaseModel):
 class XesParameters(CustomBaseModel):
     intensity_threshold: Optional[float] = Field(default=None)
     rotation_in_degrees: float
+    geometry_file: str
+    data_broadcast_url: Optional[str] = Field(default=None)
+    data_broadcast_interval: int
+    time_resolved: bool = Field(default=False)
     min_row_in_pix_for_integration: int
     max_row_in_pix_for_integration: int
+    running_average_window_size: int
+    speed_report_interval: int
+    hit_frame_sending_interval: Optional[int] = Field(default=None)
+    non_hit_frame_sending_interval: Optional[int] = Field(default=None)
 
 
 class CheetahParameters(CustomBaseModel):

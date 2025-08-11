@@ -60,7 +60,7 @@ def _psana2_offline_event_generator(
             instantiate_data_sources(
                 data_sources=data_retrieval_parameters.data_sources,
                 modules=["data_sources_psana2", "data_sources_common"],
-                additional_info={},
+                additional_info={"run": run},
             )
         )
 

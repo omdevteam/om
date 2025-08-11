@@ -25,6 +25,7 @@ This module contains Data Source classes that deal with data retrieved from  the
 software framework (used at the LCLS facility).
 """
 
+import sys
 from pathlib import Path
 from typing import (
     Any,
@@ -47,6 +48,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
 )
 from om.lib.files import load_hdf5_data
+from om.lib.logging import log
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
@@ -100,6 +102,18 @@ class OmDetectorInterfacePsana2DataSourceMixin:
             parameters: An object storing OM's configuration parameters.
         """
         self._run: Any = additional_info["run"]
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
+            )
+            sys.exit(1)
+        if "psana_name" not in extra_parameters:
+            log.error(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+        self._psana_name: str = extra_parameters["psana_name"]
 
     def initialize_data_source(self) -> None:
         """
@@ -111,7 +125,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        self._detector_interface: Any = self._run.Detector(self._parameters.psana_name)
+        self._detector_interface: Any = self._run.Detector(self._psana_name)
 
 
 class AssembledDetectorPsana2(
@@ -301,23 +315,39 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         """
         self._run: Any = additional_info["run"]
 
-        if data_source_name not in parameters:
-            raise AttributeError(
-                "The following section must be present in the configuration file: "
-                f"data retrieval_layer/{data_source_name}"
+        self._gain_map_filename: Path = Path("")
+        self._gain_map_hdf5_path: str = ""
+
+        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+
+        if extra_parameters is None:
+            log.error(
+                f"Entries needed by the {data_source_name} data source are not defined"
             )
-        try:
-            self._parameters: _AreaDetectorPsana2Parameters = (
-                _AreaDetectorPsana2Parameters.model_validate(
-                    parameters[data_source_name]
+            sys.exit(1)
+        if "psana_name" not in extra_parameters:
+            log.error(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+        if "calibration" not in extra_parameters:
+            log.error(
+                f"Entry 'calibration' is not defined for data source {data_source_name}"
+            )
+            sys.exit(1)
+        if "gain_map_filename" in extra_parameters:
+            if "gain_map_hdf5_path" not in extra_parameters:
+                log.error(
+                    "Entry 'gain_map_filename' is defined for data source "
+                    f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
                 )
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing the following section of OM's configuration parameters: "
-                f"data_retrieval_layer/{data_source_name}"
-                f"{exception}"
-            )
+                sys.exit(1)
+
+            self._gain_map_filename = extra_parameters["gain_map_filename"]
+            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+
+        self._psana_name: str = extra_parameters["psana_name"]
+        self._calibration: bool = extra_parameters["calibration"]
 
     def initialize_data_source(self) -> None:
         """
@@ -329,24 +359,21 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = self._run.Detector(self._parameters.psana_name)
+        detector_interface: Any = self._run.Detector(self._psana_name)
 
-        if self._parameters.calibration:
+        if self._calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
                 detector_interface.raw.calib
             )
         else:
             self._data_retrieval_function = detector_interface.raw.raw
 
-        if (
-            self._parameters.gain_map_filename is not None
-            and self._parameters.gain_map_hdf5_path is not None
-        ):
+        if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
             self._gain_map: Optional[NDArray[numpy.float_]] = cast(
                 Optional[NDArray[numpy.float_]],
                 load_hdf5_data(
-                    hdf5_filename=self._parameters.gain_map_filename,
-                    hdf5_path=self._parameters.gain_map_hdf5_path,
+                    hdf5_filename=self._gain_map_filename,
+                    hdf5_path=self._gain_map_hdf5_path,
                 ),
             )
         else:
@@ -357,7 +384,6 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
-
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
@@ -385,7 +411,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         if psana_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
-                f"{self._parameters.psana_name}"
+                f"{self._psana_name}"
             )
 
         # Rearranges the data into 'slab' format.

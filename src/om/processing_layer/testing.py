@@ -21,26 +21,14 @@ OnDA Test Monitor.
 This module contains an OnDA Monitor that can be used for testing.
 """
 
+import sys
 import time
 from typing import Any, Dict, Optional, Tuple
 
-from pydantic import BaseModel, Field, ValidationError
-
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.logging import log
+from om.lib.parameters import CrystallographyParameters, MonitorParameters
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-
-
-class _CrystallographyParameters(BaseModel):
-    speed_report_interval: int
-    data_broadcast_interval: int
-    data_broadcast_url: Optional[str] = Field(default=None)
-    responding_url: Optional[str] = Field(default=None)
-
-
-class _MonitorParameters(BaseModel):
-    crystallography: _CrystallographyParameters
 
 
 class TestProcessing(OmProcessingProtocol):
@@ -48,7 +36,7 @@ class TestProcessing(OmProcessingProtocol):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, parameters: Dict[str, Any]) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         OnDA Test Monitor.
 
@@ -64,16 +52,15 @@ class TestProcessing(OmProcessingProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._monitor_parameters: Dict[str, Any] = parameters
+        if parameters.crystallography is None:
+            log.error(
+                "'crystallography' section is not present in the configuration file"
+            )
+            sys.exit(1)
 
-        try:
-            self._parameters: _MonitorParameters = _MonitorParameters.model_validate(
-                self._monitor_parameters
-            )
-        except ValidationError as exception:
-            raise OmConfigurationFileSyntaxError(
-                "Error parsing OM's configuration parameters: " f"{exception}"
-            )
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -117,12 +104,13 @@ class TestProcessing(OmProcessingProtocol):
                 processing nodes and the collecting node.
         """
 
+        # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            data_broadcast_url=self._parameters.crystallography.data_broadcast_url
+            data_broadcast_url=self._crystallography_parameters.data_broadcast_url
         )
 
         self._responding_socket: ZmqResponder = ZmqResponder(
-            responding_url=self._parameters.crystallography.responding_url
+            responding_url=self._crystallography_parameters.responding_url
         )
 
         self._num_events: int = 0
@@ -239,7 +227,7 @@ class TestProcessing(OmProcessingProtocol):
         log.info(f"Timestamp: {received_data['timestamp']}")
 
         if (
-            self._num_events % self._parameters.crystallography.data_broadcast_interval
+            self._num_events % self._crystallography_parameters.data_broadcast_interval
             == 0
         ):
             self._data_broadcast_socket.send_data(
@@ -251,13 +239,13 @@ class TestProcessing(OmProcessingProtocol):
             )
 
         if (
-            self._num_events % self._parameters.crystallography.speed_report_interval
+            self._num_events % self._crystallography_parameters.speed_report_interval
             == 0
         ):
             now_time: float = time.time()
             time_diff: float = now_time - self._old_time
             events_per_second: float = float(
-                self._parameters.crystallography.speed_report_interval
+                self._crystallography_parameters.speed_report_interval
             ) / float(now_time - self._old_time)
             log.info(
                 f"Processed: {self._num_events} in "
@@ -311,10 +299,9 @@ class TestProcessing(OmProcessingProtocol):
             node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size: The total number of nodes in the OM pool, including all the
-                processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all
+                the processing nodes and the collecting node.
         """
         log.info(
-            "Processing finished. OM has processed "
-            f"{self._num_events} events in total."
+            f"Processing finished. OM has processed {self._num_events} events in total."
         )
