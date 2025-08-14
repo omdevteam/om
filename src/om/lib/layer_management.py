@@ -25,7 +25,7 @@ extraction layers.
 import importlib
 import sys
 from types import ModuleType
-from typing import List, Literal, Type, Union, overload
+from typing import Literal, overload
 
 from om.lib.exceptions import OmMissingLayerClassError, OmMissingLayerModuleError
 from om.lib.protocols import (
@@ -39,7 +39,7 @@ from om.lib.protocols import (
 @overload
 def import_class_from_layer(
     *, layer_name: Literal["processing_layer"], class_name: str
-) -> Type[OmProcessingProtocol]:
+) -> type[OmProcessingProtocol]:
     """ """
     ...
 
@@ -47,7 +47,7 @@ def import_class_from_layer(
 @overload
 def import_class_from_layer(
     *, layer_name: Literal["data_retrieval_layer"], class_name: str
-) -> Type[OmDataEventHandlerProtocol]:
+) -> type[OmDataEventHandlerProtocol]:
     """ """
     ...
 
@@ -55,24 +55,22 @@ def import_class_from_layer(
 @overload
 def import_class_from_layer(
     *, layer_name: Literal["parallelization_layer"], class_name: str
-) -> Type[OmParallelizationProtocol]:
+) -> type[OmParallelizationProtocol]:
     """ """
     ...
 
 
 def import_class_from_layer(
     *,
-    layer_name: Union[
-        Literal["parallelization_layer"],
-        Literal["data_retrieval_layer"],
-        Literal["processing_layer"],
+    layer_name: Literal[
+        "parallelization_layer", "data_retrieval_layer", "processing_layer"
     ],
     class_name: str,
-) -> Union[
-    Type[OmParallelizationProtocol],
-    Type[OmDataEventHandlerProtocol],
-    Type[OmProcessingProtocol],
-]:
+) -> (
+    type[OmParallelizationProtocol]
+    | type[OmDataEventHandlerProtocol]
+    | type[OmProcessingProtocol]
+):
     """
     Imports a class from an OM's layer.
 
@@ -105,11 +103,11 @@ def import_class_from_layer(
     try:
         imported_layer: ModuleType = importlib.import_module(name=layer_name)
         try:
-            imported_class: Union[
-                Type[OmParallelizationProtocol],
-                Type[OmDataEventHandlerProtocol],
-                Type[OmProcessingProtocol],
-            ] = getattr(imported_layer, class_name)
+            imported_class: (
+                type[OmParallelizationProtocol]
+                | type[OmDataEventHandlerProtocol]
+                | type[OmProcessingProtocol]
+            ) = getattr(imported_layer, class_name)
             return imported_class
         except AttributeError:
             raise OmMissingLayerClassError(
@@ -141,9 +139,9 @@ def import_class_from_layer(
 
 def import_data_source_class(
     *,
-    module_names: List[str],
+    module_names: list[str],
     class_name: str,
-) -> Type[OmDataSourceProtocol]:
+) -> type[OmDataSourceProtocol]:
     """
     Imports a class from an OM's layer.
 
@@ -180,7 +178,7 @@ def import_data_source_class(
                 name=f"om.data_retrieval_layer.{module_name}"
             )
             try:
-                imported_class: Type[OmDataSourceProtocol] = getattr(
+                imported_class: type[OmDataSourceProtocol] = getattr(
                     imported_layer, class_name
                 )
                 return imported_class

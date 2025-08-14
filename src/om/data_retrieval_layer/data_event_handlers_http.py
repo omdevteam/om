@@ -25,7 +25,7 @@ the HTTP/REST interface of detectors manufactured by company Dectris.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, Literal, Optional, cast
+from typing import Any, Generator, Literal, cast
 
 import requests  # type: ignore
 
@@ -93,7 +93,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
-    ) -> Optional[Literal["enabled", "disabled"]]:
+    ) -> Literal["enabled", "disabled"] | None:
         # Checks if the detector is available. If not, keeps retrying for 1 minute.
         # If detector is available, returns the state of the detector monitor mode.
         while count_down > 0:
@@ -189,7 +189,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         while self._check_detector_monitor_mode() != "enabled":
             time.sleep(0.5)
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_http", "data_sources_common"],
@@ -202,7 +202,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves events from Eiger's HTTP/REST interface.
 
@@ -222,7 +222,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
         del node_pool_size
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         while True:
@@ -253,8 +253,8 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from an Eiger HTTP/REST event.
 
@@ -279,7 +279,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
         for source_name in self._instantiated_data_sources:
@@ -316,7 +316,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         """
         raise NotImplementedError
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 

@@ -23,7 +23,7 @@ a ZMQ stream.
 """
 
 import sys
-from typing import Any, Dict, Generator, Literal, Tuple
+from typing import Any, Generator, Literal
 
 import zmq
 
@@ -145,7 +145,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
                 "correct permissions to access the socket."
             ) from exc
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_zmq", "data_sources_common"],
@@ -158,7 +158,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Jungfrau 1M events from a ZMQ stream.
 
@@ -180,11 +180,11 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
 
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         while True:
-            msg: Tuple[Dict[str, Any], Dict[str, Any]] = self._zmq_socket.recv_pyobj()
+            sg: tuple[dict[str, Any], dict[str, Any]] = self._zmq_socket.recv_pyobj()
             data_event["data"] = msg
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)
@@ -195,8 +195,8 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a Jungfrau 1M ZMQ event.
 
@@ -221,7 +221,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
@@ -258,7 +258,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         """
         raise NotImplementedError
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 

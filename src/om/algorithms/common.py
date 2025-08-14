@@ -18,7 +18,6 @@
 """ """
 
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -50,9 +49,9 @@ class PeakList:
     """
 
     num_peaks: int
-    fs: List[float]
-    ss: List[float]
-    intensity: List[float]
-    num_pixels: List[float]
-    max_pixel_intensity: List[float]
-    snr: List[float]
+    fs: list[float]
+    ss: list[float]
+    intensity: list[float]
+    num_pixels: list[float]
+    max_pixel_intensity: list[float]
+    snr: list[float]

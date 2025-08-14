@@ -25,7 +25,7 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 import pathlib
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, TextIO, Tuple, Union, cast
+from typing import Any, TextIO, cast
 
 import h5py  # type: ignore
 import hdf5plugin  # type: ignore
@@ -63,7 +63,7 @@ class ClassSumData:
 
 
 @dataclass(order=True)
-class FrameListData:
+class FramelistData:
     """
     Cheetah frame list data.
 
@@ -90,7 +90,7 @@ class FrameListData:
     """
 
     timestamp: numpy.float64
-    event_id: Optional[str]
+    event_id: str | None
     frame_is_hit: int
     filename: str
     index_in_file: int
@@ -175,7 +175,7 @@ class CheetahStatusFileWriter:
             fh.write(f"Number of hits: {num_hits}\n")
 
 
-class CheetahListFilesWriter:
+class CheetahlistFilesWriter:
     """
     See documentation for the `__init__` function.
     """
@@ -246,12 +246,12 @@ class CheetahListFilesWriter:
         self._hits_filename: pathlib.Path = processed_directory / "hits.lst"
         self._hits_file: TextIO = open(self._hits_filename, "w")
 
-        self._frame_list: List[FrameListData] = []
+        self._frame_list: list[FramelistData] = []
 
     def add_frame(
         self,
         *,
-        frame_data: FrameListData,
+        frame_data: FramelistData,
         peak_list: PeakList,
     ) -> None:
         """
@@ -321,7 +321,7 @@ class CheetahListFilesWriter:
         sorted data to the `frames.txt`, `cleaned.txt` and `events.lst` files. The
         function then closes all the list files.
         """
-        frame_list: List[FrameListData] = sorted(self._frame_list)
+        frame_list: list[FramelistData] = sorted(self._frame_list)
         self._frames_file.close()
         self._events_file.close()
         self._hits_file.close()
@@ -329,7 +329,7 @@ class CheetahListFilesWriter:
 
         fh: TextIO
         with open(self._events_filename, "w") as fh:
-            frame: FrameListData
+            frame: FramelistData
             for frame in frame_list:
                 fh.write(f"{frame.event_id}\n")
         with open(self._hits_filename, "w") as fh:
@@ -404,7 +404,7 @@ class CheetahClassSumsAccumulator:
         self,
         *,
         class_number: int,
-        frame_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+        frame_data: NDArray[numpy.float_ | numpy.int_],
         peak_list: PeakList,
     ) -> None:
         """
@@ -425,7 +425,7 @@ class CheetahClassSumsAccumulator:
         if self._cheetah_parameters.class_sums_sending_interval == -1:
             return
         if self._sum_sending_counter == 0:
-            self._sums: List[ClassSumData] = [
+            self._sums: list[ClassSumData] = [
                 ClassSumData(
                     num_frames=0,
                     sum_frames=numpy.zeros(frame_data.shape),
@@ -450,7 +450,7 @@ class CheetahClassSumsAccumulator:
 
     def get_sums_for_sending(
         self, disregard_counter: bool = False
-    ) -> Union[None, List[ClassSumData]]:
+    ) -> list[ClassSumData] | None:
         """
         Retrieves the frame sum and virtual powder pattern from the accumulator.
 
@@ -525,7 +525,7 @@ class CheetahClassSumsCollector:
         self._class_sums_update_interval: int = parameters.class_sums_update_interval
 
         if self._write_class_sums:
-            self._sum_writers: Dict[int, SumHDF5Writer] = {
+            self._sum_writers: dict[int, SumHDF5Writer] = {
                 class_number: SumHDF5Writer(
                     powder_class=class_number,
                     parameters=parameters,
@@ -537,7 +537,7 @@ class CheetahClassSumsCollector:
     def add_sums(
         self,
         *,
-        class_sums: List[ClassSumData],
+        class_sums: list[ClassSumData],
     ) -> None:
         """
         Adds information to the collectors
@@ -551,7 +551,7 @@ class CheetahClassSumsCollector:
             class_sums: The information to be added to the collector.
         """
         if self._class_sum_update_counter == 0:
-            self._sums: List[ClassSumData] = class_sums
+            self._sums: list[ClassSumData] = class_sums
         else:
             class_number: int
             for class_number in range(len(class_sums)):
@@ -667,7 +667,7 @@ class HDF5Writer:
 
         # Compression
         if parameters.hdf5_file_compression == Hdf5Compression.gzip:
-            self._compression_kwargs: Dict[str, Any] = {
+            self._compression_kwargs: dict[str, Any] = {
                 "compression": "gzip",
                 "compression_opts": (parameters.hdf5_file_gzip_compression_level,),
             }
@@ -685,12 +685,12 @@ class HDF5Writer:
         # TODO: Check
 
         self._h5file: Any = None
-        self._resizable_datasets: Dict[str, Any] = {}
-        self._extra_groups: Dict[str, Any] = {}
-        self._requested_datasets: Set[str] = set(parameters.hdf5_fields.keys())
+        self._resizable_datasets: dict[str, Any] = {}
+        self._extra_groups: dict[str, Any] = {}
+        self._requested_datasets: set[str] = set(parameters.hdf5_fields.keys())
         self._num_frames: int = 0
 
-    def _create_file_and_datasets(self, *, processed_data: Dict[str, Any]) -> None:
+    def _create_file_and_datasets(self, *, processed_data: dict[str, Any]) -> None:
         # This function is called when the first data comes. It opens the output hdf5
         # file and creates all the requested datasets.
         self._h5file = h5py.File(self._processed_filename, "w")
@@ -827,7 +827,7 @@ class HDF5Writer:
                 )
 
     def _create_extra_datasets(
-        self, *, group_name: str, extra_data: Dict[str, Any]
+        self, *, group_name: str, extra_data: dict[str, Any]
     ) -> None:
         # Creates an empty dataset in the extra data group for each item in extra_data
         # dict using dict keys as dataset names. Supported data types: numpy arrays,
@@ -872,14 +872,14 @@ class HDF5Writer:
                     "its format is not supported."
                 )
 
-    def _write_extra_data(self, *, group_name: str, extra_data: Dict[str, Any]) -> None:
+    def _write_extra_data(self, *, group_name: str, extra_data: dict[str, Any]) -> None:
         # Writes the extra_data items.
         key: str
         value: Any
         for key, value in extra_data.items():
             self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
 
-    def write_frame(self, *, processed_data: Dict[str, Any]) -> None:  # noqa: C901
+    def write_frame(self, *, processed_data: dict[str, Any]) -> None:  # noqa: C901
         """
         Writes data into an HDF5 data file.
 
@@ -955,7 +955,7 @@ class HDF5Writer:
             self._processed_filename_extension
         )
         self._processed_filename.rename(final_filename)
-        log.info(f"{self._num_frames} frames saved in " f"{final_filename} file.")
+        log.info(f"{self._num_frames} frames saved in {final_filename} file.")
 
     def get_current_filename(self) -> pathlib.Path:
         """
@@ -1029,7 +1029,7 @@ class SumHDF5Writer:
             f"-detector0-class{powder_class}-sum.h5"
         )
 
-    def _create_hdf5_file_and_datasets(self, *, data_shape: Tuple[int, ...]) -> None:
+    def _create_hdf5_file_and_datasets(self, *, data_shape: tuple[int, ...]) -> None:
         # Creates the HDF5 file and all datasets.
         self._h5file: Any = h5py.File(self._filename, "w")
         self._h5file.create_dataset(

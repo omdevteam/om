@@ -24,7 +24,7 @@ by OM.
 
 import time
 from itertools import cycle
-from typing import Iterator, Optional
+from typing import Iterator
 
 from om.lib.logging import log
 
@@ -37,10 +37,10 @@ class EventCounter:
     def __init__(
         self,
         *,
-        speed_report_interval: Optional[int] = None,
-        data_broadcast_interval: Optional[int] = None,
-        hit_frame_sending_interval: Optional[int] = None,
-        non_hit_frame_sending_interval: Optional[int] = None,
+        speed_report_interval: int | None = None,
+        data_broadcast_interval: int | None = None,
+        hit_frame_sending_interval: int | None = None,
+        non_hit_frame_sending_interval: int | None = None,
         node_pool_size: int,
     ) -> None:
         """
@@ -83,17 +83,17 @@ class EventCounter:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: Optional[int] = speed_report_interval
-        self._data_broadcast_interval: Optional[int] = data_broadcast_interval
-        self._hit_frame_sending_interval: Optional[int] = hit_frame_sending_interval
-        self._non_hit_frame_sending_interval: Optional[int] = (
+        self._speed_report_interval: int | None = speed_report_interval
+        self._data_broadcast_interval: int | None = data_broadcast_interval
+        self._hit_frame_sending_interval: int | None = hit_frame_sending_interval
+        self._non_hit_frame_sending_interval: int | None = (
             non_hit_frame_sending_interval
         )
         self._start_timestamp: float = time.time()
         self._num_events: int = 0
         self._num_hits: int = 0
         self._old_time: float = time.time()
-        self._time: Optional[float] = None
+        self._time: float | None = None
         self._ranks_for_frame_request: Iterator[int] = cycle(range(1, node_pool_size))
 
     def add_hit_event(self) -> None:

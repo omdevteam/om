@@ -22,12 +22,12 @@ This module contains a graphical interface that displays detector data frames an
 additional provided information.
 """
 
-import collections
 import copy
 import signal
 import sys
 import time
-from typing import Annotated, Any, Deque, Dict, Optional, Tuple, Union
+from collections import deque
+from typing import Annotated, Any
 
 import numpy
 import typer
@@ -80,11 +80,11 @@ class FrameViewer(OmGuiBase):
             tag="omframedata",
         )
 
-        self._img: Optional[NDArray[numpy.float_]] = None
-        self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
+        self._img: NDArray[numpy.float_] | None = None
+        self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
-        self._received_data: Dict[str, Any] = {}
+        self._received_data: dict[str, Any] = {}
 
         pyqtgraph.setConfigOption("background", 0.2)
 
@@ -109,7 +109,7 @@ class FrameViewer(OmGuiBase):
         self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
-        self._levels_range: Tuple[Union[int, float], Union[int, float]] = (0, 1)
+        self._levels_range: tuple[int | float, int | float] = (0, 1)
         self._min_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[0]}")
         self._max_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[1]}")
         self._level_regex: Any = QtCore.QRegExp(r"-?\d+\.?\d*([eE][+-]?\d+)?")
@@ -167,7 +167,7 @@ class FrameViewer(OmGuiBase):
         # Updates the image and Bragg peaks shown by the viewer.
 
         try:
-            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
+            current_data: dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the frame buffer is empty, returns without drawing anything.
             return

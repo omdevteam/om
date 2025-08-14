@@ -25,7 +25,7 @@ import queue
 import sys
 from multiprocessing import Pipe, Process, Queue, connection, queues
 from random import randrange
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
@@ -41,7 +41,7 @@ def _om_processing_node(
     *,
     rank: int,
     node_pool_size: int,
-    data_queue: "Queue[Tuple[Dict[str, Any], int]]",
+    data_queue: "Queue[tuple[dict[str, Any], int]]",
     message_pipe: connection.Connection,
     data_event_handler: OmDataEventHandlerProtocol,
     processing_layer: OmProcessingProtocol,
@@ -61,11 +61,11 @@ def _om_processing_node(
         node_pool_size=node_pool_size,
     )
 
-    event: Dict[str, Any]
+    event: dict[str, Any]
     for event in events:
-        feedback_dict: Dict[str, Any] = {}
+        feedback_dict: dict[str, Any] = {}
         if message_pipe.poll():
-            message: Dict[str, Any] = message_pipe.recv()
+            message: dict[str, Any] = message_pipe.recv()
             if "stop" in message:
                 log.info(f"Shutting down RANK: {rank}.")
                 data_queue.put(({"stopped": True}, rank))
@@ -74,12 +74,12 @@ def _om_processing_node(
                 feedback_dict = message
 
         try:
-            data: Dict[str, Any] = data_event_handler.extract_data(event=event)
+            data: dict[str, Any] = data_event_handler.extract_data(event=event)
         except OmDataExtractionError as exc:
             log.warning(f"{exc}. Skipping event...")
             continue
         data.update(feedback_dict)
-        processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
+        processed_data: tuple[dict[str, Any], int] = processing_layer.process_data(
             node_rank=rank, node_pool_size=node_pool_size, data=data
         )
         data_queue.put(processed_data)
@@ -87,7 +87,7 @@ def _om_processing_node(
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it
     # to the processing node.
-    final_data: Optional[Dict[str, Any]] = (
+    final_data: dict[str, Any] | None = (
         processing_layer.end_processing_on_processing_node(
             node_rank=rank, node_pool_size=node_pool_size
         )
@@ -154,17 +154,17 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
             self._data_event_handler.skip_rank_finalization()
         )
 
-        self._processing_nodes: List[Process] = []
-        self._message_pipes: Dict[int, connection.Connection] = {}
-        self._data_queue: queues.Queue[Tuple[Dict[str, Any], int]] = Queue()
+        self._processing_nodes: list[Process] = []
+        self._message_pipes: dict[int, connection.Connection] = {}
+        self._data_queue: queues.Queue[tuple[dict[str, Any], int]] = Queue()
 
         processing_node_rank: int
         for processing_node_rank in range(0, self._node_pool_size):
             if processing_node_rank == self._collector_rank:
                 continue
-            message_pipe: Tuple[
-                connection.Connection,
-                connection.Connection,
+            message_pipe: tuple[
+                connection.PipeConnection,
+                connection.PipeConnection,
             ] = Pipe(duplex=False)
             self._message_pipes[processing_node_rank] = message_pipe[1]
             processing_node = Process(
@@ -184,7 +184,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         self._data_event_handler.initialize_event_handling_on_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
-        self._deceased_ranks: List[bool] = [False] * self._node_pool_size
+        self._deceased_ranks: list[bool] = [False] * self._node_pool_size
         self._deceased_ranks[self._collector_rank] = True
         self._num_collected_events: int = 0
 
@@ -212,7 +212,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         while True:
             try:
                 try:
-                    received_data: Tuple[Dict[str, Any], int] = (
+                    received_data: tuple[dict[str, Any], int] = (
                         self._data_queue.get_nowait()
                     )
                     if "end" in received_data[0]:
@@ -236,7 +236,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                             sys.exit(0)
                         else:
                             continue
-                    feedback_data: Optional[Dict[str, Dict[str, Any]]] = (
+                    feedback_data: dict[str, dict[str, Any]] | None = (
                         self._processing_layer.collect_data(
                             node_rank=self._rank,
                             node_pool_size=self._node_pool_size,
@@ -312,7 +312,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                         continue
                     self._message_pipes[node_num].send({"stop": True})
                 while True:
-                    message: Tuple[Dict[str, Any], int] = self._data_queue.get()
+                    message: tuple[dict[str, Any], int] = self._data_queue.get()
                     if "stopped" in message[0]:
                         self._deceased_ranks[message[1]] = True
                     if all(self._deceased_ranks):

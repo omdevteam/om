@@ -1,9 +1,8 @@
 from enum import Enum
 from pathlib import Path
-from typing import Dict, Optional, Union
-
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import Self
+
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 
 class Hdf5Compression(Enum):
@@ -22,8 +21,8 @@ class OmParameters(CustomBaseModel):
     parallelization_layer: str
     data_retrieval_layer: str
     processing_layer: str
-    source: str = Field(default="")
-    configuration_file: Path = Field(default="")
+    source: str = ""
+    configuration_file: Path = Path("")
 
 
 class DataSourceParameters(CustomBaseModel):
@@ -33,19 +32,19 @@ class DataSourceParameters(CustomBaseModel):
 
 class DataRetrievalLayerParameters(CustomBaseModel):
     # asapo
-    asapo_url: Optional[str] = Field(default=None)
-    asapo_path: Optional[str] = Field(default=None)
-    asapo_data_source: Optional[str] = Field(default=None)
-    asapo_has_filesystem: Optional[bool] = Field(default=None)
-    asapo_token: Optional[str] = Field(default=None)
-    asapo_group_id: str = Field(default="default_om_group")
+    asapo_url: str | None = None
+    asapo_path: str | None = None
+    asapo_data_source: str | None = None
+    asapo_has_filesystem: bool | None = None
+    asapo_token: str | None = None
+    asapo_group_id: str = "default_om_group"
     # http
-    buffer_size: Optional[int] = Field(default=None)
+    buffer_size: int | None = None
     # psana
-    psana_calibration_directory: Optional[str] = Field(default=None)
+    psana_calibration_directory: str | None = None
     # all
     data_sources: dict[str, DataSourceParameters]
-    node_pool_size: int = Field(default=0)
+    node_pool_size: int = 0
 
 
 class Peakfinder8PeakDetectionParameters(CustomBaseModel):
@@ -57,10 +56,10 @@ class Peakfinder8PeakDetectionParameters(CustomBaseModel):
     local_bg_radius: int
     min_res: int
     max_res: int
-    fast_mode: bool = Field(default=False)
-    num_pixel_per_bin_in_radial_statistics: int = Field(default=100)
-    bad_pixel_map_filename: Optional[Path] = Field(default=None)
-    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
+    fast_mode: bool = False
+    num_pixel_per_bin_in_radial_statistics: int = 100
+    bad_pixel_map_filename: Path | None = None
+    bad_pixel_map_hdf5_path: str | None = None
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
@@ -78,8 +77,8 @@ class Peakfinder8PeakDetectionParameters(CustomBaseModel):
 
 
 class RadialProfileParameters(CustomBaseModel):
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
-    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
+    bad_pixel_map_filename: str | None = None
+    bad_pixel_map_hdf5_path: str | None = None
     radius_bin_size: float
 
     @model_validator(mode="after")
@@ -97,10 +96,10 @@ class RadialProfileParameters(CustomBaseModel):
 
 class BinningParameters(CustomBaseModel):
     bin_size: int
-    min_good_pix_count: Optional[int] = Field(default=None)
-    bad_pixel_value: Optional[Union[int, float]] = Field(default=None)
-    bad_pixel_map_filename: Optional[str] = Field(default=None)
-    bad_pixel_map_hdf5_path: Optional[str] = Field(default=None)
+    min_good_pix_count: int | None = None
+    bad_pixel_value: int | float | None = None
+    bad_pixel_map_filename: str | None = None
+    bad_pixel_map_hdf5_path: str | None = None
 
     @model_validator(mode="after")
     def check_hd5_path(self) -> Self:
@@ -116,41 +115,41 @@ class BinningParameters(CustomBaseModel):
 
 
 class XesParameters(CustomBaseModel):
-    intensity_threshold: Optional[float] = Field(default=None)
+    intensity_threshold: float | None = None
     rotation_in_degrees: float
     geometry_file: str
-    data_broadcast_url: Optional[str] = Field(default=None)
+    data_broadcast_url: str | None = None
     data_broadcast_interval: int
-    time_resolved: bool = Field(default=False)
+    time_resolved: bool = False
     min_row_in_pix_for_integration: int
     max_row_in_pix_for_integration: int
     running_average_window_size: int
     speed_report_interval: int
-    hit_frame_sending_interval: Optional[int] = Field(default=None)
-    non_hit_frame_sending_interval: Optional[int] = Field(default=None)
+    hit_frame_sending_interval: int | None = None
+    non_hit_frame_sending_interval: int | None = None
 
 
 class CheetahParameters(CustomBaseModel):
     processed_directory: str
-    processed_filename_prefix: str = Field(default="processed")
-    processed_filename_extension: str = Field(default="h5")
-    hdf5_fields: Dict[str, str]
+    processed_filename_prefix: str = "processed"
+    processed_filename_extension: str = "h5"
+    hdf5_fields: dict[str, str]
     hdf5_file_data_type: str
-    hdf5_file_compression: Hdf5Compression = Field(default=Hdf5Compression.none)
-    hdf5_file_gzip_compression_level: int = Field(default=4)
-    hdf5_file_zstd_compression_level: int = Field(default=3)
-    hdf5_file_compression_shuffle: bool = Field(default=False)
-    hdf5_file_max_num_peaks: int = Field(default=1024)
-    class_sums_sending_interval: int = Field(default=-1)
+    hdf5_file_compression: Hdf5Compression = Hdf5Compression.none
+    hdf5_file_gzip_compression_level: int = 4
+    hdf5_file_zstd_compression_level: int = 3
+    hdf5_file_compression_shuffle: bool = False
+    hdf5_file_max_num_peaks: int = 1024
+    class_sums_sending_interval: int = -1
     write_class_sums: bool
     class_sums_update_interval: int
     status_file_update_interval: int
-    responding_url: Optional[str] = Field(default=None)
-    external_data_request_list_size: int = Field(default=20)
+    responding_url: str | None = None
+    external_data_request_list_size: int = 20
 
     @model_validator(mode="after")
     def check_sums_update_interval(self) -> Self:
-        if self.write_class_sums is True and self.class_sums_update_interval is -1:
+        if self.write_class_sums is True and self.class_sums_update_interval == -1:
             raise ValueError(
                 "If writing of the class sums is requested from Cheetah, the following"
                 "entry must be present in the cheetah section of the configuration"
@@ -169,36 +168,34 @@ class CheetahParameters(CustomBaseModel):
 
 
 class CrystallographyParameters(CustomBaseModel):
-    peakfinding_algorithm: str = Field(default="peakfinder8")
+    peakfinding_algorithm: str = "peakfinder8"
     min_num_peaks_for_hit: int
     max_num_peaks_for_hit: int
-    peakogram_intensity_bin_size: float = Field(default=100.0)
-    peakogram_radius_bin_size: float = Field(default=5.0)
+    peakogram_intensity_bin_size: float = 100.0
+    peakogram_radius_bin_size: float = 5.0
     running_average_window_size: int
-    post_processing_binning: bool = Field(default=False)
-    pump_probe_experiment: bool = Field(default=False)
+    post_processing_binning: bool = False
+    pump_probe_experiment: bool = False
     geometry_file: str
-    geometry_is_optimized: bool = Field(default=False)
+    geometry_is_optimized: bool = False
     speed_report_interval: int
-    data_broadcast_url: Optional[str] = Field(default=None)
-    responding_url: Optional[str] = Field(default=None)
-    external_data_request_list_size: int = Field(default=20)
+    data_broadcast_url: str | None = None
+    responding_url: str | None = None
+    external_data_request_list_size: int = 20
     data_broadcast_interval: int
-    hit_frame_sending_interval: Optional[int] = Field(default=None)
-    non_hit_frame_sending_interval: Optional[int] = Field(default=None)
+    hit_frame_sending_interval: int | None = None
+    non_hit_frame_sending_interval: int | None = None
 
 
 class MonitorParameters(CustomBaseModel):
     om: OmParameters
     data_retrieval_layer: DataRetrievalLayerParameters
-    peakfinder8_peak_detection: Optional[Peakfinder8PeakDetectionParameters] = Field(
-        default=None
-    )
-    radial_profile: Optional[RadialProfileParameters] = Field(default=None)
-    binning: Optional[BinningParameters] = Field(default=None)
-    crystallography: Optional[CrystallographyParameters] = Field(default=None)
-    xes: Optional[XesParameters] = Field(default=None)
-    cheetah: Optional[CheetahParameters] = Field(default=None)
+    peakfinder8_peak_detection: Peakfinder8PeakDetectionParameters | None = None
+    radial_profile: RadialProfileParameters | None = None
+    binning: BinningParameters | None = None
+    crystallography: CrystallographyParameters | None = None
+    xes: XesParameters | None = None
+    cheetah: CheetahParameters | None = None
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:

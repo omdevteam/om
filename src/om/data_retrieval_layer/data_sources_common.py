@@ -25,7 +25,7 @@ to a specific facility or experiment.
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -53,7 +53,7 @@ class OmJungfrau1MDataSourceMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmJungfrau1MDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -65,7 +65,7 @@ class OmJungfrau1MDataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Detector data frames from Jungfrau 1M HDF5 files.
@@ -87,11 +87,11 @@ class OmJungfrau1MDataSourceMixin:
         """
         del additional_info
         self._calibration: bool = False
-        self._dark_filenames: List[str] = []
-        self._gain_filenames: List[str] = []
+        self._dark_filenames: list[str] = []
+        self._gain_filenames: list[str] = []
         self._photon_energy_kev: float = 0
 
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is not None:
             if "calibration" in extra_parameters:
                 self._calibration = extra_parameters["calibration"]
@@ -155,7 +155,7 @@ class TimestampFromEvent(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Timestamp information from data events.
@@ -193,7 +193,7 @@ class TimestampFromEvent(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves the timestamp information from a data event.
 
@@ -224,7 +224,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -246,7 +246,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         """
         del additional_info
 
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
             log.error(
                 f"Entries needed by the {data_source_name} data source are not defined"
@@ -274,7 +274,7 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves the numerical value of an OM's configuration parameter
 
@@ -305,7 +305,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -327,7 +327,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         """
         del additional_info
 
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
             log.error(
                 f"Entries needed by the {data_source_name} data source are not defined"
@@ -355,7 +355,7 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves the numerical value of an OM's configuration parameter
 
@@ -386,7 +386,7 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Numerical values from configuration parameters.
@@ -408,7 +408,7 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         """
         del additional_info
 
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
             log.error(
                 f"Entries needed by the {data_source_name} data source are not defined"
@@ -442,14 +442,12 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         it raises an exception if the parameter is not available), and requires its
         value to be a float number.
         """
-        self._array: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = load_hdf5_data(
+        self._array: NDArray[numpy.float_ | numpy.int_] = load_hdf5_data(
             hdf5_filename=self._hdf5_filename,
             hdf5_path=self._hdf5_path,
         )
 
-    def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves the numerical value of an OM's configuration parameter
 

@@ -23,7 +23,7 @@ terminal console output, using the Rich python library.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from rich.logging import RichHandler
 
@@ -35,7 +35,7 @@ class RichHandlerWithAggregation(RichHandler):
         super().__init__(**kwargs)
         self._recurring_msg_emit_interval = recurring_msg_emit_interval
         self._recurring_msg: str = ""
-        self._last_recurring_record: Optional[logging.LogRecord] = None
+        self._last_recurring_record: logging.LogRecord | None = None
         self._recurring_msg_counter: int = 0
 
     def format(self, record: logging.LogRecord) -> str:

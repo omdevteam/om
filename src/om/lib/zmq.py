@@ -24,7 +24,7 @@ to external programs over a ZMQ socket.
 
 import socket
 import sys
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 import zmq
 
@@ -60,7 +60,7 @@ class ZmqDataBroadcaster:
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, data_broadcast_url: Optional[str]) -> None:
+    def __init__(self, *, data_broadcast_url: str | None) -> None:
         """
         Data-broadcasting socket for OnDA Monitors.
 
@@ -111,7 +111,7 @@ class ZmqDataBroadcaster:
                 ) from exc
         log.info(f"Broadcasting data at {data_broadcast_url}")
 
-    def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
+    def send_data(self, *, tag: str, message: dict[str, Any]) -> None:
         """
         Broadcasts data from the ZMQ PUB socket.
 
@@ -143,7 +143,7 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        responding_url: Optional[str],
+        responding_url: str | None,
         blocking: bool = False,
     ) -> None:
         """
@@ -203,7 +203,7 @@ class ZmqResponder:
         self._zmq_poller.register(self._sock, zmq.POLLIN)
         log.info(f"Answering requests at {responding_url}")
 
-    def get_request(self) -> Optional[Tuple[bytes, bytes]]:
+    def get_request(self) -> tuple[bytes, bytes] | None:
         """
         Gets a request from the responding socket, if present.
 
@@ -225,10 +225,10 @@ class ZmqResponder:
                 by the socket, None.
         """
         if self._blocking:
-            request: Tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
+            request: tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
             return (request[0], request[2])
         else:
-            socks: Dict[Any, Any] = dict(self._zmq_poller.poll(0))
+            socks: dict[Any, Any] = dict(self._zmq_poller.poll(0))
             if self._sock in socks and socks[self._sock] == zmq.POLLIN:
                 request = self._sock.recv_multipart()
                 return (request[0], request[2])
@@ -236,7 +236,7 @@ class ZmqResponder:
                 return None
 
     def send_data(
-        self, *, identity: bytes, message: Union[Dict[str, Any], bytes]
+        self, *, identity: bytes, message: dict[str, Any] | bytes
     ) -> None:
         """
         Send data from the ZMQ REP socket.

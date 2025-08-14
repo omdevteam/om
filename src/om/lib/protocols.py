@@ -20,7 +20,7 @@ This module contains the definitions of several typed dictionaries that store da
 produced or required by OM's functions and classes.
 """
 
-from typing import Any, Dict, Generator, Literal, Optional, Protocol, Tuple, Type, Union
+from typing import Any, Generator, Literal, Protocol
 
 import numpy
 from numpy.typing import NDArray
@@ -43,7 +43,7 @@ class OmDataSourceProtocol(Protocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Data Source classes.
@@ -85,7 +85,7 @@ class OmDataSourceProtocol(Protocol):
     def get_data(
         self,
         *,
-        event: Dict[str, Any],
+        event: dict[str, Any],
     ) -> Any:  # noqa: F821
         """
         Data Retrieval.
@@ -197,7 +197,7 @@ class OmDataEventHandlerProtocol(Protocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves events from the source.
 
@@ -225,8 +225,8 @@ class OmDataEventHandlerProtocol(Protocol):
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a frame stored in an event.
 
@@ -273,7 +273,7 @@ class OmDataEventHandlerProtocol(Protocol):
         """
         ...
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data attached to the requested data event.
 
@@ -368,8 +368,8 @@ class OmProcessingProtocol(Protocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        data: Dict[str, Any],
-    ) -> Tuple[Dict[str, Any], int]:
+        data: dict[str, Any],
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a single data event.
 
@@ -436,8 +436,8 @@ class OmProcessingProtocol(Protocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Collects processed data from a processing node.
 
@@ -478,7 +478,7 @@ class OmProcessingProtocol(Protocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
@@ -492,7 +492,7 @@ class OmProcessingProtocol(Protocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Executes end-of-processing actions on a processing node.
 
@@ -549,7 +549,7 @@ class OmParallelizationProtocol(Protocol):
         *,
         data_retrieval_layer: OmDataEventHandlerProtocol,
         processing_layer: OmProcessingProtocol,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Parallelization classes.
@@ -631,13 +631,11 @@ class OmPeakDetectionProtocol(Protocol):
 
     def __init__(
         self,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
     ) -> None:
         """ """
         ...
 
-    def find_peaks(
-        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
-    ) -> PeakList:
+    def find_peaks(self, *, data: NDArray[numpy.int_ | numpy.float_]) -> PeakList:
         """ """
         ...

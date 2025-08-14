@@ -26,7 +26,7 @@ import sys
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Deque, Dict, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 import msgpack  # type: ignore
 import msgpack_numpy  # type: ignore
@@ -38,9 +38,9 @@ from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import (
     CheetahClassSumsAccumulator,
     CheetahClassSumsCollector,
-    CheetahListFilesWriter,
+    CheetahlistFilesWriter,
     CheetahStatusFileWriter,
-    FrameListData,
+    FramelistData,
     HDF5Writer,
 )
 from om.lib.crystallography import CrystallographyPeakFinding
@@ -62,7 +62,7 @@ msgpack_numpy.patch()
 
 
 class OmCheetahMixin:
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmCheetahMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -147,7 +147,7 @@ class OmCheetahMixin:
             if self._monitor_parameters.binning is None:
                 log.error("'binning' section is not present in the configuration file")
                 sys.exit(1)
-            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
+            self._post_processing_binning: Binning | BinningPassthrough = Binning(
                 parameters=self._monitor_parameters.binning,
                 layout_info=self._geometry_information.get_layout_info(),
             )
@@ -160,7 +160,7 @@ class OmCheetahMixin:
         layout_info: DetectorLayoutInformation = (
             self._post_processing_binning.get_binned_layout_info()
         )
-        self._processed_data_shape: Tuple[int, int] = (
+        self._processed_data_shape: tuple[int, int] = (
             layout_info.asic_ny * layout_info.nasics_y,
             layout_info.asic_nx * layout_info.nasics_x,
         )
@@ -213,8 +213,8 @@ class OmCheetahMixin:
             node_pool_size=node_pool_size,
         )
 
-        # List files
-        self._list_files_writer: CheetahListFilesWriter = CheetahListFilesWriter(
+        # list files
+        self._list_files_writer: CheetahlistFilesWriter = CheetahlistFilesWriter(
             parameters=self._cheetah_parameters,
         )
 
@@ -226,8 +226,8 @@ class OmCheetahMixin:
         )
 
     def common_process_data(  # noqa: C901
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Union[NDArray[numpy.float_], NDArray[numpy.int_]], PeakList, bool]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[NDArray[numpy.float_ | numpy.int_], PeakList, bool]:
         """
         Processes a detector data frame.
 
@@ -276,7 +276,7 @@ class OmCheetahMixin:
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
         )
-        binned_detector_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
+        binned_detector_data: NDArray[numpy.float_ | numpy.int_] = (
             self._post_processing_binning.bin_detector_data(data=data["detector_data"])
         )
 
@@ -292,8 +292,8 @@ class OmCheetahMixin:
     def _common_collect_data(  # noqa: C901
         self,
         *,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Any]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, Any] | None:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -317,12 +317,12 @@ class OmCheetahMixin:
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
-        received_data: Dict[str, Any] = processed_data[0]
+        received_data: dict[str, Any] = processed_data[0]
 
         # Collect class sums
         if received_data["class_sums"] is not None:
@@ -344,7 +344,7 @@ class OmCheetahMixin:
         self,
         *,
         node_rank: int,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing on the processing nodes for Cheetah.
 
@@ -442,8 +442,8 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         log.info("Starting the monitor...")
 
     def process_data(  # noqa: C901
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a detector data frame and saves the extracted data to HDF5 file.
 
@@ -486,7 +486,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
 
         # Saving data to HDF5 file
         if frame_is_hit:
-            data_to_write: Dict[str, Any] = {
+            data_to_write: dict[str, Any] = {
                 "detector_data": binned_detector_data,
                 "event_id": data["event_id"],
                 "timestamp": data["timestamp"],
@@ -547,8 +547,8 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated data and saves them to files.
 
@@ -571,13 +571,13 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
 
-        received_data: Optional[Dict[str, Any]] = self._common_collect_data(
+        received_data: dict[str, Any] | None = self._common_collect_data(
             processed_data=processed_data
         )
 
@@ -585,7 +585,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             return None
 
         # Write frame and peaks data to list files
-        frame_data: FrameListData = FrameListData(
+        frame_data: FramelistData = FramelistData(
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
@@ -617,7 +617,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing on the processing nodes for Cheetah.
 
@@ -740,7 +740,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         )
 
         # Streaming to CrystFEL
-        self._request_list: Deque[Tuple[bytes, bytes]] = deque(
+        self._request_list: deque[tuple[bytes, bytes]] = deque(
             maxlen=self._crystallography_parameters.external_data_request_list_size
         )
 
@@ -755,8 +755,8 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         log.info("Starting the monitor...")
 
     def process_data(  # noqa: C901
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a detector data frame.
 
@@ -844,8 +844,8 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -869,13 +869,13 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
         self._handle_external_requests()
-        received_data: Optional[Dict[str, Any]] = self._common_collect_data(
+        received_data: dict[str, Any] | None = self._common_collect_data(
             processed_data=processed_data
         )
 
@@ -888,7 +888,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             while len(self._request_list) == 0:
                 self._handle_external_requests()
 
-            last_request: Tuple[bytes, bytes] = self._request_list[-1]
+            last_request: tuple[bytes, bytes] = self._request_list[-1]
             data_to_send: Any = msgpack.packb(
                 {
                     "detector_data": received_data["detector_data"],
@@ -908,7 +908,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             _ = self._request_list.pop()
 
         # Write frame and peaks data to list files
-        frame_data: FrameListData = FrameListData(
+        frame_data: FramelistData = FramelistData(
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
@@ -940,7 +940,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing on the processing nodes for Cheetah Streaming.
 
@@ -1006,7 +1006,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
     def _handle_external_requests(self) -> None:
         # This function handles external requests sent to the crystallography monitor
         # over the responding network socket.
-        request: Optional[Tuple[bytes, bytes]] = self._responding_socket.get_request()
+        request: tuple[bytes, bytes] | None = self._responding_socket.get_request()
         if request:
             if request[1] == b"next":
                 self._request_list.append(request)

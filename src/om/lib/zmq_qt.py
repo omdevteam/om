@@ -23,7 +23,7 @@ from OnDA Monitors over a ZMQ socket.
 """
 
 from builtins import str as unicode_str
-from typing import Any, Dict, Optional
+from typing import Any
 
 import zmq
 
@@ -85,7 +85,7 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
                 label matches this argument will be accepted and received.
         """
         QtCore.QObject.__init__(self)
-        self._url: Optional[str] = url
+        self._url: str | None = url
         self._subscription_string: str = tag
         self._zmq_context: Any = zmq.Context()
         self._zmq_subscribe: Any = None
@@ -153,6 +153,6 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
         socks = dict(self._zmq_poller.poll(0))
         if self._zmq_subscribe in socks and socks[self._zmq_subscribe] == zmq.POLLIN:
             _ = self._zmq_subscribe.recv_string()
-            msg: Dict[str, Any] = self._zmq_subscribe.recv_pyobj()
+            msg: dict[str, Any] = self._zmq_subscribe.recv_pyobj()
             # Emits the signal.
             self.zmqmessage.emit(msg)

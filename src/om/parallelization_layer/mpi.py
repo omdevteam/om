@@ -24,7 +24,7 @@ import sys
 import time
 from enum import Enum
 from random import randrange
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from mpi4py import MPI
 
@@ -104,7 +104,7 @@ class MpiParallelization(OmParallelizationProtocol):
             self._data_event_handler.initialize_event_handling_on_collecting_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
-            self._deceased_ranks: List[bool] = [False] * self._mpi_size
+            self._deceased_ranks: list[bool] = [False] * self._mpi_size
             self._deceased_ranks[self._collector_rank] = True
             self._num_collected_events: int = 0
         else:
@@ -141,7 +141,7 @@ class MpiParallelization(OmParallelizationProtocol):
                 try:
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.data):
                         mpi_status: Any = MPI.Status()
-                        received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
+                        received_data: tuple[dict[str, Any], int] = MPI.COMM_WORLD.recv(
                             source=MPI.ANY_SOURCE, tag=MpiTags.data, status=mpi_status
                         )
                         if "end" in received_data[0]:
@@ -168,7 +168,7 @@ class MpiParallelization(OmParallelizationProtocol):
                                 exit(0)
                             else:
                                 continue
-                        feedback_data: Optional[Dict[str, Dict[str, Any]]] = (
+                        feedback_data: dict[str, dict[str, Any]] | None = (
                             self._processing_layer.collect_data(
                                 node_rank=self._rank,
                                 node_pool_size=self._mpi_size,
@@ -233,13 +233,13 @@ class MpiParallelization(OmParallelizationProtocol):
                 node_pool_size=self._mpi_size,
             )
 
-            event: Dict[str, Any]
+            event: dict[str, Any]
             for event in events:
-                # Listens for requests to shut down.
+                # listens for requests to shut down.
                 if MPI.COMM_WORLD.Iprobe(source=self._collector_rank, tag=MpiTags.die):
                     self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
 
-                feedback_dict: Dict[str, Any] = {}
+                feedback_dict: dict[str, Any] = {}
                 if MPI.COMM_WORLD.Iprobe(
                     source=self._collector_rank, tag=MpiTags.feedback
                 ):
@@ -247,14 +247,14 @@ class MpiParallelization(OmParallelizationProtocol):
                         source=self._collector_rank, tag=MpiTags.feedback
                     )
                 try:
-                    data: Dict[str, Any] = self._data_event_handler.extract_data(
+                    data: dict[str, Any] = self._data_event_handler.extract_data(
                         event=event
                     )
                 except OmDataExtractionError as exc:
                     log.warning(f"{exc}. Skipping event...")
                     continue
                 data.update(feedback_dict)
-                processed_data: Tuple[Dict[str, Any], int] = (
+                processed_data: tuple[dict[str, Any], int] = (
                     self._processing_layer.process_data(
                         node_rank=self._rank, node_pool_size=self._mpi_size, data=data
                     )
@@ -272,7 +272,7 @@ class MpiParallelization(OmParallelizationProtocol):
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it
             # to the processing node.
-            final_data: Optional[Dict[str, Any]] = (
+            final_data: dict[str, Any] | None = (
                 self._processing_layer.end_processing_on_processing_node(
                     node_rank=self._rank, node_pool_size=self._mpi_size
                 )
@@ -302,7 +302,7 @@ class MpiParallelization(OmParallelizationProtocol):
             req = MPI.COMM_WORLD.Ibarrier()
             while req.Test() is False:
                 if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.feedback):
-                    _: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
+                    _: tuple[dict[str, Any], int] = MPI.COMM_WORLD.recv(
                         source=MPI.ANY_SOURCE, tag=MpiTags.feedback
                     )
             if self._skip_rank_finalization is False:
@@ -364,7 +364,7 @@ class MpiParallelization(OmParallelizationProtocol):
             req = MPI.COMM_WORLD.Ibarrier()
             while req.Test() is False:
                 if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.feedback):
-                    _: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
+                    _: tuple[dict[str, Any], int] = MPI.COMM_WORLD.recv(
                         source=MPI.ANY_SOURCE, tag=MpiTags.feedback
                     )
             if self._skip_rank_finalization is False:

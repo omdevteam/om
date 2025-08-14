@@ -21,7 +21,7 @@ File-based data sources.
 This module contains Data Source classes that deal with data stored in files.
 """
 
-from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -46,7 +46,7 @@ class OmBaseFileDataSourceMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmBaseFileDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -58,7 +58,7 @@ class OmBaseFileDataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -100,7 +100,7 @@ class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
         """
         Retrieves an Eiger 16M detector data frame from files.
 
@@ -127,7 +127,7 @@ class Eiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.int_]:
         """
         Retrieves an Eiger 16M detector data frame from files.
 
@@ -159,7 +159,7 @@ class RayonixMccdSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtoco
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.int_]:
         """
         Retrieves a Rayonix MX340-HS detector data frame from files.
 
@@ -190,8 +190,8 @@ class Lambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     """
 
     def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves a Lambda 1.5M detector data frame from files.
 
@@ -210,8 +210,8 @@ class Lambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
 
             Detector data frame.
         """
-        h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
-        index: Tuple[int, int] = event["additional_info"]["index"]
+        h5files: tuple[Any, Any] = event["additional_info"]["h5files"]
+        index: tuple[int, int] = event["additional_info"]["index"]
         return cast(
             NDArray[numpy.int_],
             numpy.concatenate(
@@ -228,7 +228,7 @@ class TimestampFromFileModificationTime(
 ):
     """ """
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves timestamp information from the modification date of a file.
 
@@ -255,7 +255,7 @@ class TimestampJungfrau1MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves the timestamp information for a Jungfrau 1M data event from files.
 
@@ -295,7 +295,7 @@ class EventIdFromFilePath(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves the event identifier from the full path of a file.
 
@@ -321,7 +321,7 @@ class EventIdJungfrau1MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves the event identifier for a Jungfrau 1M data event.
 
@@ -354,7 +354,7 @@ class EventIdEiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves the event identifier for an Eiger 16M data event.
 
@@ -387,7 +387,7 @@ class EventIdLambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves the event identifier for an Lambda 1.5M data event.
 
@@ -422,8 +422,8 @@ class Jungfrau1MFiles(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
     """
 
     def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves a Jungfrau 1M detector data frame from a file-based event.
 

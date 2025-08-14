@@ -24,14 +24,13 @@ This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
-from om.lib.geometry import GeometryInformation
 from om.lib.logging import log
 from om.lib.parameters import MonitorParameters, XesParameters
 from om.lib.protocols import OmProcessingProtocol
@@ -160,8 +159,8 @@ class XesProcessing(OmProcessingProtocol):
         log.info("Starting the monitor...")
 
     def process_data(
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a detector data frame and extracts spectrum information.
 
@@ -195,7 +194,7 @@ class XesProcessing(OmProcessingProtocol):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-        processed_data: Dict[str, Any] = {}
+        processed_data: dict[str, Any] = {}
         camera_data: NDArray[numpy.float_] = data["detector_data"]
 
         # Mask the camera edges
@@ -205,7 +204,7 @@ class XesProcessing(OmProcessingProtocol):
             camera_data.shape[1] // 2 - 1 : camera_data.shape[1] // 2 + 1,
         ] = 0
 
-        xes: Dict[str, NDArray[numpy.float_]] = (
+        xes: dict[str, NDArray[numpy.float_]] = (
             self._energy_spectrum_retrieval.calculate_spectrum(data=camera_data)
         )
 
@@ -252,8 +251,8 @@ class XesProcessing(OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated spectrum data and broadcasts them.
 
@@ -275,28 +274,26 @@ class XesProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
         del node_rank
         del node_pool_size
-        received_data: Dict[str, Any] = processed_data[0]
-        return_dict: Dict[str, Dict[str, Any]] = {}
+        received_data: dict[str, Any] = processed_data[0]
+        return_dict: dict[str, dict[str, Any]] = {}
 
         self._event_counter.add_hit_event()
 
         spectrum_for_gui = received_data["spectrum"]
 
-        spectra_cumulative_sum: Optional[
-            Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-        ]
-        spectra_cumulative_sum_smoothed: Optional[NDArray[numpy.float_]]
-        cumulative_2d: Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]]
-        spectra_cumulative_sum_pumped: Optional[NDArray[numpy.float_]]
-        spectra_cumulative_sum_dark: Optional[NDArray[numpy.float_]]
-        spectra_cumulative_sum_difference: Optional[NDArray[numpy.float_]]
+        spectra_cumulative_sum: NDArray[numpy.float_ | numpy.int_] | None 
+        spectra_cumulative_sum_smoothed: NDArray[numpy.float_] | None
+        cumulative_2d: NDArray[numpy.float_ | numpy.int_] | None
+        spectra_cumulative_sum_pumped: NDArray[numpy.float_] | None
+        spectra_cumulative_sum_dark: NDArray[numpy.float_] | None
+        spectra_cumulative_sum_difference: NDArray[numpy.float_] | None
         (
             spectra_cumulative_sum,
             spectra_cumulative_sum_smoothed,
@@ -310,7 +307,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         if self._event_counter.should_broadcast_data():
-            message: Dict[str, Any] = {
+            message: dict[str, Any] = {
                 "timestamp": received_data["timestamp"],
                 "detector_data": cumulative_2d,
                 "spectrum": spectrum_for_gui,
@@ -336,7 +333,7 @@ class XesProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing on the processing nodes for the XES Monitor.
 

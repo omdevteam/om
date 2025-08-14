@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Any, List, TextIO, Tuple
+from typing import Any, TextIO
 
 import h5py  # type: ignore
 import numpy
@@ -37,12 +37,12 @@ def main(
     if not input.exists():
         raise RuntimeError(f"The following file cannot be found: {input}")
 
-    const_dark: Tuple[int, int, int] = (0, 0, 0)
+    const_dark: tuple[int, int, int] = (0, 0, 0)
     fn: str
     try:
         fhandle: TextIO
         with open(input, "r") as fhandle:
-            filelist: List[str] = [fn.strip() for fn in fhandle]
+            filelist: list[str] = [fn.strip() for fn in fhandle]
     except (IOError, OSError) as exc:
         raise OmInvalidSourceError(f"Error reading the {input} source file.") from exc
 
@@ -59,7 +59,7 @@ def main(
             frame: NDArray[numpy.int_]
             for frame in f[h5_data_path][s:]:
                 d: NDArray[numpy.int_] = frame.flatten()
-                where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
+                where_gain: list[tuple[NDArray[numpy.int_], ...]] = [
                     numpy.where((d & 2**14 == 0) & (d > 0)),
                     numpy.where((d & (2**14) > 0) & (d & 2**15 == 0)),
                     numpy.where(d & 2**15 > 0),
@@ -74,7 +74,7 @@ def main(
     if numpy.any(nd == 0):
         log.warning("Some pixels don't have data in all gains")
         for i in range(3):
-            where: Tuple[NDArray[numpy.int_], ...] = numpy.where(nd[i] == 0)
+            where: tuple[NDArray[numpy.int_], ...] = numpy.where(nd[i] == 0)
             dark[i][where] = const_dark[i]
             log.warning(
                 f"{len(where[0])} pixels in gain {i} are set to {const_dark[i]}",

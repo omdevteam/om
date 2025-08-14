@@ -5,7 +5,7 @@ import threading
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Deque, Dict, List
+from typing import Any
 
 import typer
 import zmq
@@ -15,7 +15,7 @@ from om.lib.logging import log
 
 
 def listen(
-    url: str, data_buffer: List[Dict[str, Any]], max_buffer_len: int, panel_id: int
+    url: str, data_buffer: list[dict[str, Any]], max_buffer_len: int, panel_id: int
 ) -> None:
     # Connect to socket
     context: Any = zmq.Context()
@@ -24,9 +24,9 @@ def listen(
     socket.connect(url)
 
     # Get first message, store timestamp and clock value
-    msg: List[str] = socket.recv_multipart()
+    msg: list[str] = socket.recv_multipart()
     timestamp_start: float = time.time()
-    header: Dict[str, Any] = json.loads(msg[0])
+    header: dict[str, Any] = json.loads(msg[0])
     clock_start: int = header["timestamp"]
 
     clock_period: float = 1.0e-7  # seconds
@@ -77,7 +77,7 @@ def listen(
 
 
 def main(
-    input_url: Annotated[List[Path], typer.Argument(help="input_url")],
+    input_url: Annotated[list[Path], typer.Argument(help="input_url")],
     output_url: Annotated[str, typer.Argument(help="output_url")],
 ) -> None:
     """
@@ -95,8 +95,8 @@ def main(
     socket.setsockopt(zmq.CONFLATE, 1)
     socket.bind(output_url)
 
-    data_buffer_p0: List[Dict[str, Any]] = []
-    data_buffer_p1: List[Dict[str, Any]] = []
+    data_buffer_p0: list[dict[str, Any]] = []
+    data_buffer_p1: list[dict[str, Any]] = []
 
     max_buffer_len: int = 10
 
@@ -111,15 +111,15 @@ def main(
     p0.start()
     p1.start()
 
-    matched: Deque[Dict[str, Any]] = deque(maxlen=1000)
+    matched: deque[dict[str, Any]] = deque(maxlen=1000)
     i: int = 0
     while True:
         time.sleep(0.05)
-        frames_p0: List[Dict[str, Any]] = data_buffer_p0[:]
-        frames_p1: List[Dict[str, Any]] = data_buffer_p1[:]
+        frames_p0: list[dict[str, Any]] = data_buffer_p0[:]
+        frames_p1: list[dict[str, Any]] = data_buffer_p1[:]
 
-        fr0: Dict[str, Any]
-        fr1: Dict[str, Any]
+        fr0: dict[str, Any]
+        fr1: dict[str, Any]
         for fr0 in frames_p0:
             for fr1 in frames_p1:
                 if (

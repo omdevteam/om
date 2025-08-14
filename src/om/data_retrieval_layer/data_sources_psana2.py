@@ -30,12 +30,7 @@ from pathlib import Path
 from typing import (
     Any,
     Callable,
-    Dict,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -68,7 +63,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmDetectorInterfacePsana2DataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -80,7 +75,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Area data frames from psana at the LCLS facility.
@@ -102,7 +97,7 @@ class OmDetectorInterfacePsana2DataSourceMixin:
             parameters: An object storing OM's configuration parameters.
         """
         self._run: Any = additional_info["run"]
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
             log.error(
                 f"Entries needed by the {data_source_name} data source are not defined"
@@ -135,7 +130,7 @@ class AssembledDetectorPsana2(
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
         """
         Retrieves an assembled detector data frame from psana.
 
@@ -158,8 +153,8 @@ class AssembledDetectorPsana2(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        assembled_data: Optional[NDArray[numpy.float_]] = (
-            self._detector_interface.image(event["data"])
+        assembled_data: NDArray[numpy.float_] | None = self._detector_interface.image(
+            event["data"]
         )
         if assembled_data is None:
             raise OmDataExtractionError(
@@ -177,7 +172,7 @@ class EpicsVariablePsana2(
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> Any:
+    def get_data(self, *, event: dict[str, Any]) -> Any:
         """
         Retrieves an Epics variable's value from psana.
 
@@ -207,8 +202,8 @@ class BeamEnergyFromEpicsVariablePsana2(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
-        additional_info: Dict[str, Any],
+        parameters: dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Beam energy information from psana at the LCLS facility.
@@ -245,7 +240,7 @@ class BeamEnergyFromEpicsVariablePsana2(OmDataSourceProtocol):
         """
         self._detector_interface: Any = self._run.Detector("SIOC:SYS0:ML00:AO192")
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves beam energy information from psana using an Epics variable.
 
@@ -268,7 +263,7 @@ class BeamEnergyFromEpicsVariablePsana2(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        wavelength: Optional[float] = self._detector_interface(event["data"])
+        wavelength: float | None = self._detector_interface(event["data"])
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana via the "
@@ -291,8 +286,8 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
-        additional_info: Dict[str, Any],
+        parameters: dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Area data frames from psana at the LCLS facility.
@@ -318,7 +313,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         self._gain_map_filename: Path = Path("")
         self._gain_map_hdf5_path: str = ""
 
-        extra_parameters: Optional[dict[str, Any]] = parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
             log.error(
@@ -369,8 +364,8 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
             self._data_retrieval_function = detector_interface.raw.raw
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
-            self._gain_map: Optional[NDArray[numpy.float_]] = cast(
-                Optional[NDArray[numpy.float_]],
+            self._gain_map: NDArray[numpy.float_] | None = cast(
+                NDArray[numpy.float_] | None,
                 load_hdf5_data(
                     hdf5_filename=self._gain_map_filename,
                     hdf5_path=self._gain_map_hdf5_path,
@@ -379,9 +374,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         else:
             self._gain_map = None
 
-    def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
         Please see the documentation of the base Protocol class for additional
@@ -405,7 +398,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: Optional[Union[NDArray[numpy.float_], NDArray[numpy.int_]]] = (
+        psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
             self._data_retrieval_function(event["data"])
         )
         if psana_data is None:
@@ -415,11 +408,9 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
             )
 
         # Rearranges the data into 'slab' format.
-        psana_data_shape: Tuple[int, ...] = psana_data.shape
+        psana_data_shape: tuple[int, ...] = psana_data.shape
         if len(psana_data_shape) == 2:
-            psana_data_reshaped: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
-                psana_data
-            )
+            psana_data_reshaped: NDArray[numpy.float_ | numpy.int_] = psana_data
         else:
             psana_data_reshaped = psana_data.reshape(
                 psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]
@@ -440,8 +431,8 @@ class TimestampPsana2(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
-        additional_info: Dict[str, Any],
+        parameters: dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Timestamp information from psana at the LCLS facility.
@@ -477,7 +468,7 @@ class TimestampPsana2(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> int:
+    def get_data(self, *, event: dict[str, Any]) -> int:
         """
         Retrieves timestamp information from psana.
 
@@ -508,8 +499,8 @@ class EventIdPsana2(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
-        additional_info: Dict[str, Any],
+        parameters: dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Data event identifiers from psana at the LCLS facility.
@@ -545,7 +536,7 @@ class EventIdPsana2(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves an event identifier from psana.
 
@@ -580,8 +571,8 @@ class BeamEnergyPsana2(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        parameters: Dict[str, Any],
-        additional_info: Dict[str, Any],
+        parameters: dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Beam energy information from psana at the LCLS facility.
@@ -618,7 +609,7 @@ class BeamEnergyPsana2(OmDataSourceProtocol):
 
         self._detector_interface: Any = self._run.Detector("ebeamh")
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves beam energy information from psana.
 

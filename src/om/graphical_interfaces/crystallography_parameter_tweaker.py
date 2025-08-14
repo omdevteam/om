@@ -22,13 +22,13 @@ This module contains a graphical interface that can be used to test peak-finding
 parameters in real time during crystallography experiments.
 """
 
-import collections
+from collections import deque
 import copy
 import signal
 import sys
 import time
 from pathlib import Path
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy
 import typer
@@ -68,7 +68,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, url: str, parameters: Dict[str, Any]):
+    def __init__(self, *, url: str, parameters: dict[str, Any]):
         """
         OM Parameter Tweaker for Crystallography.
 
@@ -111,11 +111,11 @@ class CrystallographyParameterTweaker(OmGuiBase):
             _ParameterTweakerParameters.model_validate(parameters["crystallography"])
         )
 
-        self._img: Optional[NDArray[numpy.float_]] = None
-        self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
+        self._img: NDArray[numpy.float_] | None = None
+        self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
-        self._received_data: Dict[str, Any] = {}
+        self._received_data: dict[str, Any] = {}
 
         # crystallography_parameters = self._monitor_params.get_parameter_group(
         #     group="crystallography"
@@ -306,8 +306,8 @@ class CrystallographyParameterTweaker(OmGuiBase):
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: List[float],
-        peak_list_y_in_frame: List[float],
+        peak_list_x_in_frame: list[float],
+        peak_list_y_in_frame: list[float],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtWidgets.QApplication.processEvents()
@@ -350,7 +350,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         # Performs peak detection with the current parameters
 
         try:
-            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
+            current_data: dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the frame buffer is empty, returns without drawing anything.
             return
@@ -359,9 +359,9 @@ class CrystallographyParameterTweaker(OmGuiBase):
             data=current_data["detector_data"]
         )
 
-        peak_list_x_in_frame: List[float] = []
-        peak_list_y_in_frame: List[float] = []
-        data_shape: Tuple[int, int] = current_data["detector_data"].shape
+        peak_list_x_in_frame: list[float] = []
+        peak_list_y_in_frame: list[float] = []
+        data_shape: tuple[int, int] = current_data["detector_data"].shape
 
         peak_fs: float
         peak_ss: float
@@ -388,7 +388,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         # Updates the image and Bragg peaks shown by the viewer.
 
         try:
-            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
+            current_data: dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the frame buffer is empty, returns without drawing anything.
             return
@@ -524,7 +524,7 @@ def main(
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(config=config)
+    parameters: dict[str, dict[str, Any]] = load_configuration_parameters(config=config)
 
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyParameterTweaker(url=url, parameters=parameters)

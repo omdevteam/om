@@ -22,7 +22,7 @@ This module contains algorithms that calibrate raw detector data frames, prepari
 for data extraction,
 """
 
-from typing import Any, BinaryIO, List, Tuple
+from typing import Any, BinaryIO
 
 import h5py  # type: ignore
 import numpy
@@ -37,8 +37,8 @@ class Jungfrau1MCalibration:
     def __init__(
         self,
         *,
-        dark_filenames: List[str],
-        gain_filenames: List[str],
+        dark_filenames: list[str],
+        gain_filenames: list[str],
         photon_energy_kev: float,
     ) -> None:
         """
@@ -105,7 +105,7 @@ class Jungfrau1MCalibration:
         """
         calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float_)
 
-        where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
+        where_gain: list[tuple[NDArray[numpy.int_], ...]] = [
             numpy.where(data & 2**14 == 0),
             numpy.where((data & (2**14) > 0) & (data & 2**15 == 0)),
             numpy.where(data & 2**15 > 0),

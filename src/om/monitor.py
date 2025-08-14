@@ -24,9 +24,8 @@ This module contains the main function that tarts an OnDA Monitor.
 import signal
 import sys
 from pathlib import Path
-from typing import Optional, Type
 
-import typer
+import typer  # type: ignore
 from typing_extensions import Annotated
 
 from om.lib.exceptions import OmConfigurationFileSyntaxError
@@ -68,7 +67,7 @@ def main(
         ),
     ] = Path("monitor.yaml"),
     event_list: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(
             "--event-list",
             "-l",
@@ -105,7 +104,7 @@ def main(
 
     if parameters.om.parallelization_layer == "MpiParallelization":
         try:
-            from mpi4py import MPI
+            from mpi4py import MPI  # type: ignore
 
             mpi_size: int = MPI.COMM_WORLD.Get_size()
             mpi_rank: int = MPI.COMM_WORLD.Get_rank()
@@ -138,26 +137,29 @@ def main(
     monitor_parameters.om.configuration_file = config
     monitor_parameters.data_retrieval_layer.node_pool_size = node_pool_size
 
-    if event_list is not None:
-        data_retrieval_layer: OmDataRetrievalProtocol = EventListDataRetrieval(
-            parameters=monitor_parameters,
-            source=source,
-            event_list_file=event_list,
+    data_event_handler_class: type[OmDataEventHandlerProtocol] = (
+        import_class_from_layer(
+            layer_name="data_retrieval_layer",
+            class_name=parameters.om.data_retrieval_layer,
         )
-    else:
-        data_event_handler_class: Type[OmDataEventHandlerProtocol] = (
-            import_class_from_layer(
-                layer_name="data_retrieval_layer",
-                class_name=parameters.om.data_retrieval_layer,
+    )
+
+    if event_list is not None:
+        data_retrieval_layer: OmDataEventHandlerProtocol = (
+            initialize_event_retrieval_event_handler(
+                data_event_handler_class=data_event_handler_class,
+                parameters=monitor_parameters.data_retrieval_layer,
+                source=source,
+                event_list_file=event_list,
             )
         )
-
-        data_retrieval_layer: OmDataEventHandlerProtocol = data_event_handler_class(
+    else:
+        data_retrieval_layer = data_event_handler_class(
             parameters=monitor_parameters.data_retrieval_layer,
             source=source,
         )
 
-    processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
+    processing_layer_class: type[OmProcessingProtocol] = import_class_from_layer(
         layer_name="processing_layer", class_name=monitor_parameters.om.processing_layer
     )
 
@@ -165,7 +167,7 @@ def main(
         parameters=monitor_parameters
     )
 
-    parallelization_layer_class: Type[OmParallelizationProtocol] = (
+    parallelization_layer_class: type[OmParallelizationProtocol] = (
         import_class_from_layer(
             layer_name="parallelization_layer",
             class_name=parameters.om.parallelization_layer,

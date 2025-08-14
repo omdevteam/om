@@ -23,7 +23,7 @@ HTTP/REST interface of detectors manufactured by the company Dectris.
 """
 
 import datetime
-from typing import Any, Dict, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 import numpy
 from numpy.typing import NDArray
@@ -40,7 +40,7 @@ class OmBaseGenericDataSourceMixin:
 
     T = TypeVar("T")
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmBaseGenericDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -52,7 +52,7 @@ class OmBaseGenericDataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additional_info: Dict[str, Any],
+        additional_info: dict[str, Any],
     ):
         """
         Detector data frames from Eiger 16M's HTTP/REST interface.
@@ -95,8 +95,8 @@ class Eiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
     """
 
     def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves an Eiger 16M detector data frame.
 
@@ -124,7 +124,7 @@ class TimestampEiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves timestamp information from an Eiger 16M'S HTTP/REST interface.
 
@@ -167,7 +167,7 @@ class EventIdEiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves an event identifier from an Eiger 16M'S HTTP/REST interface.
 

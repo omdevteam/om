@@ -22,7 +22,7 @@ This module contains Data Source classes that deal with data retrieved from the 
 software framework (used at the PETRA III facility).
 """
 
-from typing import Any, Dict, Optional, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -47,7 +47,7 @@ class OmBaseAsapoDataSourceMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmBaseAsapoDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -100,8 +100,8 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     """
 
     def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves a detector data frame from ASAP::O.
 
@@ -122,7 +122,7 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         """
         # TODO: Fix type hinting
         return cast(
-            Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+            NDArray[numpy.float_ | numpy.int_],
             seedee.deserialize(
                 event["data"], event["metadata"]["meta"]["_data_format"]
             ),
@@ -134,7 +134,7 @@ class EventIdAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves an event identifier from ASAP::O.
 
@@ -169,7 +169,7 @@ class BeamEnergyAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves beam energy information from ASAP::O.
 
@@ -201,7 +201,7 @@ class DetectorDistanceAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> float:
+    def get_data(self, *, event: dict[str, Any]) -> float:
         """
         Retrieves detector distance information from ASAP::O.
 
@@ -259,9 +259,9 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         """
         self._data_source_name: str = data_source_name
         self._parameters: DataSourceParameters = parameters
-        self._asapo_timestamp_metadata_key: Optional[str] = None
+        self._asapo_timestamp_metadata_key: str | None = None
 
-        extra_parameters: Optional[dict[str, Any]] = self._parameters.__pydantic_extra__
+        extra_parameters: dict[str, Any] | None = self._parameters.__pydantic_extra__
         if extra_parameters is not None:
             if "asapo_timestamp_metadata_key" in extra_parameters:
                 self._asapo_timstamp_metadata_key = extra_parameters[
@@ -280,7 +280,7 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves timestamp information from ASAP::O.
 

@@ -28,13 +28,9 @@ from dataclasses import asdict
 from datetime import datetime
 from typing import (
     Any,
-    Dict,
     Generator,
-    List,
     Literal,
     TextIO,
-    Tuple,
-    Type,
     TypeVar,
     cast,
 )
@@ -70,7 +66,7 @@ class OmBaseFileDataEventHandlerMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmBaseFileDataEventHandlerMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -162,7 +158,7 @@ class PilatusFilesEventHandler(
         try:
             file_handle: TextIO
             with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()
+                filelist: list[str] = file_handle.readlines()
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -170,11 +166,11 @@ class PilatusFilesEventHandler(
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
         )
-        self._files_curr_node: List[str] = filelist[
+        self._files_curr_node: list[str] = filelist[
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_files", "data_sources_common"],
@@ -187,7 +183,7 @@ class PilatusFilesEventHandler(
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Pilatus single-frame file events.
 
@@ -214,7 +210,7 @@ class PilatusFilesEventHandler(
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
 
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: str
@@ -239,8 +235,8 @@ class PilatusFilesEventHandler(
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a Pilatus single-frame file event.
 
@@ -265,7 +261,7 @@ class PilatusFilesEventHandler(
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
@@ -295,7 +291,7 @@ class PilatusFilesEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._instantiated_data_sources_for_retrieval: Dict[
+        self._instantiated_data_sources_for_retrieval: dict[
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
@@ -303,7 +299,7 @@ class PilatusFilesEventHandler(
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -322,7 +318,7 @@ class PilatusFilesEventHandler(
 
             All data related to the requested event.
         """
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         data_event["additional_info"]["full_path"] = event_id
@@ -368,12 +364,12 @@ class Jungfrau1MFilesDataEventHandler(
         try:
             file_handle: TextIO
             with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()  # type
+                filelist: list[str] = file_handle.readlines()  # type
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
-        frame_list: List[Jungfrau1MFrameInfo] = []
+        frame_list: list[Jungfrau1MFrameInfo] = []
         line: str
         for line in filelist:
             filename: str = line.strip()
@@ -410,13 +406,13 @@ class Jungfrau1MFilesDataEventHandler(
         num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
         )
-        self._frames_curr_node: List[Jungfrau1MFrameInfo] = frame_list[
+        self._frames_curr_node: list[Jungfrau1MFrameInfo] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
         ]
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_files", "data_sources_common"],
@@ -429,7 +425,7 @@ class Jungfrau1MFilesDataEventHandler(
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Jungfrau 1M file events.
 
@@ -455,7 +451,7 @@ class Jungfrau1MFilesDataEventHandler(
         # the events as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: Jungfrau1MFrameInfo
@@ -474,8 +470,8 @@ class Jungfrau1MFilesDataEventHandler(
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a Jungfrau 1M file event.
 
@@ -500,7 +496,7 @@ class Jungfrau1MFilesDataEventHandler(
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
             try:
@@ -530,7 +526,7 @@ class Jungfrau1MFilesDataEventHandler(
         information about this method.
         """
 
-        self._instantiated_data_sources_for_retrieval: Dict[
+        self._instantiated_data_sources_for_retrieval: dict[
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
@@ -538,7 +534,7 @@ class Jungfrau1MFilesDataEventHandler(
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -558,9 +554,9 @@ class Jungfrau1MFilesDataEventHandler(
 
             All data related to the requested event.
         """
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
 
-        event_id_parts: List[str] = event_id.split("//")
+        event_id_parts: list[str] = event_id.split("//")
         filename: str = event_id_parts[0].strip()
         index: int = int(event_id_parts[1].strip())
         h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
@@ -592,7 +588,7 @@ class Jungfrau1MFilesDataEventHandler(
             )
         )
 
-        extracted_data: Dict[str, Any] = self.extract_data(event=data_event)
+        extracted_data: dict[str, Any] = self.extract_data(event=data_event)
         h5file.close()
 
         return extracted_data
@@ -625,7 +621,7 @@ class EigerFilesDataEventHandler(
         try:
             file_handle: TextIO
             with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()  # type
+                filelist: list[str] = file_handle.readlines()  # type
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -633,11 +629,11 @@ class EigerFilesDataEventHandler(
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
         )
-        self._files_curr_node: List[str] = filelist[
+        self._files_curr_node: list[str] = filelist[
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_files", "data_sources_common"],
@@ -650,7 +646,7 @@ class EigerFilesDataEventHandler(
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Eiger file events.
 
@@ -676,7 +672,7 @@ class EigerFilesDataEventHandler(
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-        data_event: Dict[str, Dict[str, Any]] = {}
+        data_event: dict[str, dict[str, Any]] = {}
         data_event["additional_info"] = {}
 
         entry: str
@@ -702,8 +698,8 @@ class EigerFilesDataEventHandler(
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from an Eiger file event.
 
@@ -728,7 +724,7 @@ class EigerFilesDataEventHandler(
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
             try:
@@ -757,7 +753,7 @@ class EigerFilesDataEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._instantiated_data_sources_for_retrieval: Dict[
+        self._instantiated_data_sources_for_retrieval: dict[
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
@@ -765,7 +761,7 @@ class EigerFilesDataEventHandler(
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -786,11 +782,11 @@ class EigerFilesDataEventHandler(
             All data related to the requested event.
         """
 
-        event_id_parts: List[str] = event_id.split("//")
+        event_id_parts: list[str] = event_id.split("//")
         filename: str = event_id_parts[0].strip()
         index: int = int(event_id_parts[1].strip())
 
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         h5file: Any = h5py.File(filename, "r")
@@ -808,7 +804,7 @@ class EigerFilesDataEventHandler(
         )
         data_event["additional_info"]["index"] = index
 
-        extracted_data: Dict[str, Any] = self.extract_data(event=data_event)
+        extracted_data: dict[str, Any] = self.extract_data(event=data_event)
         h5file.close()
 
         return extracted_data
@@ -841,7 +837,7 @@ class RayonixMccdFilesEventHandler(
         try:
             file_handle: TextIO
             with open(self._source, "r") as file_handle:
-                filelist: List[str] = file_handle.readlines()  # type
+                filelist: list[str] = file_handle.readlines()  # type
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -850,11 +846,11 @@ class RayonixMccdFilesEventHandler(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
         )
 
-        self._files_curr_node: List[str] = filelist[
+        self._files_curr_node: list[str] = filelist[
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_files", "data_sources_common"],
@@ -867,7 +863,7 @@ class RayonixMccdFilesEventHandler(
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Rayonix MX340-HS single-frame file events.
 
@@ -893,7 +889,7 @@ class RayonixMccdFilesEventHandler(
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         entry: str
@@ -916,8 +912,8 @@ class RayonixMccdFilesEventHandler(
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a Rayonix MX340-HS single-frame file event.
 
@@ -942,7 +938,7 @@ class RayonixMccdFilesEventHandler(
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
@@ -972,7 +968,7 @@ class RayonixMccdFilesEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._instantiated_data_sources_for_retrieval: Dict[
+        self._instantiated_data_sources_for_retrieval: dict[
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
@@ -980,7 +976,7 @@ class RayonixMccdFilesEventHandler(
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -999,7 +995,7 @@ class RayonixMccdFilesEventHandler(
 
             All data related to the requested detector event.
         """
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         data_event["additional_info"]["full_path"] = event_id
@@ -1042,7 +1038,7 @@ class Lambda1M5FilesDataEventHandler(
         """
         try:
             with open(self._source, "r") as file_handle:
-                filelist: List[str] = []
+                filelist: list[str] = []
                 line: str
                 for line in file_handle:
                     filename: str = line.strip()
@@ -1056,11 +1052,11 @@ class Lambda1M5FilesDataEventHandler(
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
         )
-        self._files_curr_node: List[str] = filelist[
+        self._files_curr_node: list[str] = filelist[
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        self._instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_files", "data_sources_common"],
@@ -1073,7 +1069,7 @@ class Lambda1M5FilesDataEventHandler(
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves Lambda 1.5M file events.
 
@@ -1099,14 +1095,14 @@ class Lambda1M5FilesDataEventHandler(
         # the events as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
-        data_event: Dict[str, Dict[str, Any]] = {}
+        data_event: dict[str, dict[str, Any]] = {}
 
         for filename in self._files_curr_node:
-            h5files: Tuple[h5py.File, h5py.File] = (
+            h5files: tuple[h5py.File, h5py.File] = (
                 h5py.File(filename, "r"),
                 h5py.File(re.sub(r"_m01(_.+)?\.nxs", r"_m02\1.nxs", filename), "r"),
             )
-            frame_numbers: List[NDArray[numpy.int_]] = [
+            frame_numbers: list[NDArray[numpy.int_]] = [
                 cast(
                     h5py.Dataset, h5file["/entry/instrument/detector/sequence_number"]
                 )[:]
@@ -1137,8 +1133,8 @@ class Lambda1M5FilesDataEventHandler(
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a Lambda 1.5M file event.
 
@@ -1163,7 +1159,7 @@ class Lambda1M5FilesDataEventHandler(
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._instantiated_data_sources:
@@ -1193,7 +1189,7 @@ class Lambda1M5FilesDataEventHandler(
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        self._instantiated_data_sources_for_retrieval: Dict[
+        self._instantiated_data_sources_for_retrieval: dict[
             str, OmDataSourceProtocol
         ] = instantiate_data_sources(
             data_sources=self._data_retrieval_parameters.data_sources,
@@ -1201,7 +1197,7 @@ class Lambda1M5FilesDataEventHandler(
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -1223,10 +1219,10 @@ class Lambda1M5FilesDataEventHandler(
 
             All data related to the requested event.
         """
-        event_id_parts: List[str] = event_id.split("//")
+        event_id_parts: list[str] = event_id.split("//")
         filename: str = event_id_parts[0].strip()
         index_m1: int = int(event_id_parts[1].strip())
-        h5files: Tuple[Any, Any] = (
+        h5files: tuple[Any, Any] = (
             h5py.File(filename, "r"),
             h5py.File(re.sub(r"(_m01.nxs)", r"_m02.nxs", filename), "r"),
         )
@@ -1244,7 +1240,7 @@ class Lambda1M5FilesDataEventHandler(
             == frame_number
         )[0][0]
 
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {
             "full_path": str(pathlib.Path(filename).resolve()),
             "h5files": h5files,
@@ -1259,7 +1255,7 @@ class Lambda1M5FilesDataEventHandler(
             )
         )
 
-        extracted_data: Dict[str, Any] = self.extract_data(event=data_event)
+        extracted_data: dict[str, Any] = self.extract_data(event=data_event)
         h5file: Any
         for h5file in h5files:
             h5file.close()

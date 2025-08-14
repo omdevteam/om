@@ -23,7 +23,7 @@ This module contains an OnDA Monitor that can be used for testing.
 
 import sys
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from om.lib.logging import log
 from om.lib.parameters import CrystallographyParameters, MonitorParameters
@@ -115,13 +115,13 @@ class TestProcessing(OmProcessingProtocol):
 
         self._num_events: int = 0
         self._old_time: float = time.time()
-        self._time: Optional[float] = None
+        self._time: float | None = None
 
         log.info("Starting the monitor...")
 
     def process_data(
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a data event.
 
@@ -155,7 +155,7 @@ class TestProcessing(OmProcessingProtocol):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-        processed_data: Dict[str, Any] = {}
+        processed_data: dict[str, Any] = {}
 
         log.info("Processing Node - Retrieved data")
         log.info(f"  Timestamp: {data['timestamp']}")
@@ -195,8 +195,8 @@ class TestProcessing(OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Optional[Dict[str, Dict[str, Any]]]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
@@ -215,12 +215,12 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
-        received_data: Dict[str, Any] = processed_data[0]
+        received_data: dict[str, Any] = processed_data[0]
         self._num_events += 1
 
         log.info("Collecting Node - Received data")
@@ -258,7 +258,7 @@ class TestProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing on the processing nodes for the testing Monitor.
 

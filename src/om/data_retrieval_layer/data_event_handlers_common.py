@@ -18,7 +18,7 @@
 """ """
 
 import sys
-from typing import Any, Dict, List, Type
+from typing import Any
 
 from om.lib.layer_management import import_data_source_class
 from om.lib.logging import log
@@ -27,10 +27,10 @@ from om.lib.protocols import OmDataSourceProtocol
 
 
 def instantiate_data_sources(
-    data_sources: Dict[str, DataSourceParameters],
-    modules: List[str],
-    additional_info: Dict[str, Any],
-) -> Dict[str, OmDataSourceProtocol]:
+    data_sources: dict[str, DataSourceParameters],
+    modules: list[str],
+    additional_info: dict[str, Any],
+) -> dict[str, OmDataSourceProtocol]:
     """ """
     if "timestamp" not in data_sources:
         log.error(
@@ -39,10 +39,10 @@ def instantiate_data_sources(
         )
         sys.exit(1)
 
-    instantiated_data_sources: Dict[str, OmDataSourceProtocol] = {}
+    instantiated_data_sources: dict[str, OmDataSourceProtocol] = {}
     data_source_name: str
     for data_source_name in data_sources:
-        data_source_class: Type[OmDataSourceProtocol] = import_data_source_class(
+        data_source_class: type[OmDataSourceProtocol] = import_data_source_class(
             module_names=modules,
             class_name=data_sources[data_source_name].type,
         )

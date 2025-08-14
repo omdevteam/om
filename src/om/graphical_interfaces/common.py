@@ -24,10 +24,10 @@ user interfaces and viewers.
 
 import copy
 from abc import ABCMeta
-from typing import Any, Callable, Dict, List, Union  # noqa: F401
+from typing import Any
 
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.zmq_qt import ZmqDataListener
+from om.lib.zmq_qt import ZmqDatalistener
 
 try:
     from PyQt5 import QtCore, QtWidgets  # type: ignore
@@ -83,14 +83,14 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[
         """
         super(OmGuiBase, self).__init__()
 
-        self._received_data: Dict[str, Any] = {}
+        self._received_data: dict[str, Any] = {}
         self.listening: bool = False
 
         # Initializes an empty status bar
         self.statusBar().showMessage("")
 
         self._data_listener_thread: Any = QtCore.QThread(parent=self)
-        self._data_listener: ZmqDataListener = ZmqDataListener(url=url, tag=tag)
+        self._data_listener: ZmqDatalistener = ZmqDatalistener(url=url, tag=tag)
         self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(
             self._data_listener.start_listening
@@ -139,7 +139,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[
         interface class must provide its own implementation.
         """
 
-    def _data_received(self, received_data: Dict[str, Any]) -> None:
+    def _data_received(self, received_data: dict[str, Any]) -> None:
         # This function is called internally by this class every time the listening
         # thread receives data from an OM monitor. It makes a copy of the received data
         # which then made available to the main GUI thread for further processing.

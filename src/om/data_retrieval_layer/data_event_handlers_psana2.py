@@ -24,7 +24,7 @@ the psana2 software framework (used at the LCLS facility).
 
 import os
 import sys
-from typing import Any, Dict, Generator, List, Literal, Union
+from typing import Any, Generator, Literal
 
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,
@@ -56,7 +56,7 @@ def _psana2_offline_event_generator(
     # processing node is assigned the residual events.
     run: Any
     for run in psana_source.runs():
-        instantiated_data_sources: Dict[str, OmDataSourceProtocol] = (
+        instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=data_retrieval_parameters.data_sources,
                 modules=["data_sources_psana2", "data_sources_common"],
@@ -119,8 +119,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         else:
             self._offline: bool = True
 
-        source_dict: Dict[str, Union[str, int]] = {}
-        source_items: List[str] = source.split(",")
+        source_dict: dict[str, str | int] = {}
+        source_items: list[str] = source.split(",")
         item: str
         for item in source_items:
             if item.startswith("shmem="):
@@ -208,7 +208,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves psana events.
 
@@ -236,12 +236,12 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
         # TODO: Check types of Generator
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         psana_event: Any
         for psana_event in self._psana_events:
-            instantiated_data_sources: Dict[str, OmDataSourceProtocol] = psana_event[1]
+            instantiated_data_sources: dict[str, OmDataSourceProtocol] = psana_event[1]
             data_event["data"] = psana_event[0]
             data_event["additional_info"]["timestamp"] = instantiated_data_sources[
                 "timestamp"
@@ -255,8 +255,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a psana data event.
 
@@ -281,11 +281,11 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
 
-        instantiated_data_sources: Dict[str, OmDataSourceProtocol] = event[
+        instantiated_data_sources: dict[str, OmDataSourceProtocol] = event[
             "additional_info"
         ]["instantiated_data_sources"]
 
@@ -321,7 +321,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         """
         raise NotImplementedError
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 

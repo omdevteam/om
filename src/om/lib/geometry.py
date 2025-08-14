@@ -21,12 +21,11 @@ CrystFEL's geometry utilities.
 This module contains functions and classes that manipulate geometry information.
 """
 
-import collections
+from collections import OrderedDict
 import copy
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
@@ -241,7 +240,7 @@ class Panel:
     max_adu: float
     data: str
     adu_per_eV: float
-    dim_structure: List[Optional[Union[int, str]]]
+    dim_structure: list[int | str | None]
     fsx: float
     fsy: float
     fsz: float
@@ -315,12 +314,12 @@ class Detector:
             the center of the detector reference system.
     """
 
-    panels: Dict[str, Panel]
-    bad: Dict[str, BadRegion]
+    panels: dict[str, Panel]
+    bad: dict[str, BadRegion]
     mask_bad: int
     mask_good: int
-    rigid_groups: Dict[str, List[str]]
-    rigid_group_collections: Dict[str, List[str]]
+    rigid_groups: dict[str, list[str]]
+    rigid_group_collections: dict[str, list[str]]
     furthest_out_panel: str
     furthest_out_fs: float
     furthest_out_ss: float
@@ -419,15 +418,15 @@ def _parse_direction(
     direction_x: float,
     direction_y: float,
     direction_z: float,
-) -> List[float]:
-    direction: List[float] = [
+) -> list[float]:
+    direction: list[float] = [
         direction_x,
         direction_y,
         direction_z,
     ]
-    items: List[str] = []
+    items: list[str] = []
     character: str
-    current_string: List[str] = []
+    current_string: list[str] = []
     for character in string_to_parse:
         if character not in ("+", "-"):
             current_string.append(character)
@@ -564,8 +563,8 @@ def _parse_panel_entry(
         except OmGeometryError:
             raise OmGeometryError("Invalid slow scan direction.")
     elif key.startswith("dim"):
-        if panel.dim_structure is not None:
-            dim: List[Optional[Union[int, str]]] = panel.dim_structure
+        if len(panel.dim_structure) != 0:
+            dim: list[int | str | None] = panel.dim_structure
         else:
             dim = []
         try:
@@ -598,7 +597,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
     num_placeholders_in_masks: int = -1
     dim_length: int = -1
     for panel_name, panel in detector.panels.items():
-        if panel.dim_structure is not None:
+        if len(panel.dim_structure) != 0:
             curr_num_placeholders: int = panel.dim_structure.count("%")
         else:
             curr_num_placeholders = 0
@@ -612,7 +611,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
                     "number of placeholders."
                 )
 
-        if panel.mask is not None:
+        if panel.mask != "":
             curr_num_placeholders = panel.mask.count("%")
         else:
             curr_num_placeholders = 0
@@ -630,7 +629,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
         found_fs: int = 0
         found_placeholder: int = 0
         dim_index: int
-        entry: Optional[Union[int, str]]
+        entry: int | str | None
         for dim_index, entry in enumerate(panel.dim_structure):
             if entry is None:
                 raise OmGeometryError(
@@ -683,11 +682,11 @@ def _validate_detector_geometry(detector: Detector) -> None:
             raise OmGeometryError(
                 "Please specify the maximum ss coordinate for panel " f"{panel_name}."
             )
-        if panel.cnx is None:
+        if panel.cnx == float("NaN"):
             raise OmGeometryError(
                 "Please specify the corner X coordinate for panel " f"{panel_name}."
             )
-        if panel.clen is None and panel.clen_from is None:
+        if panel.clen == float("NaN") and panel.clen_from == "":
             raise OmGeometryError(
                 f"Please specify the camera length for panel {panel_name}."
             )
@@ -695,7 +694,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
             raise OmGeometryError(
                 f"Please specify the resolution or panel {panel_name}."
             )
-        if panel.adu_per_eV is None and panel.adu_per_photon is None:
+        if panel.adu_per_eV == float("NaN") and panel.adu_per_photon == float("NaN"):
             raise OmGeometryError(
                 "Please specify either adu_per_eV or adu_per_photon for panel "
                 f"{panel_name}."
@@ -739,8 +738,8 @@ def _validate_detector_geometry(detector: Detector) -> None:
 
 def _read_crystfel_geometry_from_text(  # noqa: C901
     *,
-    text_lines: List[str],
-) -> Tuple[Detector, Beam, str]:  # noqa: C901
+    text_lines: list[str],
+) -> tuple[Detector, Beam, str]:  # noqa: C901
     # This function is a Python re-implementation of the `get_detector_geometry_2` C
     # function from CrystFEL. It reads some CrystFEL geometry information provided in
     # the form of text data (and encoded using a format fully documented in CrystFEL's
@@ -773,8 +772,8 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
         photon_energy_scale=1.0,
     )
     detector: Detector = Detector(
-        panels=collections.OrderedDict(),
-        bad=collections.OrderedDict(),
+        panels=OrderedDict(),
+        bad=OrderedDict(),
         mask_good=0,
         mask_bad=0,
         rigid_groups={},
@@ -837,7 +836,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
         max_ss=0,
         is_fsss=99,
     )
-    default_dim: List[Optional[Union[int, str]]] = ["ss", "fs"]
+    default_dim: list[int | str | None] = ["ss", "fs"]
     hdf5_peak_path: str = ""
     line: str
     for line in text_lines:
@@ -847,12 +846,12 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
             continue
         try:
             line_without_comments: str = line.strip().split(";")[0]
-            line_parts: List[str] = line_without_comments.split("=")
+            line_parts: list[str] = line_without_comments.split("=")
             if len(line_parts) != 2:
                 raise OmGeometryError("The line does not have the format 'key=value'")
             key: str = line_parts[0].strip()
             value: str = line_parts[1].strip()
-            key_parts: List[str] = key.split("/")
+            key_parts: list[str] = key.split("/")
             if len(key_parts) < 2:
                 if key == "mask_bad":
                     try:
@@ -1092,7 +1091,7 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
     )
 
 
-def _compute_min_array_shape(*, pixel_maps: PixelMaps) -> Tuple[int, int]:
+def _compute_min_array_shape(*, pixel_maps: PixelMaps) -> tuple[int, int]:
     # Computes the minimum shape of an array that can hold the pixel information for
     # the image representation of a detector data frame (starting from CrystFEL
     # geometry information).
@@ -1109,7 +1108,7 @@ def _compute_visualization_pix_maps(*, pixel_maps: PixelMaps) -> VisualizationPi
     # of the image that will be displayed. Computes the size of the array needed to
     # display the data, then use this information to estimate the magnitude of the
     # shift.
-    min_shape: Tuple[int, int] = _compute_min_array_shape(pixel_maps=pixel_maps)
+    min_shape: tuple[int, int] = _compute_min_array_shape(pixel_maps=pixel_maps)
     new_x_map: NDArray[numpy.int_] = (
         numpy.array(object=pixel_maps.x, dtype=int) + min_shape[1] // 2 - 1
     )
@@ -1128,7 +1127,7 @@ def _retrieve_layout_info_from_geometry(
 ) -> DetectorLayoutInformation:
     # Retrieves information about the internal data layout of a detector data frame,
     # Starting from CrystFEL geometry information.
-    panels: List[Panel] = list(geometry.panels.values())
+    panels: list[Panel] = list(geometry.panels.values())
     panel_fs_size: int = panels[0].orig_max_fs - panels[0].orig_min_fs + 1
     panel_ss_size: int = panels[0].orig_max_ss - panels[0].orig_min_ss + 1
 
@@ -1151,7 +1150,7 @@ class GeometryInformation:
     def __init__(
         self,
         *,
-        geometry_description: List[str],
+        geometry_description: list[str],
         geometry_format: str,
     ) -> None:
         """
@@ -1216,7 +1215,7 @@ class GeometryInformation:
 
     @classmethod
     def from_file(
-        cls, *, geometry_filename: str, geometry_format: Optional[str] = None
+        cls, *, geometry_filename: str, geometry_format: str | None = None
     ) -> "GeometryInformation":
         """
         Reads geometry description from file.
@@ -1243,7 +1242,7 @@ class GeometryInformation:
                 inferred from the file's extension.
         """
 
-        format_extension_dict: Dict[str, str] = {".geom": "crystfel"}
+        format_extension_dict: dict[str, str] = {".geom": "crystfel"}
 
         if geometry_format is None:
             extension = Path(geometry_filename).suffix
@@ -1257,7 +1256,7 @@ class GeometryInformation:
                 )
 
         with open(Path(geometry_filename), "r") as file_handle:
-            geometry_file_content: List[str] = file_handle.readlines()
+            geometry_file_content: list[str] = file_handle.readlines()
 
         return cls(
             geometry_description=geometry_file_content,
@@ -1354,7 +1353,7 @@ class DataVisualizer:
         self._visualization_pixel_maps: VisualizationPixelMaps = (
             _compute_visualization_pix_maps(pixel_maps=self._pixel_maps)
         )
-        self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
+        self._min_array_shape: tuple[int, int] = _compute_min_array_shape(
             pixel_maps=self._pixel_maps
         )
 
@@ -1387,7 +1386,7 @@ class DataVisualizer:
         """
         return self._visualization_pixel_maps
 
-    def get_min_array_shape_for_visualization(self) -> Tuple[int, int]:
+    def get_min_array_shape_for_visualization(self) -> tuple[int, int]:
         """
         Retrieves the minimum shape of an array that can store a detector frame image.
 
@@ -1407,8 +1406,8 @@ class DataVisualizer:
     def visualize_data(
         self,
         *,
-        data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
-        array_for_visualization: Optional[NDArray[numpy.float_]] = None,
+        data: NDArray[numpy.int_ | numpy.float_],
+        array_for_visualization: NDArray[numpy.float_] | None = None,
     ) -> NDArray[numpy.float_]:
         """
         Applies geometry information to a detector data frame.

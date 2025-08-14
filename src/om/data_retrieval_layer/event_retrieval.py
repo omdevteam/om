@@ -20,17 +20,76 @@ This module contains classes that deals with the retrieval of single standalone 
 """
 
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Literal, TextIO, Type
+from typing import Any, Generator, Literal, TextIO
 
 from om.lib.exceptions import OmInvalidSourceError
+from om.lib.layer_management import import_class_from_layer
+from om.lib.parameters import DataRetrievalLayerParameters, MonitorParameters
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
     OmDataSourceProtocol,
 )
-from om.lib.layer_management import import_class_from_layer
 
 
-class EventListEventHandler(OmDataEventHandlerProtocol):
+class OmEventDataRetrieval:
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(self, *, parameters: MonitorParameters, source: str) -> None:
+        """
+        Retrieval of single standalone data events.
+
+        This class deals with the retrieval of single standalone data events from a
+        data source.
+
+        Arguments:
+
+            monitor_parameters: An object storing OM's configuration parameters.
+
+            source: A string describing the data event source.
+        """
+
+        data_event_handler_class: type[OmDataEventHandlerProtocol] = (
+            import_class_from_layer(
+                layer_name="data_retrieval_layer",
+                class_name=parameters.om.data_retrieval_layer,
+            )
+        )
+
+        self._data_event_handler: OmDataEventHandlerProtocol = data_event_handler_class(
+            parameters=parameters.data_retrieval_layer,
+            source=source,
+        )
+
+        self._data_event_handler.initialize_event_data_retrieval()
+
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
+        """
+        Retrieves all data attached to the requested data event.
+
+        This function retrieves all the information associated with the data event
+        specified by the provided identifier. The data is returned in the form of a
+        dictionary.
+
+        * Each dictionary key identifies a Data Source in the event for which
+          information has been retrieved.
+
+        * The corresponding dictionary values store the data associated with each
+          Data Source.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+        Returns:
+
+            A dictionary storing all data related the retrieved event.
+        """
+        return self._data_event_handler.retrieve_event_data(event_id=event_id)
+
+
+class EventListDataEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation for the `__init__` function.
     """
@@ -39,8 +98,9 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
         self,
         *,
         source: str,
-        parameters: Dict[str, Any],
-        data_sources: Dict[str, OmDataSourceProtocol],
+        parameters: DataRetrievalLayerParameters,
+        data_sources: dict[str, OmDataSourceProtocol],
+        data_event_handler_class: type[OmDataEventHandlerProtocol],
         event_list_file: Path,
     ) -> None:
         """
@@ -71,7 +131,10 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
         """
         self._source: str = source
         self._event_list_file: Path = event_list_file
-        self._monitor_parameters: Dict[str, Any] = parameters
+        self._data_event_handler_class: type[OmDataEventHandlerProtocol] = (
+            data_event_handler_class
+        )
+        self.data_retrieval_layer_parameters = parameters
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "first"
@@ -116,45 +179,43 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        data_event_handler_class: Type[OmDataEventHandlerProtocol] = (
-            import_class_from_layer(
-                layer_name="data_retrieval_layer",
-                class_name=parameters.data_retrieval_layer,
+        self._event_handler: OmDataEventHandlerProtocol = (
+            self._data_event_handler_class(
+                source=self._source,
+                parameters=self.data_retrieval_layer_parameters,
             )
         )
 
-        self._event_retrieval = OmEventDataRetrieval(
-            parameters=self._monitor_parameters,
-            source=self._source,
-        )
+        self._event_handler.initialize_event_data_retrieval()
+
         try:
             fh: TextIO
             with open(self._event_list_file, "r") as fh:
-                event_list: List[str] = fh.readlines()
+                event_list: list[str] = fh.readlines()
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} event list file."
             ) from exc
 
-        self._events_curr_node: List[str] = event_list[
+        self._events_curr_node: list[str] = event_list[
             (node_rank - 1) :: (node_pool_size - 1)
         ]
 
     def event_generator(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """ """
 
         event_id: str
         for event_id in self._events_curr_node:
             event_id = event_id[:-1]
-            yield self._event_retrieval.retrieve_event_data(event_id=event_id)
+            yield self._event_handler.retrieve_event_data(event_id=event_id)
 
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from an event.
 
@@ -190,7 +251,7 @@ class EventListEventHandler(OmDataEventHandlerProtocol):
         """
         raise NotImplementedError
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 

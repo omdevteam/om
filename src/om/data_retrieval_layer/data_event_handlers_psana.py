@@ -23,7 +23,7 @@ the psana software framework (used at the LCLS facility).
 """
 
 import sys
-from typing import Any, Dict, Generator, List, Literal, Optional
+from typing import Any, Generator, Literal
 
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,
@@ -99,7 +99,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
     def _initialize_psana_data_source(
         self,
         *,
-        psana_calibration_directory: Optional[str],
+        psana_calibration_directory: str | None,
         mpi_data_source: bool,
     ) -> Any:
         # This private method contains all the common psana initialization code needed
@@ -196,7 +196,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Retrieves psana events.
 
@@ -224,7 +224,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
                 processing nodes and the collecting node.
         """
         # TODO: Check types of Generator
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
 
         psana_event: Any
@@ -242,8 +242,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
     def extract_data(
         self,
         *,
-        event: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        event: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Extracts data from a psana data event.
 
@@ -268,7 +268,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
         source_name: str
         for source_name in self._instantiated_data_sources:
@@ -316,7 +316,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             additional_info={},
         )
 
-    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
         Retrieves all data related to the requested event.
 
@@ -341,7 +341,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             OmMissingDataEventError: Raised when an event cannot be retrieved from the
                 data source.
         """
-        event_id_parts: List[str] = event_id.split("-")
+        event_id_parts: list[str] = event_id.split("-")
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
@@ -353,7 +353,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             raise OmMissingDataEventError(
                 f"Data event {event_id} cannot be retrieved from the data event source"
             )
-        data_event: Dict[str, Any] = {}
+        data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
         data_event["data"] = retrieved_event
 

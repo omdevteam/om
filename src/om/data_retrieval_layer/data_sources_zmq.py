@@ -22,7 +22,7 @@ This module contains Data Source classes that deal with data retrieved from ZMQ 
 streams.
 """
 
-from typing import Any, Dict, Tuple, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -39,7 +39,7 @@ class OmBaseZmqDataSourceMixin:
     See documentation of the `__init__` function.
     """
 
-    def __new__(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
         if cls is OmBaseZmqDataSourceMixin:
             raise TypeError(
                 f"{cls.__name__} is a Mixin class and should not be instantiated"
@@ -51,7 +51,7 @@ class OmBaseZmqDataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
-        additonal_info: Dict[str, Any],
+        additonal_info: dict[str, Any],
     ):
         """
         Timestamp information from a Jungfrau 1M's ZMQ data stream.
@@ -94,7 +94,7 @@ class TimestampJungfrau1MZmq(OmBaseZmqDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves timestamp information from a Jungfrau 1M's ZMQ data stream.
 
@@ -121,7 +121,7 @@ class EventIdJungfrau1MZmq(OmBaseZmqDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: dict[str, Any]) -> str:
         """
         Retrieves an event identifier from a Jungfrau 1M's ZMQ data stream.
 
@@ -148,8 +148,8 @@ class Jungfrau1MZmq(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
     """
 
     def get_data(
-        self, *, event: Dict[str, Any]
-    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.float_ | numpy.int_]:
         """
         Retrieves a Jungfrau 1M detector data frame from a ZMQ data stream.
 
@@ -170,7 +170,7 @@ class Jungfrau1MZmq(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
 
             A detector data frame.
         """
-        msg: Tuple[Dict[str, Any], Dict[str, Any]] = event["data"]
+        msg: tuple[dict[str, Any], dict[str, Any]] = event["data"]
         data: NDArray[numpy.int_] = numpy.concatenate(
             [
                 numpy.frombuffer(msg[i]["data"], dtype=numpy.int16).reshape((512, 1024))

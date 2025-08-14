@@ -24,14 +24,12 @@ binning, etc.).
 """
 
 from pathlib import Path
-from typing import Any, Dict, Optional, TypeVar, Union, cast
+from typing import TypeVar, cast
 
 import numpy
 from numpy.typing import DTypeLike, NDArray
-from typing_extensions import Self
 
 from om.algorithms.common import PeakList
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import DetectorLayoutInformation, PixelMaps
 from om.lib.parameters import BinningParameters, RadialProfileParameters
@@ -106,8 +104,8 @@ class RadialProfile:
             parameters.bad_pixel_map_filename is not None
             and parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
-                Optional[NDArray[numpy.int_]],
+            bad_pixel_map: NDArray[numpy.int_] | None = cast(
+                NDArray[numpy.int_] | None,
                 load_hdf5_data(
                     hdf5_filename=(Path(parameters.bad_pixel_map_filename)),
                     hdf5_path=parameters.bad_pixel_map_hdf5_path,
@@ -117,7 +115,7 @@ class RadialProfile:
             bad_pixel_map = None
 
         if bad_pixel_map is None:
-            self._mask: Union[NDArray[numpy.bool_], bool] = True
+            self._mask: NDArray[numpy.bool_] | bool = True
         else:
             self._mask = bad_pixel_map.astype(bool)
 
@@ -152,7 +150,7 @@ class RadialProfile:
         """
         return self._radial_bin_labels
 
-    def get_bad_pixel_map(self) -> Optional[NDArray[numpy.bool_]]:
+    def get_bad_pixel_map(self) -> NDArray[numpy.bool_] | None:
         """
         Gets the bad pixel map provided to the algorithm.
 
@@ -172,7 +170,7 @@ class RadialProfile:
 
     def calculate_profile(
         self,
-        data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+        data: NDArray[numpy.float_] | NDArray[numpy.int_],
     ) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.
@@ -270,10 +268,6 @@ class Binning:
                   are excluded by the calculation). Defaults to `MAXINT` if the data to
                   bin is of integer type, otherwise defaults to `numpy.nan`.
         """
-        if parameters is None:
-            log.error("'binning' section is not present in the configuration file")
-            sys.exit(1)
-
         if parameters.min_good_pix_count is None:
             self._min_good_pix_count: int = parameters.bin_size**2
         else:
@@ -290,8 +284,8 @@ class Binning:
             parameters.bad_pixel_map_filename is not None
             and parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: Optional[NDArray[numpy.int_]] = cast(
-                Optional[NDArray[numpy.int_]],
+            bad_pixel_map: NDArray[numpy.int_] | None = cast(
+                NDArray[numpy.int_] | None,
                 load_hdf5_data(
                     hdf5_filename=Path(parameters.bad_pixel_map_filename),
                     hdf5_path=parameters.bad_pixel_map_hdf5_path,
@@ -334,7 +328,7 @@ class Binning:
         self._binned_data_array: NDArray[numpy.float_] = numpy.zeros(
             (self._binned_nx, self._binned_ny), dtype=numpy.float64
         )
-        self._bad_pixel_value: Optional[Union[int, float]] = parameters.bad_pixel_value
+        self._bad_pixel_value: int | float | None = parameters.bad_pixel_value
 
         # TODO: What is the following?
         self._saturation_value: float = -1.0
@@ -426,7 +420,7 @@ class Binning:
         )
 
     def bin_detector_data(
-        self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        self, *, data: NDArray[numpy.float_ | numpy.int_]
     ) -> NDArray[numpy.float_]:
         """
         Computes a binned version of the detector data frame.
@@ -453,7 +447,7 @@ class Binning:
         if self._bad_pixel_value is None:
             if numpy.issubdtype(data_type, numpy.integer):
                 # TODO: is self._bad_pixel_value int or float?
-                bad_pixel_value: Union[int, float] = numpy.iinfo(data_type).max
+                bad_pixel_value: int | float = numpy.iinfo(data_type).max
             else:
                 bad_pixel_value = -1.0e10
         else:
@@ -478,8 +472,8 @@ class Binning:
         return self._binned_data_array
 
     def bin_bad_pixel_map(
-        self, *, mask: Optional[NDArray[numpy.int_]]
-    ) -> Optional[NDArray[numpy.int_]]:
+        self, *, mask: NDArray[numpy.int_] | None
+    ) -> NDArray[numpy.int_] | None:
         """
         Computes a bad pixel map for a binned data frame.
 
@@ -661,7 +655,7 @@ class BinningPassthrough:
         return self._layout_info
 
     def bin_detector_data(
-        self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        self, *, data: NDArray[numpy.float_ | numpy.int_]
     ) -> NDArray[numpy.float_]:
         """
         Computes a binned version of the detector data frame.
@@ -682,8 +676,8 @@ class BinningPassthrough:
         return data.astype(numpy.float_)
 
     def bin_bad_pixel_map(
-        self, *, mask: Optional[NDArray[numpy.int_]]
-    ) -> Optional[NDArray[numpy.int_]]:
+        self, *, mask: NDArray[numpy.int_] | None
+    ) -> NDArray[numpy.int_] | None:
         """
         Computes a bad pixel map for the binned data frame.
 

@@ -24,7 +24,7 @@ HDF5 format.
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, TextIO, Union
+from typing import Any, TextIO
 
 import h5py  # type: ignore
 import numpy
@@ -43,7 +43,7 @@ def load_hdf5_data(
     *,
     hdf5_filename: Path,
     hdf5_path: str,
-) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+) -> NDArray[numpy.int_ | numpy.float_]:
     """
     Loads data from an HDF5 file.
 
@@ -71,9 +71,7 @@ def load_hdf5_data(
     try:
         hdf5_file_handle: Any
         with h5py.File(hdf5_filename_path, "r") as hdf5_file_handle:
-            data: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = hdf5_file_handle[
-                hdf5_path
-            ][:]
+            data: NDArray[numpy.float_ | numpy.int_] = hdf5_file_handle[hdf5_path][:]
     except (IOError, OSError, KeyError) as exc:
         exc_type, exc_value = sys.exc_info()[:2]
         raise OmHdf5FileReadingError(
@@ -98,7 +96,7 @@ def load_configuration_parameters(
     try:
         open_file: TextIO
         with open(config_path, "r") as open_file:
-            loaded_yaml_file: Dict[str, Dict[str, Any]] = yaml.safe_load(open_file)
+            loaded_yaml_file: dict[str, dict[str, Any]] = yaml.safe_load(open_file)
     except OSError:
         raise OmConfigurationFileReadingError(
             f"Cannot open or read the following configuration file: {config}."

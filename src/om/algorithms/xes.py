@@ -17,17 +17,15 @@
 Algorithms for the processing of X-ray Emission Spectroscopy data.
 
 This module contains algorithms that perform data processing operations for X-ray
-Emission Spectroscopy.
+Emission Spectroscopy
 """
-
-from typing import Any, Dict, Optional, Union, cast
 
 import numpy
 from numpy.typing import NDArray
+from typing import cast
 from scipy import ndimage  # type: ignore
 from scipy.ndimage import gaussian_filter1d  # type: ignore
 
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.parameters import XesParameters
 
 
@@ -82,8 +80,8 @@ class EnergySpectrumRetrieval:
     # TODO: Enforce return dict content for the function below
 
     def calculate_spectrum(
-        self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    ) -> Dict[str, NDArray[numpy.float_]]:
+        self, *, data: NDArray[numpy.float_ | numpy.int_]
+    ) -> dict[str, NDArray[numpy.float_]]:
         """
         Calculates beam energy spectrum information from a camera data frame.
 
@@ -122,8 +120,8 @@ class EnergySpectrumRetrieval:
         # TODO: Perhaps better type hints can be found for this
         if self._xes_parameters.intensity_threshold is not None:
             data[data < self._xes_parameters.intensity_threshold] = 0
-        imr: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = cast(
-            Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+        imr: NDArray[numpy.float_ | numpy.int_] = cast(
+            DArray[numpy.float_ | numpy.int_],
             ndimage.rotate(
                 data,
                 self._xes_parameters.rotation_in_degrees,

@@ -25,7 +25,7 @@ Serial Crystallography experiments.
 import signal
 import sys
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy
 import typer
@@ -80,7 +80,7 @@ class CrystallographyGui(OmGuiBase):
             tag="omdata",
         )
 
-        self._virtual_powder_plot_img: Optional[NDArray[numpy.int_]] = None
+        self._virtual_powder_plot_img: NDArray[numpy.int_] | None = None
         self._img_center_x: int = 0
         self._img_center_y: int = 0
 
@@ -88,7 +88,7 @@ class CrystallographyGui(OmGuiBase):
         self._last_detector_distance: float = 0
         self._last_beam_energy: float = 0
         self._last_detector_distance_offset: float = 0
-        self._resolution_rings_in_a: List[float] = [
+        self._resolution_rings_in_a: list[float] = [
             10.0,
             9.0,
             8.0,
@@ -98,13 +98,13 @@ class CrystallographyGui(OmGuiBase):
             4.0,
             3.0,
         ]
-        self._resolution_rings_text_items: List[Any] = [
+        self._resolution_rings_text_items: list[Any] = [
             pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
         ]
         self._resolution_rings_enabled: bool = False
 
-        self._received_data: Dict[str, Any] = {}
+        self._received_data: dict[str, Any] = {}
 
         pyqtgraph.setConfigOption("background", 0.2)
 
@@ -209,7 +209,7 @@ class CrystallographyGui(OmGuiBase):
         was_enabled: bool = self._resolution_rings_check_box.isChecked()
         self._resolution_rings_check_box.setChecked(False)
 
-        items: List[str] = str(self._resolution_rings_line_edit.text()).split(",")
+        items: list[str] = str(self._resolution_rings_line_edit.text()).split(",")
         if items:
             self._resolution_rings_in_a = [
                 float(item) for item in items if item != "" and float(item) != 0.0
@@ -242,7 +242,7 @@ class CrystallographyGui(OmGuiBase):
             lambda_: float = (
                 constants.h * constants.c / (self._last_beam_energy * constants.e)
             )
-            resolution_rings_in_pix: List[float] = [1.0]
+            resolution_rings_in_pix: list[float] = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0
@@ -310,7 +310,7 @@ class CrystallographyGui(OmGuiBase):
         self._last_beam_energy = local_data["beam_energy"]
         self._last_detector_distance_offset = local_data["detector_distance_offset"]
 
-        virtual_powder_plot_img_shape: Tuple[int, int] = local_data[
+        virtual_powder_plot_img_shape: tuple[int, int] = local_data[
             "virtual_powder_plot"
         ].shape
 

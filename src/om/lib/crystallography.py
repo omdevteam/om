@@ -25,15 +25,13 @@ generation, etc.).
 
 import sys
 from collections import deque
-from typing import Any, Deque, Dict, List, Optional, Tuple, Union, cast
+from typing import cast
 
 import numpy
 from numpy.typing import NDArray
-from typing_extensions import Self
 
 from om.algorithms.common import PeakList
 from om.algorithms.crystallography import Peakfinder8PeakDetection
-from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.geometry import (
     DataVisualizer,
     GeometryInformation,
@@ -44,14 +42,8 @@ from om.lib.logging import log
 from om.lib.parameters import (
     CrystallographyParameters,
     MonitorParameters,
-    Peakfinder8PeakDetectionParameters,
 )
 from om.lib.protocols import OmPeakDetectionProtocol
-
-try:
-    import om.algorithms.crystallography_ml  # noqa: F401
-except ImportError:
-    pass
 
 
 class CrystallographyPeakFinding:
@@ -117,36 +109,13 @@ class CrystallographyPeakFinding:
             )
             sys.exit(1)
 
-        # if parameters.crystallography.peakfinding_algorithm == "peakfinder8":
-        #     self._peak_detection: OmPeakDetectionProtocol = Peakfinder8PeakDetection(
-        #         parameters=parameters["peakfinder8_peak_detection"],
-        #         radius_pixel_map=geometry_information.get_pixel_maps().radius,
-        #         layout_info=geometry_information.get_layout_info(),
-        #     )
-        # elif (
-        #     parameters.crystallography.peakfinding_algorithm == "peaknet"
-        #     and "om.algorithms.crystallography_ml" in sys.modules
-        # ):
-        #     from om.algorithms.crystallography_ml import (  # noqa: I001
-        #         PeakNetPeakDetection,
-        #     )
-        #     self._peak_detection = PeakNetPeakDetection(
-        #         parameters=parameters["peaknet_peak_detection"],
-        #     )
-        # else:
-        #     raise RuntimeError(
-        #         "Unrecognized peak finding algorithm: "
-        #         f"{self._parameters.crystallography.peakfinding_algorithm}"
-        #     )
         self._peak_detection: OmPeakDetectionProtocol = Peakfinder8PeakDetection(
             parameters=parameters.peakfinder8_peak_detection,
             radius_pixel_map=geometry_information.get_pixel_maps().radius,
             layout_info=geometry_information.get_layout_info(),
         )
 
-    def find_peaks(
-        self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
-    ) -> PeakList:
+    def find_peaks(self, detector_data: NDArray[numpy.int_ | numpy.float_]) -> PeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -225,14 +194,14 @@ class CrystallographyPlots:
         visualization_pixel_maps: VisualizationPixelMaps = (
             data_visualizer.get_visualization_pixel_maps()
         )
-        plot_shape: Tuple[int, int] = (
+        plot_shape: tuple[int, int] = (
             data_visualizer.get_min_array_shape_for_visualization()
         )
 
         self._flattened_visualization_pixel_map_y = visualization_pixel_maps.y.flatten()
         self._flattened_visualization_pixel_map_x = visualization_pixel_maps.x.flatten()
         self._radius_pixel_map = pixel_maps.radius
-        self._data_shape: Tuple[int, ...] = self._radius_pixel_map.shape
+        self._data_shape: tuple[int, ...] = self._radius_pixel_map.shape
 
         peakogram_num_bins_intensity: int = 300
 
@@ -254,21 +223,21 @@ class CrystallographyPlots:
         self._peakogram_radius_bin_size: float = (
             parameters.crystallography.peakogram_radius_bin_size
         )
-        self._hit_rate_running_window: Deque[float] = deque(
+        self._hit_rate_running_window: deque[float] = deque(
             [0.0] * self._running_average_window_size,
             maxlen=self._running_average_window_size,
         )
         self._avg_hit_rate: int = 0
         self._num_hits: int = 0
-        self._hit_rate_timestamp_history: Deque[float] = deque(
+        self._hit_rate_timestamp_history: deque[float] = deque(
             5000 * [0.0], maxlen=5000
         )
-        self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
+        self._hit_rate_history: deque[float] = deque(5000 * [0.0], maxlen=5000)
 
-        self._hit_rate_running_window_dark: Deque[float] = deque()
+        self._hit_rate_running_window_dark: deque[float] = deque()
         self._avg_hit_rate_dark: int = 0
-        self._hit_rate_timestamp_history_dark: Deque[float] = deque()
-        self._hit_rate_history_dark: Deque[float] = deque()
+        self._hit_rate_timestamp_history_dark: deque[float] = deque()
+        self._hit_rate_history_dark: deque[float] = deque()
 
         if self._crystallography_parameters.pump_probe_experiment:
             self._hit_rate_running_window_dark = deque(
@@ -279,8 +248,8 @@ class CrystallographyPlots:
             self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
             self._hit_rate_history_dark = deque(5000 * [0.0], maxlen=5000)
 
-        self._virtual_powder_plot_img: NDArray[numpy.int_] = cast(
-            NDArray[numpy.int_], numpy.zeros(plot_shape, dtype=numpy.int_)
+        self._virtual_powder_plot_img: NDArray[numpy.int_] = numpy.zeros(
+            plot_shape, dtype=numpy.int_
         )
 
     def update_plots(
@@ -290,17 +259,17 @@ class CrystallographyPlots:
         peak_list: PeakList,
         frame_is_hit: bool,
         optical_laser_active: bool,
-    ) -> Tuple[
-        Deque[float],
-        Deque[float],
-        Deque[float],
-        Deque[float],
+    ) -> tuple[
+        deque[float],
+        deque[float],
+        deque[float],
+        deque[float],
         NDArray[numpy.int_],
         NDArray[numpy.float_],
         float,
         float,
-        List[float],
-        List[float],
+        list[float],
+        list[float],
     ]:
         """
         Updates and retrieves the crystallography data plots.
@@ -392,7 +361,6 @@ class CrystallographyPlots:
             self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         if frame_is_hit:
-
             peakogram_max_intensity: float = (
                 self._peakogram.shape[1] * self._peakogram_intensity_bin_size
             )
@@ -416,8 +384,8 @@ class CrystallographyPlots:
                     axis=1,
                 )
 
-        peak_list_x_in_frame: List[float] = []
-        peak_list_y_in_frame: List[float] = []
+        peak_list_x_in_frame: list[float] = []
+        peak_list_y_in_frame: list[float] = []
         peak_fs: float
         peak_ss: float
         peak_value: float
@@ -438,9 +406,9 @@ class CrystallographyPlots:
             ]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
-            self._virtual_powder_plot_img[
-                int(y_in_frame), int(x_in_frame)
-            ] += peak_value
+            self._virtual_powder_plot_img[int(y_in_frame), int(x_in_frame)] += (
+                peak_value
+            )
 
             peak_radius: float = (
                 self._bin_size
