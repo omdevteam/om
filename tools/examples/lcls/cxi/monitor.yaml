@@ -1,26 +1,30 @@
 om:
   parallelization_layer: MpiParallelization
-  data_retrieval_layer: CxiLclsDataRetrieval
+  data_retrieval_layer: PsanaDataEventHandler
   processing_layer: CrystallographyProcessing
 
 data_retrieval_layer:
-  detector_data:
-    psana_name: jungfrau4M
-  detector_distance:
-    psana_name: Jungfrau_z
-  optical_laser_active:
-    evr_source: evr2
-    event_code: 41
-  required_data:
-    - "detector_data"
-    - "beam_energy"
-    - "detector_distance"
-    - "timestamp"
-    - "event_id"
-    - "optical_laser_active"
+  psana_calibration_directory: null
+  data_sources:
+    timestamp:
+      type: TimestampPsana
+    event_id:
+      type: EventIdPsana
+    detector_data:
+      type: AreaDetectorPsana
+      psana_name: jungfrau4M
+      calibration: true
+    detector_distance:
+      type: EpicsVariablePsana
+      psana_name: Jungfrau_z
+    beam_energy:
+      type: BeamEnergyFromEpicsVariablePsana
+    optical_laser_active:
+      type: EvrCodesPsana
+      evr_source: evr2
+      event_code: 41
 
 crystallography:
-  num_frames_in_event_to_process: null
   data_broadcast_url: null
   responding_url: null
   data_broadcast_interval: 20
@@ -34,16 +38,7 @@ crystallography:
   non_hit_frame_sending_interval: 10
   pump_probe_experiment: true
 
-correction:
-  dark_filename: null
-  dark_hdf5_path: null
-  mask_filename: null
-  mask_hdf5_path: null
-  gain_filename: null
-  gain_hdf5_path: null
-
 peakfinder8_peak_detection:
-  detector_type: jungfrau4M
   max_num_peaks: 2048
   adc_threshold: 250.0
   minimum_snr: 6.0

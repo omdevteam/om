@@ -1,19 +1,24 @@
 om:
   parallelization_layer: MpiParallelization
-  data_retrieval_layer: CxiLclsCspadDataRetrieval
+  data_retrieval_layer: PsanaDataEventHandler
   processing_layer: CrystallographyProcessing
 
 data_retrieval_layer:
-  detector_data:
-    psana_name: DscCsPad 
-  detector_distance:
-    psana_name: DscCsPad_z
-  required_data:
-    - "detector_data"
-    - "beam_energy"
-    - "detector_distance"
-    - "timestamp"
-    - "event_id"
+  psana_calibration_directory: null
+  data_sources:
+    timestamp:
+      type: TimestampPsana
+    event_id:
+      type: EventIdPsana
+    detector_data:
+      type: AreaDetectorPsana
+      psana_name: DscCsPad 
+      calibration: true
+    detector_distance:
+      type: EpicsVariablePsana
+      psana_name: DscCsPad_z
+    beam_energy:
+      type: BeamEnergyFromEpicsVariablePsana
 
 crystallography:
   data_broadcast_url: null
@@ -28,16 +33,7 @@ crystallography:
   hit_frame_sending_interval: 20
   non_hit_frame_sending_interval: 20
 
-correction:
-  dark_filename: null
-  dark_hdf5_path: null
-  mask_filename: null
-  mask_hdf5_path: null
-  gain_filename: null
-  gain_hdf5_path: null
-
 peakfinder8_peak_detection:
-  detector_type: cspad
   max_num_peaks: 2048
   adc_threshold: 250.0
   minimum_snr: 6.0
