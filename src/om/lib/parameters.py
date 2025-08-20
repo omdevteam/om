@@ -140,9 +140,10 @@ class CheetahParameters(CustomBaseModel):
     hdf5_file_zstd_compression_level: int = 3
     hdf5_file_compression_shuffle: bool = False
     hdf5_file_max_num_peaks: int = 1024
-    class_sums_sending_interval: int = -1
     write_class_sums: bool
+    class_sums_sending_interval: int = -1
     class_sums_update_interval: int
+    class_sums_filename_prefix: str = "sums"
     status_file_update_interval: int
     responding_url: str | None = None
     external_data_request_list_size: int = 20

@@ -104,8 +104,7 @@ class OmCheetahMixin:
         self._monitor_parameters: MonitorParameters = parameters
 
         # Processed data directory
-        if not Path(parameters.cheetah.processed_directory).exists():
-            Path(parameters.cheetah.processed_directory).mkdir()
+        Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
