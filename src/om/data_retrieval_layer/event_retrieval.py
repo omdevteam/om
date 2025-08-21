@@ -99,7 +99,6 @@ class EventListDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         parameters: DataRetrievalLayerParameters,
-        data_sources: dict[str, OmDataSourceProtocol],
         data_event_handler_class: type[OmDataEventHandlerProtocol],
         event_list_file: Path,
     ) -> None:

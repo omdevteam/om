@@ -28,6 +28,7 @@ from pathlib import Path
 import typer  # type: ignore
 from typing_extensions import Annotated
 
+from om.data_retrieval_layer.event_retrieval import EventListDataEventHandler
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
@@ -145,13 +146,11 @@ def main(
     )
 
     if event_list is not None:
-        data_retrieval_layer: OmDataEventHandlerProtocol = (
-            initialize_event_retrieval_event_handler(
-                data_event_handler_class=data_event_handler_class,
-                parameters=monitor_parameters.data_retrieval_layer,
-                source=source,
-                event_list_file=event_list,
-            )
+        data_retrieval_layer: OmDataEventHandlerProtocol = EventListDataEventHandler(
+            data_event_handler_class=data_event_handler_class,
+            parameters=monitor_parameters.data_retrieval_layer,
+            source=source,
+            event_list_file=event_list,
         )
     else:
         data_retrieval_layer = data_event_handler_class(

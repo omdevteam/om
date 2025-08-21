@@ -549,7 +549,7 @@ class OmParallelizationProtocol(Protocol):
         *,
         data_retrieval_layer: OmDataEventHandlerProtocol,
         processing_layer: OmProcessingProtocol,
-        parameters: dict[str, Any],
+        parameters: DataRetrievalLayerParameters,
     ) -> None:
         """
         Protocol for OM's Parallelization classes.
