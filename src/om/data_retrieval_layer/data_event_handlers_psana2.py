@@ -133,6 +133,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                 source_dict["files"] = item.split("files=")[1].strip().lstrip()
             elif item.startswith("drp="):
                 source_dict["drp"] = item.split("drp=")[1].strip().lstrip()
+            elif item.startswith("dir="):
+                source_dict["dir"] = item.split("dir=")[1].strip().lstrip()
             elif item.startswith("max_events="):
                 source_dict["max_events"] = int(
                     item.split("max_events=")[1].strip().lstrip()
