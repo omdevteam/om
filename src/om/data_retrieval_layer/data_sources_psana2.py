@@ -559,7 +559,7 @@ class EventIdPsana2(OmDataSourceProtocol):
 
             A unique event identifier.
         """
-        return event["additional_info"]["timestamp"]
+        return f"{event["additional_info"]["timestamp"]}"
 
 
 class BeamEnergyPsana2(OmDataSourceProtocol):
