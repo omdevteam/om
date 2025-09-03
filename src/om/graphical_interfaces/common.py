@@ -27,7 +27,7 @@ from abc import ABCMeta
 from typing import Any
 
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.zmq_qt import ZmqDatalistener
+from om.lib.zmq_qt import ZmqDataListener
 
 try:
     from PyQt5 import QtCore, QtWidgets  # type: ignore
@@ -90,7 +90,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[
         self.statusBar().showMessage("")
 
         self._data_listener_thread: Any = QtCore.QThread(parent=self)
-        self._data_listener: ZmqDatalistener = ZmqDatalistener(url=url, tag=tag)
+        self._data_listener: ZmqDataListener = ZmqDataListener(url=url, tag=tag)
         self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(
             self._data_listener.start_listening
