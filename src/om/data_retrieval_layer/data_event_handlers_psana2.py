@@ -31,6 +31,7 @@ from om.data_retrieval_layer.data_event_handlers_common import (
 )
 from om.lib.exceptions import (
     OmDataExtractionError,
+    OmMissingDataEventError,
     OmMissingDependencyError,
 )
 from om.lib.logging import log
@@ -119,32 +120,34 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         else:
             self._offline: bool = True
 
-        source_dict: dict[str, str | int] = {}
+        self._source_dict: dict[str, str | int] = {}
         source_items: list[str] = source.split(",")
         item: str
         for item in source_items:
             if item.startswith("shmem="):
-                source_dict["shmem"] = item.split("shmem=")[1].strip().lstrip()
+                self._source_dict["shmem"] = item.split("shmem=")[1].strip().lstrip()
             elif item.startswith("exp="):
-                source_dict["exp"] = item.split("exp=")[1].strip().lstrip()
+                self._source_dict["exp"] = item.split("exp=")[1].strip().lstrip()
             elif item.startswith("run="):
-                source_dict["run"] = int(item.split("run=")[1].strip().lstrip())
+                self._source_dict["run"] = int(item.split("run=")[1].strip().lstrip())
             elif item.startswith("files="):
-                source_dict["files"] = item.split("files=")[1].strip().lstrip()
+                self._source_dict["files"] = item.split("files=")[1].strip().lstrip()
             elif item.startswith("drp="):
-                source_dict["drp"] = item.split("drp=")[1].strip().lstrip()
+                self._source_dict["drp"] = item.split("drp=")[1].strip().lstrip()
             elif item.startswith("dir="):
-                source_dict["dir"] = item.split("dir=")[1].strip().lstrip()
+                self._source_dict["dir"] = item.split("dir=")[1].strip().lstrip()
             elif item.startswith("max_events="):
-                source_dict["max_events"] = int(
+                self._source_dict["max_events"] = int(
                     item.split("max_events=")[1].strip().lstrip()
                 )
             else:
                 log.error("Part of the source string for psana2 cannot be parsed:")
                 log.error(f"{item}")
                 sys.exit(1)
-        self._psana_source: Any = psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-            **(source_dict)
+        self._psana_source: Any = (
+            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+                **(self._source_dict)
+            )
         )
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
@@ -248,9 +251,9 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             data_event["additional_info"]["timestamp"] = instantiated_data_sources[
                 "timestamp"
             ].get_data(event=data_event)
-            data_event["additional_info"]["instantiated_data_sources"] = (
-                instantiated_data_sources
-            )
+            data_event["additional_info"][
+                "instantiated_data_sources"
+            ] = instantiated_data_sources
 
             yield data_event
 
@@ -321,7 +324,21 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        raise NotImplementedError
+        psana_source: Any = (
+            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+                **(self._source_dict)
+            )
+        )
+        self._run: Any = next(psana_source.runs())
+
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_psana2", "data_sources_common"],
+                additional_info={"run": self._run},
+            )
+        )
+        self._run.build_table()
 
     def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
@@ -348,4 +365,39 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             OmMissingDataEventError: Raised when an event cannot be retrieved from the
                 data source.
         """
-        raise NotImplementedError
+        retrieved_event: Any = self._run.event(event_id)
+        if retrieved_event is None:
+            raise OmMissingDataEventError(
+                f"Data event {event_id} cannot be retrieved from the data event source"
+            )
+        data_event: dict[str, Any] = {}
+        data_event["additional_info"] = {}
+        data_event["data"] = retrieved_event
+
+        # Recovers the timestamp from the psana event (as seconds from the Epoch)
+        # and stores it in the event dictionary.
+        data_event["additional_info"]["timestamp"] = self._instantiated_data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+
+        data: dict[str, Any] = {}
+        data["timestamp"] = data_event["additional_info"]["timestamp"]
+        source_name: str
+        for source_name in self._instantiated_data_sources:
+            # data[source_name] = self._instantiated_data_sources[
+            #    source_name
+            # ].get_data(event=event)
+            try:
+                data[source_name] = self._instantiated_data_sources[
+                    source_name
+                ].get_data(event=data_event)
+            # One should never do the following, but it is not possible to anticipate
+            # every possible error raised by the facility frameworks.
+            except Exception:
+                exc_type, exc_value = sys.exc_info()[:2]
+                if exc_type is not None:
+                    raise OmDataExtractionError(
+                        f"OM Warning: Cannot interpret {source_name} event data due "
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
+                    )
+        return data
