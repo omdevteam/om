@@ -24,17 +24,14 @@ the psana2 software framework (used at the LCLS facility).
 
 import os
 import sys
-from typing import Any, Generator, Literal
-
-import numpy
-from numpy.typing import NDArray
+from contextlib import AbstractContextManager
+from typing import Any, ContextManager, Generator, Literal
 
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
     OmDataExtractionError,
-    OmMissingDataEventError,
     OmMissingDependencyError,
 )
 from om.lib.logging import log
@@ -331,7 +328,24 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        pass
+        psana_source: Any = (
+            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+                **(self._source_dict)
+            )
+        )
+
+        self._run: Any = next(psana_source.runs())
+
+        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
+            instantiate_data_sources(
+                data_sources=self._data_retrieval_parameters.data_sources,
+                modules=["data_sources_psana2", "data_sources_common"],
+                additional_info={"run": self._run},
+            )
+        )
+
+        self._context: ContextManager = self._run.build_table()
+        self._context.__enter__()
 
     def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
         """
@@ -358,29 +372,9 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             OmMissingDataEventError: Raised when an event cannot be retrieved from the
                 data source.
         """
-        timestamp: NDArray[numpy.uint64] = numpy.array(
-            [int(event_id)], dtype=numpy.uint64
-        )
-        psana_source: Any = (
-            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                **(self._source_dict), timestamps=timestamp
-            )
-        )
 
-        run: Any = next(psana_source.runs())
+        retrieved_event: Any = self._run.event(int(event_id))
 
-        self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
-            instantiate_data_sources(
-                data_sources=self._data_retrieval_parameters.data_sources,
-                modules=["data_sources_psana2", "data_sources_common"],
-                additional_info={"run": run},
-            )
-        )
-        retrieved_event: Any = next(run.events())
-        if retrieved_event is None:
-            raise OmMissingDataEventError(
-                f"Data event {event_id} cannot be retrieved from the data event source"
-            )
         data_event: dict[str, Any] = {}
         data_event["additional_info"] = {}
         data_event["data"] = retrieved_event
@@ -395,9 +389,6 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         data["timestamp"] = data_event["additional_info"]["timestamp"]
         source_name: str
         for source_name in self._instantiated_data_sources:
-            # data[source_name] = self._instantiated_data_sources[
-            #    source_name
-            # ].get_data(event=event)
             try:
                 data[source_name] = self._instantiated_data_sources[
                     source_name
@@ -412,3 +403,6 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
         return data
+
+    def __del__(self):
+        self._context.__exit__(None, None, None)
