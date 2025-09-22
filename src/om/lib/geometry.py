@@ -989,10 +989,9 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
 
     return detector, beam, hdf5_peak_path
 
+
 def _compute_panel_indices(
-        *,
-        geometry: TypeDetector,
-        panel_name: str
+    *, geometry: TypeDetector, panel_name: str
 ) -> Tuple[int, ...]:
     """
     Helper function to compute the panel indices of `panel_name`
@@ -1016,6 +1015,7 @@ def _compute_panel_indices(
     )
 
     return panel_dims
+
 
 def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
@@ -1063,8 +1063,7 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     pix_map_shape: List[int]
     if num_panel_dims > 0:
         max_panel_indices: Tuple[int, ...] = _compute_panel_indices(
-            geometry=geometry,
-            panel_name=plast_name
+            geometry=geometry, panel_name=plast_name
         )
         pix_map_shape = [idx + 1 for idx in max_panel_indices]
         pix_map_shape.append(panel_shape[0])
@@ -1072,18 +1071,9 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     else:
         pix_map_shape = panel_shape
 
-    x_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=pix_map_shape,
-        dtype=numpy.float32
-    )
-    y_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=pix_map_shape,
-        dtype=numpy.float32
-    )
-    z_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=pix_map_shape,
-        dtype=numpy.float32
-    )
+    x_map: NDArray[numpy.float_] = numpy.zeros(shape=pix_map_shape, dtype=numpy.float32)
+    y_map: NDArray[numpy.float_] = numpy.zeros(shape=pix_map_shape, dtype=numpy.float32)
+    z_map: NDArray[numpy.float_] = numpy.zeros(shape=pix_map_shape, dtype=numpy.float32)
 
     # Iterates over the panels. For each panel, determines the pixel indices, then
     # computes the x,y vectors. Finally, copies the panel pixel maps into the
@@ -1121,12 +1111,20 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             + fs_grid * geometry["panels"][panel_name]["fsx"]
             + geometry["panels"][panel_name]["cnx"]
         )
+        z_panel: NDArray[numpy.float_] = (
+            ss_grid * geometry["panels"][panel_name]["ssz"]
+            + fs_grid * geometry["panels"][panel_name]["fsz"]
+            + (
+                geometry["panels"][panel_name]["coffset"]
+                + geometry["panels"][panel_name]["clen"]
+            )
+            * geometry["panels"][panel_name]["res"]
+        )
 
         panel_indices: Union[Tuple, None] = None
         if num_panel_dims > 0:
             panel_indices = _compute_panel_indices(
-                geometry = geometry,
-                panel_name = panel_name
+                geometry=geometry, panel_name=panel_name
             )
 
         x_map[
@@ -1161,7 +1159,7 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
                 panel_name
             ]["orig_max_fs"]
             + 1,
-        ] = first_panel_camera_length
+        ] = z_panel
 
     r_map: NDArray[numpy.float_] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
     phi_map: NDArray[numpy.float_] = numpy.arctan2(y_map, x_map)
@@ -1431,9 +1429,9 @@ class DataVisualizer:
             it.
         """
         if array_for_visualization is None:
-            visualization_array: Union[
-                NDArray[numpy.float_], NDArray[numpy.int_]
-            ] = numpy.zeros(self._min_array_shape, dtype=float)
+            visualization_array: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = (
+                numpy.zeros(self._min_array_shape, dtype=float)
+            )
         else:
             if array_for_visualization.shape != self._min_array_shape:
                 raise OmWrongArrayShape(
