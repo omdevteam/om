@@ -154,6 +154,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             )
         )
 
+        self._context: : ContextManager | None = None
+
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "last"
 
@@ -344,7 +346,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             )
         )
 
-        self._context: ContextManager = self._run.build_table()
+        self._context = self._run.build_table()
         self._context.__enter__()
 
     def retrieve_event_data(self, event_id: str) -> dict[str, Any]:
@@ -405,4 +407,5 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         return data
 
     def __del__(self):
-        self._context.__exit__(None, None, None)
+        if self._context is not None:
+            self._context.__exit__(None, None, None)
