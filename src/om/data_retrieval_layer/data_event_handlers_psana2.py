@@ -154,7 +154,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             )
         )
 
-        self._context: : ContextManager | None = None
+        self._context: ContextManager | None = None
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "last"
