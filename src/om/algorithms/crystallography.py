@@ -44,7 +44,7 @@ from ._crystallography_cython import peakfinder_8  # type: ignore
 
 class RoiBinSzCompression(OmCompressionProtocol):
     def __init__(self, parameters: DataCompressionParameters) -> None:
-        assert parameters.backend == "libpressio"
+        assert parameters.backend == "roibinsz"
         assert parameters.compression_parameters is not None
         self._compression_parameters: RoiBinSzCompressorParameters = (
             parameters.compression_parameters
