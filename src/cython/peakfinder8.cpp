@@ -972,7 +972,6 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 	struct peakfinder_peak_data *pkdata;
 	int iterations;
 	int num_pix_fs, num_pix_ss;
-	int num_pix_tot;
 	int max_num_peaks;
 	int num_found_peaks;
 	int ret;
@@ -984,7 +983,6 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 	// Derived values
 	num_pix_fs = asic_nx * nasics_x;
 	num_pix_ss = asic_ny * nasics_y;
-	num_pix_tot = num_pix_fs * num_pix_ss;
 
 	// Compute radial statistics as 1 function (O.Y.)
 	iterations = 5;

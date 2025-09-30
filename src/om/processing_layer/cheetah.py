@@ -34,6 +34,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.common import PeakList
+from om.algorithms.crystallography import RoiBinSzCompression
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import (
     CheetahClassSumsAccumulator,
@@ -43,7 +44,7 @@ from om.lib.cheetah import (
     FramelistData,
     HDF5Writer,
 )
-from om.lib.crystallography import CrystallographyPeakFinding, RoiBinSzCompression
+from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
