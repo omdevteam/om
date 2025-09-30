@@ -630,3 +630,88 @@ class BeamEnergyPsana2(OmDataSourceProtocol):
         return cast(
             float, self._detector_interface.raw.ebeamPhotonEnergy(event["data"])
         )
+
+
+class EvrCodelistPsana2(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: DataSourceParameters,
+        additional_info: dict[str, Any],
+    ):
+        """
+        EVR event codes from psana at the LCLS facility.
+
+        This class deals with the retrieval EVR event codes from the psana software
+        framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        del parameters
+        self._run: Any = additional_info["run"]
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana EVR event code data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes the data retrieval for the EVR event code number
+        specified  by the `{data_source_name}_evr_code` entry in OM's
+        `Data Retrieval Layer` configuration parameter group. The EVR event source
+        to monitor for the emission of the event is instead determined by the
+        `psana_evr_source_name` entry in the same parameter group.
+        """
+        self._detector_interface: Any = self._run.Detector("timing")
+
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.int_]:
+        """
+        Retrieves EVR events code information from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function checks whether the event code attached to the Data Source has
+        been emitted, for the provided event, by the monitored EVR source.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            Whether the required event code has been emitted for the provided event.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
+        """
+        current_event_code_flags: list[int] | None = (
+            self._detector_interface.raw.eventcodes(event["data"])
+        )
+        if current_event_code_flags is None:
+            raise OmDataExtractionError("Could not retrieve event codes from psana.")
+        current_event_codes: list[int] = numpy.nonzero(current_event_code_flags)
+        numpy_evr_codes = numpy.pad(
+            numpy.array(current_event_codes),
+            pad_width=(0, 256 - len(current_event_codes)),
+            constant_values=0,
+        )
+
+        return numpy_evr_codes
