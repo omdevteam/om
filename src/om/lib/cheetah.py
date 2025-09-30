@@ -24,6 +24,7 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 
 import pathlib
 import time
+import sys
 from dataclasses import dataclass
 from typing import Any, TextIO, cast
 
@@ -31,7 +32,7 @@ import h5py  # type: ignore
 import hdf5plugin  # type: ignore
 import numpy
 from numpy.typing import NDArray
-from typing_extensions import Self
+from typing import Set
 
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat

@@ -43,16 +43,17 @@ from om.lib.cheetah import (
     FramelistData,
     HDF5Writer,
 )
-from om.lib.crystallography import CrystallographyPeakFinding
+from om.lib.crystallography import CrystallographyPeakFinding, RoiBinSzCompression
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
 from om.lib.parameters import (
     CheetahParameters,
     CrystallographyParameters,
+    DataCompressionParameters,
     MonitorParameters,
 )
-from om.lib.protocols import OmProcessingProtocol
+from om.lib.protocols import OmCompressionProtocol, OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
 
 T = TypeVar("T")
@@ -98,6 +99,9 @@ class OmCheetahMixin:
             sys.exit(1)
 
         self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._compression_parameters: DataCompressionParameters | None = (
+            parameters.compression
+        )
         self._crystallography_parameters: CrystallographyParameters = (
             parameters.crystallography
         )
@@ -140,6 +144,17 @@ class OmCheetahMixin:
             parameters=self._monitor_parameters,
             geometry_information=self._geometry_information,
         )
+
+        # Optional compression
+        self._compressor: OmCompressionProtocol | None = None
+        if (
+            self._compression_parameters is not None
+            and self._compression_parameters.run_compression
+        ):
+            if self._compression_parameters.backend == "roibinsz":
+                self._compressor = RoiBinSzCompression(
+                    parameters=self._compression_parameters
+                )
 
         # Post-processing binning
         if self._post_processing_binning_enabled:
@@ -265,6 +280,14 @@ class OmCheetahMixin:
         peak_list: PeakList = self._peak_detection.find_peaks(
             detector_data=data["detector_data"]
         )
+        if self._compressor is not None:
+            compressed_data: bytes = self._compressor.compress(
+                data=data["detector_data"], special_data=peak_list
+            )
+            data["detector_data"] = self._compressor.uncompress(
+                compressed_data=compressed_data
+            )
+
         frame_is_hit: bool = (
             self._crystallography_parameters.min_num_peaks_for_hit
             < peak_list.num_peaks

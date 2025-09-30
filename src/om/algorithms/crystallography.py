@@ -24,7 +24,7 @@ dictionaries that store data produced or required by these algorithms.
 """
 
 import random
-from typing import cast
+from typing import Any, Literal, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -32,10 +32,154 @@ from numpy.typing import NDArray
 from om.algorithms.common import PeakList
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import DetectorLayoutInformation
-from om.lib.parameters import Peakfinder8PeakDetectionParameters
-from om.lib.protocols import OmPeakDetectionProtocol
+from om.lib.parameters import (
+    DataCompressionParameters,
+    Peakfinder8PeakDetectionParameters,
+    RoiBinSzCompressorParameters,
+)
+from om.lib.protocols import OmCompressionProtocol, OmPeakDetectionProtocol
 
 from ._crystallography_cython import peakfinder_8  # type: ignore
+
+
+class RoiBinSzCompression(OmCompressionProtocol):
+    def __init__(self, parameters: DataCompressionParameters) -> None:
+        assert parameters.backend == "libpressio"
+        assert parameters.compression_parameters is not None
+        self._compression_parameters: RoiBinSzCompressorParameters = (
+            parameters.compression_parameters
+        )
+        self._load_mask_from_data: bool = False
+        self._mask: NDArray[numpy.int_] | None = None
+        self._setup_lp_json()
+
+    def _setup_lp_json(self) -> None:
+        compressor: Literal["qoz", "sz3"] = self._compression_parameters.compressor
+        abs_error: float = self._compression_parameters.abs_error
+        bin_size: int = self._compression_parameters.bin_size
+        roi_window_size: int = self._compression_parameters.roi_window_size
+        if compressor == "qoz":
+            pressio_opts: dict[str, Any] = {
+                "pressio:abs": abs_error,
+                "qoz": {"qoz:stride": 8},
+            }
+        elif compressor == "sz3":
+            pressio_opts = {"pressio:abs": abs_error}
+
+        lp_json: dict[str, Any] = {
+            "compressor_id": "pressio",
+            "early_config": {
+                "pressio": {
+                    "pressio:compressor": "roibin",
+                    "roibin": {
+                        "roibin:metric": "composite",
+                        "roibin:background": "mask_binning",
+                        "roibin:roi": "fpzip",
+                        "background": {
+                            "binning:compressor": "pressio",
+                            "mask_binning:compressor": "pressio",
+                            "pressio": {"pressio:compressor": compressor},
+                        },
+                        "composite": {
+                            "composite:plugins": [
+                                "size",
+                                "time",
+                                "input_stats",
+                                "error_stat",
+                            ]
+                        },
+                    },
+                }
+            },
+            "compressor_config": {
+                "pressio": {
+                    "roibin": {
+                        "roibin:roi_size": [roi_window_size, roi_window_size, 0],
+                        "roibin:centers": None,  # "roibin:roi_strategy": "coordinates",
+                        "roibin:nthreads": 4,
+                        "roi": {"fpzip:prec": 0},
+                        "background": {
+                            "mask_binning:mask": None,
+                            "mask_binning:shape": [bin_size, bin_size, 1],
+                            "mask_binning:nthreads": 4,
+                            "pressio": pressio_opts,
+                        },
+                    }
+                }
+            },
+            "name": "pressio",
+        }
+
+        # Setup mask
+        placeholder_mask: bool | None = None
+        if isinstance(self._compression_parameters.mask, str):
+            # Try to load
+            # libpressio_mask = 1
+            # lp_json["compressor_config"]["pressio"]["roibin"]["background"][
+            #     "mask_binning:mask"
+            # ] = (1 - libpressio_mask)
+            ...
+        elif self._compression_parameters.mask:
+            # If bool and True, will use a mask provided by the data layer
+            self._load_mask_from_data = True
+            placeholder_mask = None
+        else:
+            # If None, or False, no mask
+            placeholder_mask = None
+        lp_json["compressor_config"]["pressio"]["roibin"]["background"][
+            "mask_binning:mask"
+        ] = placeholder_mask  # Placeholder
+        self._lp_config_base = lp_json
+        self._update_lp_config_mask(placeholder_mask)
+
+    def compress(
+        self,
+        *,
+        data: NDArray[numpy.int_ | numpy.float_],
+        special_data: Any | None = None,
+    ) -> bytes:
+        if not isinstance(special_data, PeakList):
+            raise ValueError("ROIBinSz requires a PeakList!")
+
+        if self._mask is None:
+            self._mask = numpy.ones(data.shape).astype(numpy.uint16)
+            self._update_lp_config_mask(self._mask)
+        return self._compress(data=data, peaks=special_data)
+
+    def _update_lp_config_mask(self, mask: NDArray[numpy.uint16] | None) -> None:
+        self._lp_config_base["compressor_config"]["pressio"]["roibin"]["background"][
+            "mask_binning:mask"
+        ] = mask
+
+    def _compress(
+        self, *, data: NDArray[numpy.int_ | numpy.float_], peaks: PeakList
+    ) -> bytes:
+        from libpressio import PressioCompressor
+
+        lp_config_with_peaks = self._add_peaks_to_libpressio_configuration(
+            self._lp_config_base, peaks
+        )
+        self._compressor = PressioCompressor.from_config(lp_config_with_peaks)
+        compressed_img: bytes = self._compressor.encode(data)
+        return compressed_img
+
+    def uncompress(
+        self, *, compressed_data: bytes, data_shape: tuple[int, ...]
+    ) -> NDArray[numpy.int_ | numpy.float_]:
+        decompressed_img = numpy.zeros_like(data_shape)
+        _ = self._compressor.decode(compressed_data, decompressed_img)
+        return decompressed_img
+
+    def _add_peaks_to_libpressio_configuration(
+        self, *, config: dict[str, Any], peaks: PeakList
+    ) -> dict[str, Any]:
+        peaks_rotated: NDArray[numpy.uint64] = numpy.zeros((len(peaks.fs), 2))
+        peaks_rotated[:, 0] = peaks.fs.astype(numpy.uint64)
+        peaks_rotated[:, 1] = peaks.ss.astype(numpy.uint64)
+        config["compressor_config"]["pressio"]["roibin"][
+            "roibin:centers"
+        ] = peaks_rotated
+        return config
 
 
 class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
