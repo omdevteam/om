@@ -1,8 +1,8 @@
 from enum import Enum
 from pathlib import Path
-from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from typing_extensions import Self
 
 
 class Hdf5Compression(Enum):
@@ -95,7 +95,7 @@ class RadialProfileParameters(CustomBaseModel):
 
 
 class BinningParameters(CustomBaseModel):
-    bin_size: int
+    bin_size: ints
     min_good_pix_count: int | None = None
     bad_pixel_value: int | float | None = None
     bad_pixel_map_filename: str | None = None
@@ -127,6 +127,33 @@ class XesParameters(CustomBaseModel):
     speed_report_interval: int
     hit_frame_sending_interval: int | None = None
     non_hit_frame_sending_interval: int | None = None
+
+
+class SwaxsParameters(CustomBaseModel):
+    speed_report_interval: int
+    data_broadcast_interval: int
+    hit_frame_sending_interval: int = 0
+    non_hit_frame_sending_interval: int = 0
+    radius_bin_size: int
+    geometry_file: str
+    bad_pixel_map_filename: str
+    bad_pixel_map_hdf5_path: str
+    running_average_window_size: int
+    num_radials_to_send: int
+    num_hits_in_cum_radial_avg: int
+    total_intensity_jet_threshold: float
+    background_subtraction: bool = False
+    sample_detection: bool = True
+    minimum_roi1_to_roi2_intensity_ratio_for_sample: float = 0.0
+    maximum_roi1_to_roi2_intensity_ratio_for_sample: float = 10000000000.0
+    estimate_particle_size: bool = False
+    size_estimation_method: str = "guinier"
+    roi1_qmin: float = 0.00
+    roi1_qmax: float = 0.03
+    roi2_qmin: float = 0.03
+    roi2_qmax: float = 0.10
+    guinier_qmin: float = 0.00
+    guinier_qmax: float = 0.01
 
 
 class CheetahParameters(CustomBaseModel):
@@ -168,6 +195,43 @@ class CheetahParameters(CustomBaseModel):
         return v
 
 
+class CheetahSwaxsParameters(CustomBaseModel):
+    cheetah_enabled: bool
+    processed_directory: str
+    processed_filename_prefix: str = "processed"
+    processed_filename_extension: str = "h5"
+    write_class_sums: bool
+    class_sums_sending_interval: int = -1
+    class_sums_update_interval: int
+    class_sums_filename_prefix: str = "sums"
+    status_file_update_interval: int
+    hdf5_file_compression: Hdf5Compression = Hdf5Compression.none
+    hdf5_file_gzip_compression_level: int = 4
+    hdf5_file_zstd_compression_level: int = 3
+    hdf5_file_compression_shuffle: bool = False
+    hdf5_file_max_num_peaks: int = 1024
+    hdf5_fields: dict[str, str]
+
+    @model_validator(mode="after")
+    def check_sums_update_interval(self) -> Self:
+        if self.write_class_sums is True and self.class_sums_update_interval == -1:
+            raise ValueError(
+                "If writing of the class sums is requested from Cheetah, the following"
+                "entry must be present in the cheetah section of the configuration"
+                "file:  class_sums_update_interval "
+            )
+        return self
+
+    @field_validator("status_file_update_interval")
+    def check_status_file_update_interval(cls: Self, v: int) -> int:
+        if v < 1:
+            raise ValueError(
+                "The following entry in the configuration file must have a value of 1 "
+                "or higher: cheetah/status_file_update_interval"
+            )
+        return v
+
+
 class CrystallographyParameters(CustomBaseModel):
     peakfinding_algorithm: str = "peakfinder8"
     min_num_peaks_for_hit: int
@@ -184,8 +248,8 @@ class CrystallographyParameters(CustomBaseModel):
     responding_url: str | None = None
     external_data_request_list_size: int = 20
     data_broadcast_interval: int
-    hit_frame_sending_interval: int | None = None
-    non_hit_frame_sending_interval: int | None = None
+    hit_frame_sending_interval: int = 0
+    non_hit_frame_sending_interval: int = 0
 
 
 class MonitorParameters(CustomBaseModel):
@@ -196,7 +260,9 @@ class MonitorParameters(CustomBaseModel):
     binning: BinningParameters | None = None
     crystallography: CrystallographyParameters | None = None
     xes: XesParameters | None = None
+    swaxs: SwaxsParameters | None = None
     cheetah: CheetahParameters | None = None
+    cheetah_swaxs: CheetahSwaxsParameters | None = None
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:
