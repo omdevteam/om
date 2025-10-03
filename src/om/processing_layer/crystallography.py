@@ -129,7 +129,6 @@ class CrystallographyProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-
         # Peak detection
         self._peak_detection: CrystallographyPeakFinding = CrystallographyPeakFinding(
             parameters=self._monitor_parameters,
@@ -143,7 +142,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
             self._crystallography_parameters.max_num_peaks_for_hit
         )
 
-        # Frame sending
+        # Frame Sending
         self._send_hit_frame: bool = False
         self._send_non_hit_frame: bool = False
 

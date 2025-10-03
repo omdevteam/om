@@ -21,8 +21,9 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
 import sys
+from collections import deque
 from itertools import islice
-from typing import Any, Deque, Dict, Tuple, Union
+from typing import Any
 
 import numpy
 from numpy.typing import NDArray
@@ -30,12 +31,16 @@ from numpy.typing import NDArray
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import HDF5Writer
 from om.lib.event_management import EventCounter
-from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
-from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
+from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
+from om.lib.logging import log
+from om.lib.parameters import (
+    CheetahParameters,
+    MonitorParameters,
+    RadialProfileParameters,
+)
+from om.lib.protocols import OmProcessingProtocol
 from om.lib.radial_profile import RadialProfileAnalysis, RadialProfileAnalysisPlots
-from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqDataBroadcaster
-from om.protocols.processing_layer import OmProcessingProtocol
 
 
 class SwaxsProcessing(OmProcessingProtocol):
@@ -43,7 +48,7 @@ class SwaxsProcessing(OmProcessingProtocol):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         OnDA Monitor for Crystallography.
 
@@ -54,32 +59,25 @@ class SwaxsProcessing(OmProcessingProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
-        self._monitor_params: MonitorParameters = monitor_parameters
-        self._radial_parameters: Dict[
-            str, Any
-        ] = self._monitor_params.get_parameter_group(group="radial")
+        if parameters.radial_profile is None:
+            log.error("'swaxs' section must be present in the configuration file")
+            sys.exit(1)
+
+        self._monitor_parameters: MonitorParameters = parameters
+        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
 
         # Geometry
-        self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=get_parameter_from_parameter_group(
-                group=self._radial_parameters,
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            )
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=parameters.radial_profile.geometry_file
         )
 
         # Post-processing binning
-        binning_requested = get_parameter_from_parameter_group(
-            group=self._radial_parameters,
-            parameter="post_processing_binning",
-            parameter_type=bool,
-            default=False,
-        )
-
-        if binning_requested:
-            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
-                parameters=self._monitor_params.get_parameter_group(group="binning"),
+        if parameters.radial_profile.post_processing_binning:
+            if parameters.binning is None:
+                log.error("'binning' section is not present in the configuration file")
+                sys.exit(1)
+            self._post_processing_binning: Binning | BinningPassthrough = Binning(
+                parameters=parameters.binning,
                 layout_info=self._geometry_information.get_layout_info(),
             )
         else:
@@ -108,26 +106,17 @@ class SwaxsProcessing(OmProcessingProtocol):
                 processing nodes and the collecting node.
         """
         # Radial Profile Analysis
-
-        # Sample detection
-        self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
-            group=self._radial_parameters,
-            parameter="total_intensity_jet_threshold",
-            parameter_type=float,
-            required=True,
-        )
         self._radial_profile_analysis: RadialProfileAnalysis = RadialProfileAnalysis(
             geometry_information=self._geometry_information,
-            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
+            parameters=self._monitor_parameters,
         )
 
-        # Frame sending
+        # Frame Sending
         self._send_hit_frame: bool = False
         self._send_non_hit_frame: bool = False
 
         # Console
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -153,15 +142,19 @@ class SwaxsProcessing(OmProcessingProtocol):
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="radial")
+            data_broadcast_url=self._swaxs_parameters.data_broadcast_url
         )
 
+        # Data to send
+        self._num_radials_to_send: int = self._swaxs_parameters.num_radials_to_send
+
+        # Geometry
         self._detector_distance_offset: float = (
             self._geometry_information.get_detector_distance_offset()
         )
 
         self._pixel_size = self._geometry_information.get_pixel_size()
-        pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
+        pixel_maps: PixelMaps = self._geometry_information.get_pixel_maps()
 
         self._pixel_size /= self._post_processing_binning.get_bin_size()
         binned_pixel_maps = self._post_processing_binning.bin_pixel_maps(
@@ -175,30 +168,24 @@ class SwaxsProcessing(OmProcessingProtocol):
 
         # Plots
         self._plots: RadialProfileAnalysisPlots = RadialProfileAnalysisPlots(
-            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
-        )
-
-        # Data to send
-        self._num_radials_to_send = get_parameter_from_parameter_group(
-            group=self._radial_parameters,
-            parameter="num_radials_to_send",
-            parameter_type=int,
-            required=True,
+            parameters=self._monitor_parameters,
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(group="radial"),
+            speed_report_interval=self._swaxs_parameters.speed_report_interval,
+            data_broadcast_interval=self._swaxs_parameters.data_broadcast_interval,
+            hit_frame_sending_interval=self._swaxs_parameters.hit_frame_sending_interval,
+            non_hit_frame_sending_interval=self._swaxs_parameters.non_hit_frame_sending_interval,
             node_pool_size=node_pool_size,
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a detector data frame and extracts Bragg peak information.
 
@@ -234,10 +221,10 @@ class SwaxsProcessing(OmProcessingProtocol):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-        processed_data: Dict[str, Any] = {}
+        processed_data: dict[str, Any] = {}
 
         radial_profile: NDArray[numpy.float_]
-        errors: NDArray[numpy.float_]
+        _: NDArray[numpy.float_]
         q: NDArray[numpy.float_]
         sample_detected: bool
         roi1_intensity: float
@@ -246,7 +233,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         detector_data_sum: float
         (
             radial_profile,
-            errors,
+            _,
             q,
             sample_detected,
             roi1_intensity,
@@ -285,9 +272,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         )
 
         if send_detector_data:
-            data_to_send: Union[NDArray[numpy.int_], NDArray[numpy.float_]] = data[
-                "detector_data"
-            ]
+            data_to_send: NDArray[numpy.int_ | numpy.float_] = data["detector_data"]
 
             data_to_send = self._post_processing_binning.bin_detector_data(
                 data=data_to_send
@@ -332,8 +317,8 @@ class SwaxsProcessing(OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated data and broadcasts them.
 
@@ -358,17 +343,17 @@ class SwaxsProcessing(OmProcessingProtocol):
                 second entry is the OM rank number of the node that processed the
                 information.
         """
-        received_data: Dict[str, Any] = processed_data[0]
-        return_dict: Dict[int, Dict[str, Any]] = {}
+        received_data: dict[str, Any] = processed_data[0]
+        return_dict: dict[str, dict[str, Any]] = {}
 
-        q_history: Deque[NDArray[numpy.float_]]
-        radials_history: Deque[NDArray[numpy.float_]]
-        image_sum_history: Deque[float]
-        downstream_intensity_history: Deque[float]
-        roi1_intensity_history: Deque[float]
-        roi2_intensity_history: Deque[float]
-        hit_rate_history: Deque[float]
-        rg_history: Deque[float]
+        q_history: deque[NDArray[numpy.float_]]
+        radials_history: deque[NDArray[numpy.float_]]
+        image_sum_history: deque[float]
+        downstream_intensity_history: deque[float]
+        roi1_intensity_history: deque[float]
+        roi2_intensity_history: deque[float]
+        hit_rate_history: deque[float]
+        rg_history: deque[float]
         cumulative_hits_radial: NDArray[numpy.float_]
         (
             q_history,
@@ -398,16 +383,18 @@ class SwaxsProcessing(OmProcessingProtocol):
             self._event_counter.add_non_hit_event()
 
         if self._event_counter.should_broadcast_data():
-            message: Dict[str, Any] = {
+            message: dict[str, Any] = {
                 "q": received_data["q"],
                 "radial_profile": received_data["radial_profile"],
                 "radial_stack": numpy.array(
                     list(
                         islice(
                             radials_history,
-                            (len(radials_history) - self._num_radials_to_send)
-                            if (len(q_history) - self._num_radials_to_send) > 0
-                            else 0,
+                            (
+                                (len(radials_history) - self._num_radials_to_send)
+                                if (len(q_history) - self._num_radials_to_send) > 0
+                                else 0
+                            ),
                             len(q_history),
                         )
                     )
@@ -452,11 +439,9 @@ class SwaxsProcessing(OmProcessingProtocol):
             )
 
         if self._event_counter.should_send_hit_frame():
-            rank_for_request: int = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "hit_frame"}
+            return_dict["random"] = {"requests": "hit_frame"}
         if self._event_counter.should_send_non_hit_frame():
-            rank_for_request = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
+            return_dict["random"] = {"requests": "non_hit_frame"}
 
         self._event_counter.report_speed()
 
@@ -466,7 +451,7 @@ class SwaxsProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Union[Dict[str, Any], None]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing actions on the processing nodes.
 
@@ -488,10 +473,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -513,19 +495,18 @@ class SwaxsProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()
 
 
-class SwaxsCheetahProcessing(OmProcessingProtocol):
+class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+    def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         OnDA Monitor for Crystallography.
 
@@ -536,19 +517,23 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
-        self._monitor_params: MonitorParameters = monitor_parameters
-        self._radial_parameters: Dict[
-            str, Any
-        ] = self._monitor_params.get_parameter_group(group="radial")
+        self._monitor_parameters: MonitorParameters = parameters
+
+        if parameters.radial_profile is None:
+            log.error(
+                "'radial_profile' section must be present in the configuration file"
+            )
+            sys.exit(1)
+        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
+
+        if parameters.cheetah is None:
+            log.error("'cheetah' section must be present in the configuration file")
+            sys.exit(1)
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
 
         # Geometry
-        self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=get_parameter_from_parameter_group(
-                group=self._radial_parameters,
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            )
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=parameters.radial_profile.geometry_file
         )
 
     def initialize_processing_node(
@@ -573,16 +558,9 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         """
         # Radial Profile Analysis
 
-        # Sample detection
-        self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
-            group=self._radial_parameters,
-            parameter="total_intensity_jet_threshold",
-            parameter_type=float,
-            required=True,
-        )
         self._radial_profile_analysis: RadialProfileAnalysis = RadialProfileAnalysis(
             geometry_information=self._geometry_information,
-            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
+            parameters=self._monitor_parameters,
         )
 
         # Frame sending
@@ -590,8 +568,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         self._send_non_hit_frame: bool = False
 
         # Console
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -614,32 +591,27 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # Plots
-        self._plots: RadialProfileAnalysisPlots = RadialProfileAnalysisPlots(
-            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
-        )
-
         # File Writing
         self._writer = HDF5Writer(
             node_rank=node_rank,
-            cheetah_parameters=self._monitor_params.get_parameter_group(
-                group="radial_cheetah"
-            ),
+            parameters=self._cheetah_parameters,
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(group="radial"),
+            speed_report_interval=self._swaxs_parameters.speed_report_interval,
+            data_broadcast_interval=self._swaxs_parameters.data_broadcast_interval,
+            hit_frame_sending_interval=self._swaxs_parameters.hit_frame_sending_interval,
+            non_hit_frame_sending_interval=self._swaxs_parameters.non_hit_frame_sending_interval,
             node_pool_size=node_pool_size,
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(
-        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
         """
         Processes a detector data frame and extracts Bragg peak information.
 
@@ -675,9 +647,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-        processed_data: Dict[str, Any] = {}
-
-        mask = self._radial_profile_analysis._radial_profile_bad_pixel_map
+        processed_data: dict[str, Any] = {}
 
         radial_profile: NDArray[numpy.float_]
         q: NDArray[numpy.float_]
@@ -688,6 +658,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         detector_data_sum: float
         (
             radial_profile,
+            _,
             q,
             sample_detected,
             roi1_intensity,
@@ -747,8 +718,8 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         *,
         node_rank: int,
         node_pool_size: int,
-        processed_data: Tuple[Dict[str, Any], int],
-    ) -> Union[Dict[int, Dict[str, Any]], None]:
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
         """
         Computes statistics on aggregated data and broadcasts them.
 
@@ -773,35 +744,8 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
                 second entry is the OM rank number of the node that processed the
                 information.
         """
-        received_data: Dict[str, Any] = processed_data[0]
-        return_dict: Dict[int, Dict[str, Any]] = {}
-
-        q_history: Deque[NDArray[numpy.float_]]
-        radials_history: Deque[NDArray[numpy.float_]]
-        image_sum_history: Deque[float]
-        downstream_intensity_history: Deque[float]
-        roi1_intensity_history: Deque[float]
-        roi2_intensity_history: Deque[float]
-        (
-            q_history,
-            radials_history,
-            image_sum_history,
-            downstream_intensity_history,
-            roi1_intensity_history,
-            roi2_intensity_history,
-            hit_rate_history,
-            rg_history,
-        ) = self._plots.update_plots(
-            radial_profile=received_data["radial_profile"],
-            detector_data_sum=received_data["detector_data_sum"],
-            q=received_data["q"],
-            downstream_intensity=received_data["downstream_intensity"],
-            roi1_intensity=received_data["roi1_intensity"],
-            roi2_intensity=received_data["roi2_intensity"],
-            sample_detected=received_data["sample_detected"],
-            rg=received_data["rg"],
-            frame_sum=received_data["frame_sum"],
-        )
+        received_data: dict[str, Any] = processed_data[0]
+        return_dict: dict[str, dict[str, Any]] = {}
 
         # Event counting
         if received_data["sample_detected"] is True:
@@ -810,7 +754,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             self._event_counter.add_non_hit_event()
 
         # File writing
-        data_to_write: Dict[str, Any] = {
+        data_to_write: dict[str, Any] = {
             "q": received_data["q"],
             "radial": received_data["radial_profile"],
             "detector_data_sum": received_data["detector_data_sum"],
@@ -830,7 +774,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> Union[Dict[str, Any], None]:
+    ) -> dict[str, Any] | None:
         """
         Ends processing actions on the processing nodes.
 
@@ -852,10 +796,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -880,9 +821,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         # Sort frames and write final list files
         # Write final status
         self._writer.close()
-
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()

@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
-from typing_extensions import Self
+from typing_extensions import Literal, Self
 
 
 class Hdf5Compression(Enum):
@@ -76,26 +76,8 @@ class Peakfinder8PeakDetectionParameters(CustomBaseModel):
         return self
 
 
-class RadialProfileParameters(CustomBaseModel):
-    bad_pixel_map_filename: str | None = None
-    bad_pixel_map_hdf5_path: str | None = None
-    radius_bin_size: float
-
-    @model_validator(mode="after")
-    def check_hd5_path(self) -> Self:
-        if (
-            self.bad_pixel_map_filename is not None
-            and self.bad_pixel_map_hdf5_path is None
-        ):
-            raise ValueError(
-                "If the bad_pixel_map_filename parameter is specified, "
-                "the bad_pixel_map_hdf5_path must also be provided"
-            )
-        return self
-
-
 class BinningParameters(CustomBaseModel):
-    bin_size: ints
+    bin_size: int
     min_good_pix_count: int | None = None
     bad_pixel_value: int | float | None = None
     bad_pixel_map_filename: str | None = None
@@ -129,31 +111,101 @@ class XesParameters(CustomBaseModel):
     non_hit_frame_sending_interval: int | None = None
 
 
-class SwaxsParameters(CustomBaseModel):
+class RadialProfileParameters(CustomBaseModel):
     speed_report_interval: int
     data_broadcast_interval: int
-    hit_frame_sending_interval: int = 0
-    non_hit_frame_sending_interval: int = 0
+    hit_frame_sending_interval: int
+    non_hit_frame_sending_interval: int
+    data_broadcast_url: str | None = None
     radius_bin_size: int
     geometry_file: str
-    bad_pixel_map_filename: str
-    bad_pixel_map_hdf5_path: str
+    post_processing_binning: bool = False
+    bad_pixel_map_filename: str | None = None
+    bad_pixel_map_hdf5_path: str | None = None
     running_average_window_size: int
     num_radials_to_send: int
     num_hits_in_cum_radial_avg: int
-    total_intensity_jet_threshold: float
+    total_intensity_jet_threshold: float = -1.0
     background_subtraction: bool = False
+    background_profile_filename: str = ""
+    background_profile_hdf5_path: str = ""
+    background_subtraction_min_fit_bin: int = -1
+    background_subtraction_max_fit_bin: int = -1
     sample_detection: bool = True
-    minimum_roi1_to_roi2_intensity_ratio_for_sample: float = 0.0
-    maximum_roi1_to_roi2_intensity_ratio_for_sample: float = 10000000000.0
+    minimum_roi1_to_roi2_intensity_ratio_for_sample: float = -1.0
+    maximum_roi1_to_roi2_intensity_ratio_for_sample: float = -1.0
     estimate_particle_size: bool = False
-    size_estimation_method: str = "guinier"
-    roi1_qmin: float = 0.00
-    roi1_qmax: float = 0.03
-    roi2_qmin: float = 0.03
-    roi2_qmax: float = 0.10
-    guinier_qmin: float = 0.00
-    guinier_qmax: float = 0.01
+    size_estimation_method: Literal["guinier", "sphere", "peak"] = "guinier"
+    roi1_qmin: float = -1.0
+    roi1_qmax: float = -1.0
+    roi2_qmin: float = -1.0
+    roi2_qmax: float = -1.0
+    guinier_qmin: float = -1.0
+    guinier_qmax: float = -1.0
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> Self:
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_background_subtraction(self) -> Self:
+        if self.background_subtraction is True and (
+            self.background_profile_filename == ""
+            or self.background_profile_hdf5_path == ""
+            or self.background_subtraction_min_fit_bin == -1
+            or self.background_subtraction_max_fit_bin == -1
+        ):
+            raise ValueError(
+                "When background subtraction is requested, the following entries "
+                "entry must be present in the swaxs section of the configuration "
+                "file: background_profile_filename, background_profile_hdf5_path, "
+                "background_subtraction_min_fit_bin, background_subtraction_max_fit_bin"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_sample_detection(self) -> Self:
+        if self.sample_detection is True and (
+            self.total_intensity_jet_threshold == -1
+            or self.roi1_qmin == -1.0
+            or self.roi1_qmax == -1.0
+            or self.roi2_qmin == -1.0
+            or self.roi2_qmax == -1.0
+            or self.minimum_roi1_to_roi2_intensity_ratio_for_sample == -1.0
+            or self.maximum_roi1_to_roi2_intensity_ratio_for_sample == -1.0
+        ):
+            raise ValueError(
+                "When background subtraction is requested, the following entries "
+                "entry must be present in the swaxs section of the configuration "
+                "file: total_intensity_jet_threshold, roi1_qmin, roi1_qman, roi2_qmin, "
+                "roi2_max, minimum_roi1_to_roi2_intensity_ratio_for_sample, "
+                "maximum_roi1_to_roi2_intensity_ratio_for_sample"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_particle_size_estimation(self) -> Self:
+        if (
+            self.estimate_particle_size is True
+            and self.size_estimation_method == "guinier"
+            and (self.guinier_qmin == 1 and self.guinier_qmax == 1)
+        ):
+            raise ValueError(
+                "When background subtraction is requested, the following entries "
+                "entry must be present in the swaxs section of the configuration "
+                "file: total_intensity_jet_threshold, roi1_qmin, roi1_qman, roi2_qmin, "
+                "roi2_max, minimum_roi1_to_roi2_intensity_ratio_for_sample, "
+                "maximum_roi1_to_roi2_intensity_ratio_for_sample"
+            )
+        return self
 
 
 class CheetahParameters(CustomBaseModel):
@@ -161,7 +213,7 @@ class CheetahParameters(CustomBaseModel):
     processed_filename_prefix: str = "processed"
     processed_filename_extension: str = "h5"
     hdf5_fields: dict[str, str]
-    hdf5_file_data_type: str
+    hdf5_file_data_type: str | None = None
     hdf5_file_compression: Hdf5Compression = Hdf5Compression.none
     hdf5_file_gzip_compression_level: int = 4
     hdf5_file_zstd_compression_level: int = 3
@@ -174,43 +226,6 @@ class CheetahParameters(CustomBaseModel):
     status_file_update_interval: int
     responding_url: str | None = None
     external_data_request_list_size: int = 20
-
-    @model_validator(mode="after")
-    def check_sums_update_interval(self) -> Self:
-        if self.write_class_sums is True and self.class_sums_update_interval == -1:
-            raise ValueError(
-                "If writing of the class sums is requested from Cheetah, the following"
-                "entry must be present in the cheetah section of the configuration"
-                "file:  class_sums_update_interval "
-            )
-        return self
-
-    @field_validator("status_file_update_interval")
-    def check_status_file_update_interval(cls: Self, v: int) -> int:
-        if v < 1:
-            raise ValueError(
-                "The following entry in the configuration file must have a value of 1 "
-                "or higher: cheetah/status_file_update_interval"
-            )
-        return v
-
-
-class CheetahSwaxsParameters(CustomBaseModel):
-    cheetah_enabled: bool
-    processed_directory: str
-    processed_filename_prefix: str = "processed"
-    processed_filename_extension: str = "h5"
-    write_class_sums: bool
-    class_sums_sending_interval: int = -1
-    class_sums_update_interval: int
-    class_sums_filename_prefix: str = "sums"
-    status_file_update_interval: int
-    hdf5_file_compression: Hdf5Compression = Hdf5Compression.none
-    hdf5_file_gzip_compression_level: int = 4
-    hdf5_file_zstd_compression_level: int = 3
-    hdf5_file_compression_shuffle: bool = False
-    hdf5_file_max_num_peaks: int = 1024
-    hdf5_fields: dict[str, str]
 
     @model_validator(mode="after")
     def check_sums_update_interval(self) -> Self:
@@ -260,9 +275,7 @@ class MonitorParameters(CustomBaseModel):
     binning: BinningParameters | None = None
     crystallography: CrystallographyParameters | None = None
     xes: XesParameters | None = None
-    swaxs: SwaxsParameters | None = None
     cheetah: CheetahParameters | None = None
-    cheetah_swaxs: CheetahSwaxsParameters | None = None
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:

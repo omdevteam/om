@@ -31,7 +31,6 @@ import h5py  # type: ignore
 import hdf5plugin  # type: ignore
 import numpy
 from numpy.typing import NDArray
-from typing_extensions import Self
 
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
@@ -431,7 +430,7 @@ class CheetahClassSumsAccumulator:
                     sum_frames=numpy.zeros(frame_data.shape),
                     peak_powder=numpy.zeros(frame_data.shape),
                 )
-                for class_number in range(self._num_classes)
+                for _ in range(self._num_classes)
             ]
         self._sums[class_number].num_frames += 1
         self._sums[class_number].sum_frames += frame_data
@@ -515,10 +514,6 @@ class CheetahClassSumsCollector:
             num_classes: The total number of data classes currently managed by Cheetah.
 
         """
-        if parameters is None:
-            log.error("'cheetah' section is not present in the configuration file")
-            sys.exit(1)
-
         self._num_classes: int = num_classes
 
         self._write_class_sums: bool = parameters.write_class_sums
@@ -854,8 +849,8 @@ class HDF5Writer:
                     dtype=h5py.special_dtype(vlen=str),
                 )
             elif (
-                numpy.issubdtype(type(value), numpy.integer)
-                or numpy.issubdtype(type(value), numpy.floating)
+                numpy.issubdtype(type(value), numpy.int_)
+                or numpy.issubdtype(type(value), numpy.float_)
                 or numpy.issubdtype(type(value), numpy.bool_)
             ):
                 self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
@@ -875,8 +870,7 @@ class HDF5Writer:
     def _write_extra_data(self, *, group_name: str, extra_data: dict[str, Any]) -> None:
         # Writes the extra_data items.
         key: str
-        value: Any
-        for key, value in extra_data.items():
+        for key, _ in extra_data.items():
             self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
 
     def write_frame(self, *, processed_data: dict[str, Any]) -> None:  # noqa: C901
@@ -892,7 +886,7 @@ class HDF5Writer:
                 file.
         """
         # Datasets to write:
-        fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
+        fields: set[str] = set(processed_data.keys()) & self._requested_datasets
         if len(fields) == 0:
             return
 
@@ -1019,10 +1013,6 @@ class SumHDF5Writer:
             cheetah_parameters: A dictionary containing Cheetah's configuration
                 parameters.
         """
-        if parameters is None:
-            log.error("'cheetah' section is not present in the configuration file")
-            sys.exit(1)
-
         self._filename: pathlib.Path = (
             pathlib.Path(parameters.processed_directory).resolve()
             / f"{parameters.processed_filename_prefix}"
@@ -1065,15 +1055,13 @@ class SumHDF5Writer:
         """
         if not self._filename.exists():
             self._create_hdf5_file_and_datasets(data_shape=data.sum_frames.shape)
-        attempt: int
-        for attempt in range(5):
+        for _ in range(5):
             # If file is opened by someone else try 5 times during 10 seconds and exit
             try:
                 self._h5file = h5py.File(self._filename, "r+")
                 self._h5file["/data/nframes"][0] = data.num_frames
                 self._h5file["/data/data"][:] = data.sum_frames
-                if data.peak_powder is not None:
-                    self._h5file["/data/peakpowder"][:] = data.peak_powder
+                self._h5file["/data/peakpowder"][:] = data.peak_powder
                 self._h5file.close()
                 return
             except OSError:

@@ -170,7 +170,7 @@ class RadialProfile:
 
     def calculate_profile(
         self,
-        data: NDArray[numpy.float_] | NDArray[numpy.int_],
+        data: NDArray[numpy.float_ | numpy.int_],
     ) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.

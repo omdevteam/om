@@ -21,9 +21,9 @@ CrystFEL's geometry utilities.
 This module contains functions and classes that manipulate geometry information.
 """
 
-from collections import OrderedDict
 import copy
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -1049,33 +1049,33 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
             + geometry.panels[panel_name].cnx
         )
         x_map[
-            geometry.panels[panel_name].orig_min_ss : geometry.panels[
-                panel_name
-            ].orig_max_ss
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry.panels[panel_name].orig_min_fs : geometry.panels[
-                panel_name
-            ].orig_max_fs
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = x_panel
         y_map[
-            geometry.panels[panel_name].orig_min_ss : geometry.panels[
-                panel_name
-            ].orig_max_ss
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry.panels[panel_name].orig_min_fs : geometry.panels[
-                panel_name
-            ].orig_max_fs
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = y_panel
         z_map[
-            geometry.panels[panel_name].orig_min_ss : geometry.panels[
-                panel_name
-            ].orig_max_ss
+            geometry.panels[panel_name]
+            .orig_min_ss : geometry.panels[panel_name]
+            .orig_max_ss
             + 1,
-            geometry.panels[panel_name].orig_min_fs : geometry.panels[
-                panel_name
-            ].orig_max_fs
+            geometry.panels[panel_name]
+            .orig_min_fs : geometry.panels[panel_name]
+            .orig_max_fs
             + 1,
         ] = first_panel_camera_length
 

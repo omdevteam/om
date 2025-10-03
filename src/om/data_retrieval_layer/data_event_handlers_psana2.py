@@ -24,7 +24,6 @@ the psana2 software framework (used at the LCLS facility).
 
 import os
 import sys
-from contextlib import AbstractContextManager
 from typing import Any, ContextManager, Generator, Literal
 
 from om.data_retrieval_layer.data_event_handlers_common import (
@@ -153,7 +152,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         else:
             self._offline: bool = False
 
-        self._context: ContextManager | None = None
+        self._context: ContextManage | None = None
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "last"
