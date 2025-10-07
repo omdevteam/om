@@ -463,7 +463,7 @@ class RadialProfileAnalysis:
 
             self._guinier_qmin: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="roi2_qmin",
+                parameter="guinier_qmin",
                 parameter_type=float,
                 default=0.0,
             )
@@ -559,7 +559,9 @@ class RadialProfileAnalysis:
         wavelength: float = (
             constants.c * constants.h / (beam_energy * constants.electron_volt)
         )
-        real_detector_distance: float = detector_distance * 1e-3 + self._coffset
+        #real_detector_distance: float = detector_distance * 1e-3 + self._coffset
+        real_detector_distance: float = detector_distance + self._coffset
+        # print(detector_distance, self._coffset, real_detector_distance)
         theta: NDArray[numpy.float_] = (
             numpy.arctan(
                 self._pixel_size * self._radial_bin_centers / real_detector_distance
