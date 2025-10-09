@@ -354,14 +354,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = self._run.Detector(self._psana_name)
-
-        if self._calibration:
-            self._data_retrieval_function: Callable[[Any], Any] = (
-                detector_interface.raw.calib
-            )
-        else:
-            self._data_retrieval_function = detector_interface.raw.raw
+        self._detector_interface: Any = self._run.Detector(self._psana_name)
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
             self._gain_map: NDArray[numpy.float_] | None = cast(
@@ -398,9 +391,16 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
-            self._data_retrieval_function(event["data"])
-        )
+
+        if self._calibration:
+            psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
+                self._detector_interface.raw.calib(event["data"])
+            )
+        else:
+            psana_data = (
+                self._detector_interface.raw.raw(event["data"])
+            )
+
         if psana_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
