@@ -144,6 +144,15 @@ class SwaxsGui(OmGuiBase):
             symbolSize=3,
             name="ROI2",
         )
+        self._roi_ratio_plot: Any = self._roi_widget.plot(
+            tuple(range(-5000, 0)),
+            [0.0] * 5000,
+            pen=None,
+            symbol="o",
+            symbolPen=pyqtgraph.mkPen("m"),
+            symbolSize=3,
+            name="ROI1/ROI2",
+        )
         self._frame_mean_plot: Any = self._roi_widget.plot(
             tuple(range(-5000, 0)),
             [0.0] * 5000,
@@ -244,6 +253,12 @@ class SwaxsGui(OmGuiBase):
 
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])
+        # Suppress the warning during calculation
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            roi_ratio = numpy.array(local_data["roi1_int_history"]) / numpy.array(local_data["roi2_int_history"])
+        # Replace nan, posinf, and neginf with 0
+        roi_ratio = numpy.nan_to_num(roi_ratio, nan=0.0, posinf=0.0, neginf=0.0)
+        self._roi_ratio_plot.setData(tuple(range(-5000, 0)), roi_ratio)
         self._frame_mean_plot.setData(tuple(range(-5000, 0)), local_data["image_sum_history"])
 
         self._rg_plot.setData(tuple(range(-5000, 0)), local_data["rg_history"])
