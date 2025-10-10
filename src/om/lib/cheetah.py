@@ -34,6 +34,7 @@ import numpy
 from numpy.typing import NDArray
 from typing import Set
 
+
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
 from om.lib.logging import log
@@ -469,7 +470,9 @@ class CheetahClassSumsAccumulator:
 
             The sum and virtual powder plot stored by the accumulator, or None.
         """
-        if (
+        if self._cheetah_parameters.class_sums_sending_interval == -1:
+            return None
+        elif (
             self._sum_sending_counter
             >= self._cheetah_parameters.class_sums_sending_interval
         ) or (self._sum_sending_counter > 0 and disregard_counter):
