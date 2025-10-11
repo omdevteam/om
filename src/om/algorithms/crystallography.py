@@ -157,7 +157,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
         from libpressio import PressioCompressor
 
         lp_config_with_peaks = self._add_peaks_to_libpressio_configuration(
-            self._lp_config_base, peaks
+            config=self._lp_config_base, peaks=peaks
         )
         self._compressor = PressioCompressor.from_config(lp_config_with_peaks)
         compressed_img: bytes = self._compressor.encode(data)
