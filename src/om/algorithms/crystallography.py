@@ -74,7 +74,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
                     "roibin": {
                         "roibin:metric": "composite",
                         "roibin:background": "mask_binning",
-                        "roibin:roi": "fpzip",
+                        # "roibin:roi": "fpzip",
                         "background": {
                             "binning:compressor": "pressio",
                             "mask_binning:compressor": "pressio",
@@ -94,13 +94,17 @@ class RoiBinSzCompression(OmCompressionProtocol):
             "compressor_config": {
                 "pressio": {
                     "roibin": {
-                        "roibin:roi_size": [roi_window_size, roi_window_size, 0],
+                        # If ever get to deslabbing, this array size needs to match
+                        # the array dimensions of the raw data (e.g. 3, or 4...)
+                        "roibin:roi_size": [roi_window_size, roi_window_size],
                         "roibin:centers": None,  # "roibin:roi_strategy": "coordinates",
                         "roibin:nthreads": 4,
-                        "roi": {"fpzip:prec": 0},
+                        # "roi": {"fpzip:prec": 0},
                         "background": {
                             "mask_binning:mask": None,
-                            "mask_binning:shape": [bin_size, bin_size, 1],
+                            # If ever get to deslabbing, this array size needs to match
+                            # the array dimensions of the raw data (e.g. 3, or 4...)
+                            "mask_binning:shape": [bin_size, bin_size],
                             "mask_binning:nthreads": 4,
                             "pressio": pressio_opts,
                         },
@@ -166,7 +170,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
     def uncompress(
         self, *, compressed_data: bytes, data_shape: tuple[int, ...]
     ) -> NDArray[numpy.int_ | numpy.float_]:
-        decompressed_img = numpy.zeros_like(data_shape)
+        decompressed_img = numpy.zeros(data_shape)
         _ = self._compressor.decode(compressed_data, decompressed_img)
         return decompressed_img
 

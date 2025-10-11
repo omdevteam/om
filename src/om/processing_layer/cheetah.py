@@ -286,7 +286,7 @@ class OmCheetahMixin:
                 data=data["detector_data"], special_data=peak_list
             )
             data["detector_data"] = self._compressor.uncompress(
-                compressed_data=compressed_data
+                compressed_data=compressed_data, data_shape=data["detector_data"].shape
             )
 
         frame_is_hit: bool = (
