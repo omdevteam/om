@@ -43,7 +43,7 @@ def load_hdf5_data(
     *,
     hdf5_filename: Path,
     hdf5_path: str,
-) -> NDArray[numpy.int_ | numpy.float_]:
+) -> NDArray[numpy.int_ | numpy.float64]:
     """
     Loads data from an HDF5 file.
 
@@ -71,7 +71,7 @@ def load_hdf5_data(
     try:
         hdf5_file_handle: Any
         with h5py.File(hdf5_filename_path, "r") as hdf5_file_handle:
-            data: NDArray[numpy.float_ | numpy.int_] = hdf5_file_handle[hdf5_path][:]
+            data: NDArray[numpy.float64 | numpy.int_] = hdf5_file_handle[hdf5_path][:]
     except (IOError, OSError, KeyError) as exc:
         exc_type, exc_value = sys.exc_info()[:2]
         raise OmHdf5FileReadingError(

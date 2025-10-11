@@ -131,7 +131,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves a Rayonix detector data frame from psana.
 
@@ -153,7 +153,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        rayonix_psana: NDArray[numpy.float_] | None = self._detector_interface.calib(
+        rayonix_psana: NDArray[numpy.float64] | None = self._detector_interface.calib(
             event["data"]
         )
         if rayonix_psana is None:
@@ -169,7 +169,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves an Opal camera data frame from psana.
 
@@ -191,7 +191,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        opal_psana: NDArray[numpy.float_] | None = self._detector_interface(
+        opal_psana: NDArray[numpy.float64] | None = self._detector_interface(
             event["data"]
         )
         if opal_psana is None:
@@ -207,7 +207,7 @@ class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtoco
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves an Opal camera data frame from psana.
 
@@ -229,7 +229,7 @@ class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtoco
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        opal_psana: NDArray[numpy.float_] | None = self._detector_interface(
+        opal_psana: NDArray[numpy.float64] | None = self._detector_interface(
             event["data"]
         )
         if opal_psana is None:
@@ -247,7 +247,7 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> tuple[NDArray[numpy.float_], NDArray[numpy.float_]]:
+    ) -> tuple[NDArray[numpy.float64], NDArray[numpy.float64]]:
         """
         Retrieves Acqiris waveform data from psana.
 
@@ -275,10 +275,10 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
             A tuple, with two entries, storing the digitized waveform data from the
                 Acqiris detector.
         """
-        wftime: NDArray[numpy.float_] | None = self._detector_interface.wftime(
+        wftime: NDArray[numpy.float64] | None = self._detector_interface.wftime(
             event["data"]
         )
-        waveform: NDArray[numpy.float_] | None = self._detector_interface.waveform(
+        waveform: NDArray[numpy.float64] | None = self._detector_interface.waveform(
             event["data"]
         )
 
@@ -298,7 +298,7 @@ class AssembledDetectorPsana(
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves an assembled detector data frame from psana.
 
@@ -321,7 +321,7 @@ class AssembledDetectorPsana(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        assembled_data: NDArray[numpy.float_] | None = self._detector_interface.image(
+        assembled_data: NDArray[numpy.float64] | None = self._detector_interface.image(
             event["data"]
         )
         if assembled_data is None:
@@ -601,8 +601,8 @@ class AreaDetectorPsana(OmDataSourceProtocol):
             self._data_retrieval_function = detector_interface.raw
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
-            self._gain_map: NDArray[numpy.float_] | None = cast(
-                NDArray[numpy.float_] | None,
+            self._gain_map: NDArray[numpy.float64] | None = cast(
+                NDArray[numpy.float64] | None,
                 load_hdf5_data(
                     hdf5_filename=self._gain_map_filename,
                     hdf5_path=self._gain_map_hdf5_path,
@@ -611,7 +611,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         else:
             self._gain_map = None
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
 
@@ -636,7 +636,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
+        psana_data: NDArray[numpy.float64 | numpy.int_] | None = (
             self._data_retrieval_function(event["data"])
         )
         if psana_data is None:
@@ -648,7 +648,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         # Rearranges the data into 'slab' format.
         psana_data_shape: tuple[int, ...] = psana_data.shape
         if len(psana_data_shape) == 2:
-            psana_data_reshaped: NDArray[numpy.float_ | numpy.int_] = psana_data
+            psana_data_reshaped: NDArray[numpy.float64 | numpy.int_] = psana_data
         else:
             psana_data_reshaped = psana_data.reshape(
                 psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]
@@ -735,7 +735,7 @@ class CspadPsana(OmDataSourceProtocol):
         else:
             self._data_retrieval_function = detector_interface.raw
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a CSPAD detector data frame from psana.
 
@@ -760,7 +760,7 @@ class CspadPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        cspad_psana: NDArray[numpy.float_ | numpy.int_] | None = (
+        cspad_psana: NDArray[numpy.float64 | numpy.int_] | None = (
             self._data_retrieval_function(event["data"])
         )
         if cspad_psana is None:
@@ -770,11 +770,11 @@ class CspadPsana(OmDataSourceProtocol):
             )
 
         # Rearranges the data into 'slab' format.
-        cspad_reshaped: NDArray[numpy.float_ | numpy.int_] = cspad_psana.reshape(
+        cspad_reshaped: NDArray[numpy.float64 | numpy.int_] = cspad_psana.reshape(
             (4, 8, 185, 388)
         )
-        cspad_slab: NDArray[numpy.float_ | numpy.int_] = cast(
-            NDArray[numpy.float_ | numpy.int_],
+        cspad_slab: NDArray[numpy.float64 | numpy.int_] = cast(
+            NDArray[numpy.float64 | numpy.int_],
             numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype),
         )
         index: int

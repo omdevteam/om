@@ -139,7 +139,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
     def compress(
         self,
         *,
-        data: NDArray[numpy.int_ | numpy.float_],
+        data: NDArray[numpy.int_ | numpy.float64],
         special_data: Any | None = None,
     ) -> bytes:
         if not isinstance(special_data, PeakList):
@@ -156,7 +156,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
         ] = mask
 
     def _compress(
-        self, *, data: NDArray[numpy.int_ | numpy.float_], peaks: PeakList
+        self, *, data: NDArray[numpy.int_ | numpy.float64], peaks: PeakList
     ) -> bytes:
         from libpressio import PressioCompressor
 
@@ -169,7 +169,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
 
     def uncompress(
         self, *, compressed_data: bytes, data_shape: tuple[int, ...]
-    ) -> NDArray[numpy.int_ | numpy.float_]:
+    ) -> NDArray[numpy.int_ | numpy.float64]:
         decompressed_img = numpy.zeros(data_shape)
         _ = self._compressor.decode(compressed_data, decompressed_img)
         return decompressed_img
@@ -194,7 +194,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float_],
+        radius_pixel_map: NDArray[numpy.float64],
         layout_info: DetectorLayoutInformation,
         parameters: Peakfinder8PeakDetectionParameters,
     ) -> None:
@@ -309,7 +309,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._bad_pixel_map = None
 
         self._mask: NDArray[numpy.int_] | None = None
-        self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
+        self._radius_pixel_map: NDArray[numpy.float64] = radius_pixel_map
 
         self._radial_stats_pixel_index: NDArray[numpy.int_] | None = None
         self._radial_stats_radius: NDArray[numpy.int_] | None = None
@@ -356,7 +356,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._bad_pixel_map = bad_pixel_map
         self._mask = None
 
-    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
+    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float64]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
         if self._peakfinder8_parameters.fast_mode is True:
             self._compute_radial_stats_pixels(
@@ -570,7 +570,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._mask = None
 
     def find_peaks(
-        self, *, data: NDArray[numpy.int_] | NDArray[numpy.float_]
+        self, *, data: NDArray[numpy.int_] | NDArray[numpy.float64]
     ) -> PeakList:
         """
         Finds peaks in a detector data frame.

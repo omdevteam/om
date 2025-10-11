@@ -375,7 +375,7 @@ class CrystallographyGui(OmGuiBase):
 
         QtWidgets.QApplication.processEvents()
 
-        peakogram: NDArray[numpy.float_] = local_data["peakogram"]
+        peakogram: NDArray[numpy.float64] = local_data["peakogram"]
         peakogram[numpy.where(peakogram == 0)] = numpy.nan
         self._peakogram_plot_image_view.setImage(
             numpy.log(peakogram),

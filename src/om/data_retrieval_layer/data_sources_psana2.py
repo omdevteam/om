@@ -130,7 +130,7 @@ class AssembledDetectorPsana2(
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves an assembled detector data frame from psana.
 
@@ -153,7 +153,7 @@ class AssembledDetectorPsana2(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        assembled_data: NDArray[numpy.float_] | None = self._detector_interface.image(
+        assembled_data: NDArray[numpy.float64] | None = self._detector_interface.image(
             event["data"]
         )
         if assembled_data is None:
@@ -364,8 +364,8 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
             self._data_retrieval_function = detector_interface.raw.raw
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
-            self._gain_map: NDArray[numpy.float_] | None = cast(
-                NDArray[numpy.float_] | None,
+            self._gain_map: NDArray[numpy.float64] | None = cast(
+                NDArray[numpy.float64] | None,
                 load_hdf5_data(
                     hdf5_filename=self._gain_map_filename,
                     hdf5_path=self._gain_map_hdf5_path,
@@ -374,7 +374,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         else:
             self._gain_map = None
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
         Please see the documentation of the base Protocol class for additional
@@ -398,7 +398,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
+        psana_data: NDArray[numpy.float64 | numpy.int_] | None = (
             self._data_retrieval_function(event["data"])
         )
         if psana_data is None:
@@ -410,7 +410,7 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         # Rearranges the data into 'slab' format.
         psana_data_shape: tuple[int, ...] = psana_data.shape
         if len(psana_data_shape) == 2:
-            psana_data_reshaped: NDArray[numpy.float_ | numpy.int_] = psana_data
+            psana_data_reshaped: NDArray[numpy.float64 | numpy.int_] = psana_data
         else:
             psana_data_reshaped = psana_data.reshape(
                 psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]

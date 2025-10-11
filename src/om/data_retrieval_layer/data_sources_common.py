@@ -442,12 +442,12 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         it raises an exception if the parameter is not available), and requires its
         value to be a float number.
         """
-        self._array: NDArray[numpy.float_ | numpy.int_] = load_hdf5_data(
+        self._array: NDArray[numpy.float64 | numpy.int_] = load_hdf5_data(
             hdf5_filename=self._hdf5_filename,
             hdf5_path=self._hdf5_path,
         )
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves the numerical value of an OM's configuration parameter
 

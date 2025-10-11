@@ -47,8 +47,8 @@ def main(
         raise OmInvalidSourceError(f"Error reading the {input} source file.") from exc
 
     n: int = 1024 * 512
-    sd: NDArray[numpy.float_] = numpy.zeros((3, n), dtype=numpy.float64)
-    nd: NDArray[numpy.float_] = numpy.zeros((3, n))
+    sd: NDArray[numpy.float64] = numpy.zeros((3, n), dtype=numpy.float64)
+    nd: NDArray[numpy.float64] = numpy.zeros((3, n))
     for fn in filelist:
         i: int = int(re.findall("_f(\\d+)_", fn)[0])
         h5_data_path: str = "/data_" + f"f{i:012d}"
@@ -69,7 +69,7 @@ def main(
                     nd[i][where_gain[i]] += 1
 
     with numpy.errstate(divide="ignore", invalid="ignore"):
-        dark: NDArray[numpy.float_] = (sd / nd).astype(numpy.float32)
+        dark: NDArray[numpy.float64] = (sd / nd).astype(numpy.float32)
 
     if numpy.any(nd == 0):
         log.warning("Some pixels don't have data in all gains")

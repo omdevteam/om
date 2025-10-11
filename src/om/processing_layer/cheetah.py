@@ -181,7 +181,7 @@ class OmCheetahMixin:
         )
 
         # An array to store processed data converted to float32 (required by CrystFEL)
-        self._float_detector_data: NDArray[numpy.float_] = numpy.zeros(
+        self._float_detector_data: NDArray[numpy.float64] = numpy.zeros(
             self._processed_data_shape, dtype=numpy.float32
         )
 
@@ -242,7 +242,7 @@ class OmCheetahMixin:
 
     def common_process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
-    ) -> tuple[NDArray[numpy.float_ | numpy.int_], PeakList, bool]:
+    ) -> tuple[NDArray[numpy.float64 | numpy.int_], PeakList, bool]:
         """
         Processes a detector data frame.
 
@@ -299,7 +299,7 @@ class OmCheetahMixin:
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
         )
-        binned_detector_data: NDArray[numpy.float_ | numpy.int_] = (
+        binned_detector_data: NDArray[numpy.float64 | numpy.int_] = (
             self._post_processing_binning.bin_detector_data(data=data["detector_data"])
         )
 

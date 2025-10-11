@@ -60,8 +60,8 @@ class ClassSumData:
     """
 
     num_frames: int
-    sum_frames: NDArray[numpy.float_]
-    peak_powder: NDArray[numpy.float_]
+    sum_frames: NDArray[numpy.float64]
+    peak_powder: NDArray[numpy.float64]
 
 
 @dataclass(order=True)
@@ -406,7 +406,7 @@ class CheetahClassSumsAccumulator:
         self,
         *,
         class_number: int,
-        frame_data: NDArray[numpy.float_ | numpy.int_],
+        frame_data: NDArray[numpy.float64 | numpy.int_],
         peak_list: PeakList,
     ) -> None:
         """

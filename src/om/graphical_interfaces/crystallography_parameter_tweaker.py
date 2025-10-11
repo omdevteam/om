@@ -111,7 +111,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
             _ParameterTweakerParameters.model_validate(parameters["crystallography"])
         )
 
-        self._img: NDArray[numpy.float_] | None = None
+        self._img: NDArray[numpy.float64] | None = None
         self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
@@ -137,7 +137,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
             self._data_visualizer.get_visualization_pixel_maps().y.ravel()
         )
 
-        self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
+        self._assembled_img: NDArray[numpy.float64] = numpy.zeros(
             shape=self._data_visualizer.get_min_array_shape_for_visualization(),
             dtype=numpy.float32,
         )

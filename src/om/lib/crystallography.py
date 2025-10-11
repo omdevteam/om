@@ -114,7 +114,7 @@ class CrystallographyPeakFinding:
             layout_info=geometry_information.get_layout_info(),
         )
 
-    def find_peaks(self, detector_data: NDArray[numpy.int_ | numpy.float_]) -> PeakList:
+    def find_peaks(self, detector_data: NDArray[numpy.int_ | numpy.float64]) -> PeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -210,7 +210,7 @@ class CrystallographyPlots:
             / parameters.crystallography.peakogram_radius_bin_size
         )
 
-        self._peakogram: NDArray[numpy.float_] = numpy.zeros(
+        self._peakogram: NDArray[numpy.float64] = numpy.zeros(
             (peakogram_num_bins_radius, peakogram_num_bins_intensity)
         )
         self._running_average_window_size: int = (
@@ -264,7 +264,7 @@ class CrystallographyPlots:
         deque[float],
         deque[float],
         NDArray[numpy.int_],
-        NDArray[numpy.float_],
+        NDArray[numpy.float64],
         float,
         float,
         list[float],

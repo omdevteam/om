@@ -96,7 +96,7 @@ class Eiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves an Eiger 16M detector data frame.
 

@@ -315,7 +315,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         if send_detector_data:
-            data_to_send: NDArray[numpy.int_ | numpy.float_] = data["detector_data"]
+            data_to_send: NDArray[numpy.int_ | numpy.float64] = data["detector_data"]
 
             data_to_send = self._post_processing_binning.bin_detector_data(
                 data=data_to_send
@@ -431,7 +431,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         curr_hit_rate_timestamp_history_dark: deque[float] | None
         curr_hit_rate_history_dark: deque[float] | None
         curr_virt_powd_plot_img: NDArray[numpy.int_]
-        curr_peakogram: NDArray[numpy.float_]
+        curr_peakogram: NDArray[numpy.float64]
         peakogram_radius_bin_size: float
         peakogram_intensity_bin_size: float
         peak_list_x_in_frame: list[float]
