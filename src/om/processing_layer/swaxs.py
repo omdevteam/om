@@ -567,6 +567,12 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         self._send_hit_frame: bool = False
         self._send_non_hit_frame: bool = False
 
+        # HDF5 file writer
+        self._file_writer: HDF5Writer = HDF5Writer(
+            parameters=self._cheetah_parameters,
+            node_rank=node_rank,
+        )
+
         # Console
         log.info(f"Processing node {node_rank} starting")
 
@@ -592,10 +598,10 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
                 processing nodes and the collecting node.
         """
         # File Writing
-        self._writer = HDF5Writer(
-            node_rank=node_rank,
-            parameters=self._cheetah_parameters,
-        )
+        # self._writer = HDF5Writer(
+        #     node_rank=node_rank,
+        #     parameters=self._cheetah_parameters,
+        # )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
@@ -671,6 +677,31 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
             detector_distance=data["detector_distance"],
             downstream_intensity=data["post_sample_intensity"],
         )
+
+        # Saving data to HDF5 file
+        frame_is_hit = True
+        if frame_is_hit:
+            data_to_write: dict[str, Any] = {
+                "q": q,
+                "radial": radial_profile,
+                "image_sum": detector_data_sum,
+                "event_id": data["event_id"],
+                "timestamp": data["timestamp"],
+                "beam_energy": data["beam_energy"],
+                "detector_distance": data["detector_distance"],
+            }
+            if "optical_laser_active" in data.keys():
+                data_to_write["optical_laser_active"] = data["optical_laser_active"]
+            if "lcls_extra" in data.keys():
+                data_to_write["lcls_extra"] = data["lcls_extra"]
+            self._file_writer.write_frame(processed_data=data_to_write)
+
+        if frame_is_hit:
+            processed_data["filename"] = self._file_writer.get_current_filename()
+            processed_data["index"] = self._file_writer.get_num_written_frames()
+        else:
+            processed_data["filename"] = "---"
+            processed_data["index"] = -1
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
@@ -754,17 +785,17 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
             self._event_counter.add_non_hit_event()
 
         # File writing
-        data_to_write: dict[str, Any] = {
-            "q": received_data["q"],
-            "radial": received_data["radial_profile"],
-            "detector_data_sum": received_data["detector_data_sum"],
-            "timestamp": received_data["timestamp"],
-            "sample_detected": received_data["sample_detected"],
-            "detector_distance": received_data["detector_distance"],
-            "beam_energy": received_data["beam_energy"],
-            "event_id": received_data["event_id"],
-        }
-        self._writer.write_frame(processed_data=data_to_write)
+        # data_to_write: dict[str, Any] = {
+        #     "q": received_data["q"],
+        #     "radial": received_data["radial_profile"],
+        #     "image_sum": received_data["detector_data_sum"],
+        #     "timestamp": received_data["timestamp"],
+        #     "sample_detected": received_data["sample_detected"],
+        #     "detector_distance": received_data["detector_distance"],
+        #     "beam_energy": received_data["beam_energy"],
+        #     "event_id": received_data["event_id"],
+        # }
+        # self._writer.write_frame(processed_data=data_to_write)
 
         self._event_counter.report_speed()
 
@@ -796,6 +827,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
+        self._file_writer.close()
         log.info(f"Processing node {node_rank} shutting down.")
         return None
 
@@ -820,7 +852,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         """
         # Sort frames and write final list files
         # Write final status
-        self._writer.close()
+        # self._writer.close()
         log.info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."

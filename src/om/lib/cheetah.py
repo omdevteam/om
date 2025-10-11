@@ -804,6 +804,16 @@ class HDF5Writer:
                 }
             )
 
+        # SWAXS Cheetah writing
+        for key in ("q", "radial", "image_sum"):
+            if key in self._cheetah_parameters.hdf5_fields.keys():
+                self._resizable_datasets[key] = self._h5file.create_dataset(
+                    name=self._cheetah_parameters.hdf5_fields[key],
+                    shape=(0,3019),
+                    maxshape=(None,None,),
+                    dtype=numpy.float64,
+                )
+
         for key in self._requested_datasets:
             if key.endswith("_extra"):
                 self._extra_groups[key] = self._h5file.create_group(
@@ -904,6 +914,9 @@ class HDF5Writer:
             "beam_energy",
             "detector_distance",
             "optical_laser_active",
+            "q",
+            "radial",
+            "image_sum",
         ):
             if dataset_dict_key in fields:
                 self._resizable_datasets[dataset_dict_key][frame_num] = processed_data[
