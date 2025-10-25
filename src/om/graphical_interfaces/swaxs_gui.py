@@ -99,7 +99,10 @@ class SwaxsGui(OmGuiBase):
             tuple(range(1000, 0)), [0.0] * 1000, pen=pyqtgraph.mkPen("y"), name="recent"
         )
         self._cumulative_hits_radial_plot: Any = self._radial_widget.plot(
-            tuple(range(1000, 0)), [0.0] * 1000, pen=pyqtgraph.mkPen("c"), name="hits only"
+            tuple(range(1000, 0)),
+            [0.0] * 1000,
+            pen=pyqtgraph.mkPen("c"),
+            name="hits only",
         )
 
         self._hit_rate_widget: Any = pyqtgraph.PlotWidget()
@@ -237,7 +240,9 @@ class SwaxsGui(OmGuiBase):
         recent_avg: NDArray[numpy.float_] = local_data["recent_radial_average"]
         self._recent_avg_plot.setData(q, recent_avg)
 
-        cumulative_hits_radial: NDArray[numpy.float_] = local_data["cumulative_hits_radial"]
+        cumulative_hits_radial: NDArray[numpy.float_] = local_data[
+            "cumulative_hits_radial"
+        ]
         self._cumulative_hits_radial_plot.setData(q, cumulative_hits_radial)
 
         self._radial_stack_view.setImage(
