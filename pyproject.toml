@@ -42,7 +42,7 @@ Repository = "httpd://github.com/omdevteam/om"
 om_monitor = "om.monitor:run"
 om_jungfrau_dark = "om.tools.jungfrau_dark:run"
 om_jungfrau_zmq_receiver = "om.tools.jungfrau_zmq_receiver:run"
-        
+
 [project.gui-scripts]
 om_crystallography_gui = "om.graphical_interfaces.crystallography_gui:run"
 om_frame_viewer = "om.graphical_interfaces.frame_viewer:run"
@@ -57,7 +57,8 @@ build-backend = "setuptools.build_meta"
 [tool.pyright]
 diagnosticMode = "workspace"
 typeCheckingMode = "strict"
-pythonPath = ".pixi/envs/psana2/bin/python"
+venvPath = "/sdf/group/lcls/ds/tools/om/conda"
+venv = "ps_20250819_miniom"
 
 [tool.isort]
 py_version = 311
@@ -66,47 +67,6 @@ profile = "black"
 [tool.mypy]
 show_error_codes = true
 python_version = 3.11
-
-[tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["linux-64"]
-
-[tool.pixi.feature.psana1]
-channels = ["lcls-i"]
-
-[tool.pixi.feature.psana2]
-channels = ["lcls-ii"]
-
-[tool.pixi.pypi-dependencies]
-ondamonitor = { path = ".", editable = true }
-
-[tool.pixi.environments]
-psana1 = ["psana1"]
-psana2 = ["psana2"]
-
-[tool.pixi.feature.psana1.activation]
-scripts = ["activation-psana1.sh"]
-
-[tool.pixi.feature.psana2.activation]
-scripts = ["activation-psana2.sh"]
-
-[tool.pixi.feature.psana1.dependencies]
-python = "3.11.*"
-psana = "==4.0.66"
-openmpi = "*"
-mpi4py = "*"
-
-[tool.pixi.feature.psana2.dependencies]
-python = "3.12.*"
-psana = { version="==4.1.10", channel="lcls-ii" }
-openmpi = "*"
-mpi4py = "*"
-
-[dependency-groups]
-psana1 = ["pillow", "pyzmq", "scipy", "cython>=3.1.2,<4", "fabio>=2024.9.0,<2025", "hdf5plugin>=5.1.0,<6", "msgpack>=1.1.1,<2", "msgpack-numpy>=0.4.8,<0.5", "pydantic>=2.11.7,<3", "pyyaml>=6.0.2,<7", "rich>=14.0.0,<15", "ruamel-yaml>=0.18.14,<0.19", "typer>=0.16.0,<0.17"]
-psana2 = ["pillow", "pyzmq", "scipy", "cython>=3.1.2,<4", "fabio>=2024.9.0,<2025", "hdf5plugin>=5.1.0,<6", "msgpack>=1.1.1,<2", "msgpack-numpy>=0.4.8,<0.5", "pydantic>=2.11.7,<3", "pyyaml>=6.0.2,<7", "rich>=14.0.0,<15", "ruamel-yaml>=0.18.14,<0.19", "typer>=0.16.0,<0.17"]
-
-[tool.pixi.tasks]
 
 [tool.ruff]
 exclude = [

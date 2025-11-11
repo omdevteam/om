@@ -24,7 +24,6 @@ the psana2 software framework (used at the LCLS facility).
 
 import os
 import sys
-from contextlib import AbstractContextManager
 from typing import Any, ContextManager, Generator, Literal
 
 from om.data_retrieval_layer.data_event_handlers_common import (
@@ -114,12 +113,6 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
 
         os.environ["PS_SRV_NODES"] = "1"
 
-        if "shmem" in source:
-            log.error("Online mode has not been implemented yet for psana2")
-            sys.exit(1)
-        else:
-            self._offline: bool = True
-
         self._source_dict: dict[str, str | int] = {}
         source_items: list[str] = source.split(",")
         item: str
@@ -154,7 +147,12 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             )
         )
 
-        self._context: ContextManager | None = None
+        if not "exp" in self._source_dict:
+            self._offline: bool = True
+        else:
+            self._offline: bool = False
+
+        self._context: ContextManage | None = None
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "last"
@@ -204,15 +202,10 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # Initializes the psana event source and starts retrieving events.
-        if self._offline:
-            self._psana_events: Any = _psana2_offline_event_generator(
-                psana_source=self._psana_source,
-                data_retrieval_parameters=self._data_retrieval_parameters,
-            )
-        else:
-            log.error("Online mode has not been implemented yet for psana2")
-            sys.exit(1)
+        self._psana_events: Any = _psana2_offline_event_generator(
+            psana_source=self._psana_source,
+            data_retrieval_parameters=self._data_retrieval_parameters,
+        )
 
     def event_generator(
         self,
