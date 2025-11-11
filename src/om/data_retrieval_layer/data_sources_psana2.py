@@ -337,7 +337,15 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
                     f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
                 )
                 sys.exit(1)
-
+        self._psana_algorithm: str
+        if "psana_algorithm" not in extra_parameters:
+            log.warning(
+                f"Entry 'algorithm' is not defined for data source {data_source_name}. "
+                "We will default to using the 'raw' algorithm."
+            )
+            self._psana_algorithm = "raw"
+        else:
+            self._psana_algorithm = extra_parameters["psana_algorithm"]
             self._gain_map_filename = extra_parameters["gain_map_filename"]
             self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
 
@@ -355,13 +363,11 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
         data events, so this function actually does nothing.
         """
         detector_interface: Any = self._run.Detector(self._psana_name)
-
+        algorithm: Any = getattr(detector_interface, self._psana_algorithm)
         if self._calibration:
-            self._data_retrieval_function: Callable[[Any], Any] = (
-                detector_interface.raw.calib
-            )
+            self._data_retrieval_function: Callable[[Any], Any] = getattr(algorithm, "calib")
         else:
-            self._data_retrieval_function = detector_interface.raw.raw
+            self._data_retrieval_function = getattr(algorithm, "raw")
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
             self._gain_map: NDArray[numpy.float64] | None = cast(

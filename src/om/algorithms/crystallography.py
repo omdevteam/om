@@ -74,7 +74,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
                     "roibin": {
                         "roibin:metric": "composite",
                         "roibin:background": "mask_binning",
-                        # "roibin:roi": "fpzip",
+                        "roibin:roi": "fpzip",
                         "background": {
                             "binning:compressor": "pressio",
                             "mask_binning:compressor": "pressio",
@@ -99,7 +99,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
                         "roibin:roi_size": [roi_window_size, roi_window_size],
                         "roibin:centers": None,  # "roibin:roi_strategy": "coordinates",
                         "roibin:nthreads": 4,
-                        # "roi": {"fpzip:prec": 0},
+                        "roi": {"fpzip:prec": 0},
                         "background": {
                             "mask_binning:mask": None,
                             # If ever get to deslabbing, this array size needs to match
@@ -170,7 +170,7 @@ class RoiBinSzCompression(OmCompressionProtocol):
     def uncompress(
         self, *, compressed_data: bytes, data_shape: tuple[int, ...]
     ) -> NDArray[numpy.int_ | numpy.float64]:
-        decompressed_img = numpy.zeros(data_shape)
+        decompressed_img = numpy.zeros(data_shape,dtype=numpy.float32)
         _ = self._compressor.decode(compressed_data, decompressed_img)
         return decompressed_img
 
