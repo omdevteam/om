@@ -337,6 +337,9 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
                     f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
                 )
                 sys.exit(1)
+            self._gain_map_filename = extra_parameters["gain_map_filename"]
+            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+
         self._psana_algorithm: str
         if "psana_algorithm" not in extra_parameters:
             log.warning(
@@ -346,8 +349,6 @@ class AreaDetectorPsana2(OmDataSourceProtocol):
             self._psana_algorithm = "raw"
         else:
             self._psana_algorithm = extra_parameters["psana_algorithm"]
-            self._gain_map_filename = extra_parameters["gain_map_filename"]
-            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
 
         self._psana_name: str = extra_parameters["psana_name"]
         self._calibration: bool = extra_parameters["calibration"]
