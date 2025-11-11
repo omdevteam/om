@@ -178,8 +178,8 @@ class RoiBinSzCompression(OmCompressionProtocol):
         self, *, config: dict[str, Any], peaks: PeakList
     ) -> dict[str, Any]:
         peaks_rotated: NDArray[numpy.uint64] = numpy.zeros((len(peaks.fs), 2))
-        peaks_rotated[:, 0] = peaks.fs.astype(numpy.uint64)
-        peaks_rotated[:, 1] = peaks.ss.astype(numpy.uint64)
+        peaks_rotated[:, 0] = numpy.array(peaks.fs).astype(numpy.uint64)
+        peaks_rotated[:, 1] = numpy.array(peaks.ss).astype(numpy.uint64)
         config["compressor_config"]["pressio"]["roibin"][
             "roibin:centers"
         ] = peaks_rotated
