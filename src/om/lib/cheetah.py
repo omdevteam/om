@@ -865,7 +865,7 @@ class HDF5Writer:
                 )
             elif (
                 numpy.issubdtype(type(value), numpy.int_)
-                or numpy.issubdtype(type(value), numpy.float_)
+                or numpy.issubdtype(type(value), numpy.float64)
                 or numpy.issubdtype(type(value), numpy.bool_)
             ):
                 self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
