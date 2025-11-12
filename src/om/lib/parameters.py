@@ -1,8 +1,9 @@
 from enum import Enum
 from pathlib import Path
+from typing import Literal
+from typing_extensions import Self
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
-from typing_extensions import Literal, Self
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Hdf5Compression(Enum):
@@ -23,6 +24,19 @@ class OmParameters(CustomBaseModel):
     processing_layer: str
     source: str = ""
     configuration_file: Path = Path("")
+
+
+class RoiBinSzCompressorParameters(CustomBaseModel):
+    compressor: Literal["qoz", "sz3"] = Field(
+        "qoz", description='Compression algorithm ("qoz" or "sz3")'
+    )
+    abs_error: float = Field(10.0, description="Absolute error bound")
+    bin_size: int = Field(2, description="Bin size")
+    roi_window_size: int = Field(
+        9,
+        description="Default window size",
+    )
+    mask: str | bool | None = None
 
 
 class DataSourceParameters(CustomBaseModel):
@@ -267,6 +281,25 @@ class CrystallographyParameters(CustomBaseModel):
     non_hit_frame_sending_interval: int = 0
 
 
+class DataCompressionParameters(CustomBaseModel):
+    run_compression: bool = False
+    backend: Literal["roibinsz"] | None = None
+    compression_parameters: RoiBinSzCompressorParameters | None = None
+
+    @model_validator(mode="after")
+    def check_backend_matches_parameters(self) -> Self:
+        if self.run_compression:
+            if self.backend == "roibinsz":
+                if not isinstance(
+                    self.compression_parameters, RoiBinSzCompressorParameters
+                ):
+                    raise ValueError(
+                        "For the libpressio compression backend you must use a "
+                        "SZCompressorParameters for `compression_parameters`."
+                    )
+        return self
+
+
 class MonitorParameters(CustomBaseModel):
     om: OmParameters
     data_retrieval_layer: DataRetrievalLayerParameters
@@ -276,6 +309,7 @@ class MonitorParameters(CustomBaseModel):
     crystallography: CrystallographyParameters | None = None
     xes: XesParameters | None = None
     cheetah: CheetahParameters | None = None
+    compression: DataCompressionParameters | None = None
 
     @model_validator(mode="after")
     def check_peakfinder8_peak_detection_parameters(self) -> Self:

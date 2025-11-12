@@ -34,6 +34,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.common import PeakList
+from om.algorithms.crystallography import RoiBinSzCompression
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import (
     CheetahClassSumsAccumulator,
@@ -50,9 +51,10 @@ from om.lib.logging import log
 from om.lib.parameters import (
     CheetahParameters,
     CrystallographyParameters,
+    DataCompressionParameters,
     MonitorParameters,
 )
-from om.lib.protocols import OmProcessingProtocol
+from om.lib.protocols import OmCompressionProtocol, OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
 
 T = TypeVar("T")
@@ -98,6 +100,9 @@ class OmCheetahMixin:
             sys.exit(1)
 
         self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._compression_parameters: DataCompressionParameters | None = (
+            parameters.compression
+        )
         self._crystallography_parameters: CrystallographyParameters = (
             parameters.crystallography
         )
@@ -141,6 +146,17 @@ class OmCheetahMixin:
             geometry_information=self._geometry_information,
         )
 
+        # Optional compression
+        self._compressor: OmCompressionProtocol | None = None
+        if (
+            self._compression_parameters is not None
+            and self._compression_parameters.run_compression
+        ):
+            if self._compression_parameters.backend == "roibinsz":
+                self._compressor = RoiBinSzCompression(
+                    parameters=self._compression_parameters
+                )
+
         # Post-processing binning
         if self._post_processing_binning_enabled:
             if self._monitor_parameters.binning is None:
@@ -165,7 +181,7 @@ class OmCheetahMixin:
         )
 
         # An array to store processed data converted to float32 (required by CrystFEL)
-        self._float_detector_data: NDArray[numpy.float_] = numpy.zeros(
+        self._float_detector_data: NDArray[numpy.float64] = numpy.zeros(
             self._processed_data_shape, dtype=numpy.float32
         )
 
@@ -226,7 +242,7 @@ class OmCheetahMixin:
 
     def common_process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
-    ) -> tuple[NDArray[numpy.float_ | numpy.int_], PeakList, bool]:
+    ) -> tuple[NDArray[numpy.float64 | numpy.int_], PeakList, bool]:
         """
         Processes a detector data frame.
 
@@ -265,6 +281,14 @@ class OmCheetahMixin:
         peak_list: PeakList = self._peak_detection.find_peaks(
             detector_data=data["detector_data"]
         )
+        if self._compressor is not None:
+            compressed_data: bytes = self._compressor.compress(
+                data=data["detector_data"], special_data=peak_list
+            )
+            data["detector_data"] = self._compressor.uncompress(
+                compressed_data=compressed_data, data_shape=data["detector_data"].shape
+            )
+
         frame_is_hit: bool = (
             self._crystallography_parameters.min_num_peaks_for_hit
             < peak_list.num_peaks
@@ -275,7 +299,7 @@ class OmCheetahMixin:
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
         )
-        binned_detector_data: NDArray[numpy.float_ | numpy.int_] = (
+        binned_detector_data: NDArray[numpy.float64 | numpy.int_] = (
             self._post_processing_binning.bin_detector_data(data=data["detector_data"])
         )
 

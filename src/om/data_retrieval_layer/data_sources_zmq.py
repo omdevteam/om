@@ -149,7 +149,7 @@ class Jungfrau1MZmq(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a Jungfrau 1M detector data frame from a ZMQ data stream.
 

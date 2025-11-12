@@ -32,7 +32,7 @@ classifiers = [
   "Natural Language :: English",
   "Intended Audience :: Science/Research",
 ]
-dependencies = [ "h5py", "numpy<2", "pillow", "pyzmq", "scipy", "cython>=3.1.2,<4", "fabio>=2024.9.0,<2025", "hdf5plugin>=5.1.0,<6", "msgpack>=1.1.1,<2", "msgpack-numpy>=0.4.8,<0.5", "pydantic>=2.11.7,<3", "pyyaml>=6.0.2,<7", "rich>=14.0.0,<15", "ruamel-yaml>=0.18.14,<0.19", "typer>=0.16.0,<0.17"]
+dependencies = [ "h5py", "numpy", "pillow", "pyzmq", "scipy", "cython>=3.1.2,<4", "fabio>=2024.9.0,<2025", "hdf5plugin>=5.1.0,<6", "msgpack>=1.1.1,<2", "msgpack-numpy>=0.4.8,<0.5", "pydantic>=2.10.0,<3", "pyyaml>=6.0.2,<7", "rich>=14.0.0,<15", "ruamel-yaml>=0.18.14,<0.19", "typer>=0.16.0,<0.17"]
 
 [project.urls]
 Homepage = "https://www.ondamonitor.com"

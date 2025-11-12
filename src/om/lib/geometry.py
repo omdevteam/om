@@ -381,11 +381,11 @@ class PixelMaps:
             the pixel, the center of the reference system, and the x axis.
     """
 
-    x: NDArray[numpy.float_]
-    y: NDArray[numpy.float_]
-    z: NDArray[numpy.float_]
-    radius: NDArray[numpy.float_]
-    phi: NDArray[numpy.float_]
+    x: NDArray[numpy.float64]
+    y: NDArray[numpy.float64]
+    z: NDArray[numpy.float64]
+    radius: NDArray[numpy.float64]
+    phi: NDArray[numpy.float64]
 
 
 @dataclass
@@ -1006,13 +1006,13 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
         [geometry.panels[k].orig_max_ss for k in geometry.panels]
     ).max()
 
-    x_map: NDArray[numpy.float_] = numpy.zeros(
+    x_map: NDArray[numpy.float64] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    y_map: NDArray[numpy.float_] = numpy.zeros(
+    y_map: NDArray[numpy.float64] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    z_map: NDArray[numpy.float_] = numpy.zeros(
+    z_map: NDArray[numpy.float64] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
 
@@ -1038,12 +1038,12 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
             ),
             indexing="ij",
         )
-        y_panel: NDArray[numpy.float_] = (
+        y_panel: NDArray[numpy.float64] = (
             ss_grid * geometry.panels[panel_name].ssy
             + fs_grid * geometry.panels[panel_name].fsy
             + geometry.panels[panel_name].cny
         )
-        x_panel: NDArray[numpy.float_] = (
+        x_panel: NDArray[numpy.float64] = (
             ss_grid * geometry.panels[panel_name].ssx
             + fs_grid * geometry.panels[panel_name].fsx
             + geometry.panels[panel_name].cnx
@@ -1079,8 +1079,8 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
             + 1,
         ] = first_panel_camera_length
 
-    r_map: NDArray[numpy.float_] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-    phi_map: NDArray[numpy.float_] = numpy.arctan2(y_map, x_map)
+    r_map: NDArray[numpy.float64] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+    phi_map: NDArray[numpy.float64] = numpy.arctan2(y_map, x_map)
 
     return PixelMaps(
         x=x_map,
@@ -1406,9 +1406,9 @@ class DataVisualizer:
     def visualize_data(
         self,
         *,
-        data: NDArray[numpy.int_ | numpy.float_],
-        array_for_visualization: NDArray[numpy.float_] | None = None,
-    ) -> NDArray[numpy.float_]:
+        data: NDArray[numpy.int_ | numpy.float64],
+        array_for_visualization: NDArray[numpy.float64] | None = None,
+    ) -> NDArray[numpy.float64]:
         """
         Applies geometry information to a detector data frame.
 
@@ -1443,7 +1443,7 @@ class DataVisualizer:
                 cannot be used to store the pixel information.
         """
         if array_for_visualization is None:
-            visualization_array: NDArray[numpy.float_] = numpy.zeros(
+            visualization_array: NDArray[numpy.float64] = numpy.zeros(
                 self._min_array_shape, dtype=numpy.float32
             )
         else:

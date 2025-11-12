@@ -636,6 +636,34 @@ class OmPeakDetectionProtocol(Protocol):
         """ """
         ...
 
-    def find_peaks(self, *, data: NDArray[numpy.int_ | numpy.float_]) -> PeakList:
+    def find_peaks(self, *, data: NDArray[numpy.int_ | numpy.float64]) -> PeakList:
+        """ """
+        ...
+
+
+class OmCompressionProtocol(Protocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        parameters: dict[str, Any],
+    ) -> None:
+        """ """
+        ...
+
+    def compress(
+        self,
+        *,
+        data: NDArray[numpy.int_ | numpy.float64],
+        special_data: Any | None = None,
+    ) -> bytes:
+        """ """
+        ...
+
+    def uncompress(
+        self, *, compressed_data: bytes
+    ) -> NDArray[numpy.int_ | numpy.float64]:
         """ """
         ...

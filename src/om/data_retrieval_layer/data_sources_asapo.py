@@ -101,7 +101,7 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a detector data frame from ASAP::O.
 
@@ -122,7 +122,7 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         """
         # TODO: Fix type hinting
         return cast(
-            NDArray[numpy.float_ | numpy.int_],
+            NDArray[numpy.float64 | numpy.int_],
             seedee.deserialize(
                 event["data"], event["metadata"]["meta"]["_data_format"]
             ),

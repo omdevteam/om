@@ -24,6 +24,7 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 
 import pathlib
 import time
+import sys
 from dataclasses import dataclass
 from typing import Any, TextIO, cast
 
@@ -31,6 +32,8 @@ import h5py  # type: ignore
 import hdf5plugin  # type: ignore
 import numpy
 from numpy.typing import NDArray
+from typing import Set
+
 
 from om.algorithms.common import PeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
@@ -57,8 +60,8 @@ class ClassSumData:
     """
 
     num_frames: int
-    sum_frames: NDArray[numpy.float_]
-    peak_powder: NDArray[numpy.float_]
+    sum_frames: NDArray[numpy.float64]
+    peak_powder: NDArray[numpy.float64]
 
 
 @dataclass(order=True)
@@ -403,7 +406,7 @@ class CheetahClassSumsAccumulator:
         self,
         *,
         class_number: int,
-        frame_data: NDArray[numpy.float_ | numpy.int_],
+        frame_data: NDArray[numpy.float64 | numpy.int_],
         peak_list: PeakList,
     ) -> None:
         """
@@ -467,7 +470,9 @@ class CheetahClassSumsAccumulator:
 
             The sum and virtual powder plot stored by the accumulator, or None.
         """
-        if (
+        if self._cheetah_parameters.class_sums_sending_interval == -1:
+            return None
+        elif (
             self._sum_sending_counter
             >= self._cheetah_parameters.class_sums_sending_interval
         ) or (self._sum_sending_counter > 0 and disregard_counter):
@@ -860,7 +865,7 @@ class HDF5Writer:
                 )
             elif (
                 numpy.issubdtype(type(value), numpy.int_)
-                or numpy.issubdtype(type(value), numpy.float_)
+                or numpy.issubdtype(type(value), numpy.float64)
                 or numpy.issubdtype(type(value), numpy.bool_)
             ):
                 self._resizable_datasets[group_name + "/" + key] = self._extra_groups[

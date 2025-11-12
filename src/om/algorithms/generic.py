@@ -36,7 +36,7 @@ from om.lib.parameters import BinningParameters, RadialProfileParameters
 
 from ._generic_cython import bin_detector_data  # type: ignore
 
-A = TypeVar("A", numpy.float_, numpy.int_)
+A = TypeVar("A", numpy.float64, numpy.int_)
 
 
 class RadialProfile:
@@ -47,7 +47,7 @@ class RadialProfile:
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float_],
+        radius_pixel_map: NDArray[numpy.float64],
         parameters: RadialProfileParameters,
     ) -> None:
         """
@@ -122,7 +122,7 @@ class RadialProfile:
         # Calculates the radial bins
         self._num_bins: int = int(radius_pixel_map.max() / parameters.radius_bin_size)
 
-        radial_bins: NDArray[numpy.float_] = numpy.linspace(
+        radial_bins: NDArray[numpy.float64] = numpy.linspace(
             0,
             self._num_bins * parameters.radius_bin_size,
             self._num_bins + 1,
@@ -170,8 +170,8 @@ class RadialProfile:
 
     def calculate_profile(
         self,
-        data: NDArray[numpy.float_ | numpy.int_],
-    ) -> NDArray[numpy.float_]:
+        data: NDArray[numpy.float64] | NDArray[numpy.int_],
+    ) -> NDArray[numpy.float64]:
         """
         Calculates the radial profile for a detector data frame.
 
@@ -195,7 +195,7 @@ class RadialProfile:
         )
         with numpy.errstate(divide="ignore", invalid="ignore"):
             # numpy.errstate allows to ignore the divide by zero warning
-            radial_average: NDArray[numpy.float_] = numpy.nan_to_num(
+            radial_average: NDArray[numpy.float64] = numpy.nan_to_num(
                 radius_sum / radius_count
             )
 
@@ -322,10 +322,10 @@ class Binning:
         # # Binned mask = num good pixels per bin
         self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
 
-        self._float_data_array: NDArray[numpy.float_] = numpy.zeros(
+        self._float_data_array: NDArray[numpy.float64] = numpy.zeros(
             (self._original_nx, self._original_ny), dtype=numpy.float64
         )
-        self._binned_data_array: NDArray[numpy.float_] = numpy.zeros(
+        self._binned_data_array: NDArray[numpy.float64] = numpy.zeros(
             (self._binned_nx, self._binned_ny), dtype=numpy.float64
         )
         self._bad_pixel_value: int | float | None = parameters.bad_pixel_value
@@ -420,8 +420,8 @@ class Binning:
         )
 
     def bin_detector_data(
-        self, *, data: NDArray[numpy.float_ | numpy.int_]
-    ) -> NDArray[numpy.float_]:
+        self, *, data: NDArray[numpy.float64 | numpy.int_]
+    ) -> NDArray[numpy.float64]:
         """
         Computes a binned version of the detector data frame.
 
@@ -455,7 +455,7 @@ class Binning:
         if numpy.issubdtype(data_type, numpy.integer):
             self._saturation_value = float(numpy.iinfo(data_type).max)
 
-        self._float_data_array[:] = data.astype(numpy.float_)
+        self._float_data_array[:] = data.astype(numpy.float64)
         bin_detector_data(
             self._float_data_array,
             self._binned_data_array,
@@ -655,8 +655,8 @@ class BinningPassthrough:
         return self._layout_info
 
     def bin_detector_data(
-        self, *, data: NDArray[numpy.float_ | numpy.int_]
-    ) -> NDArray[numpy.float_]:
+        self, *, data: NDArray[numpy.float64 | numpy.int_]
+    ) -> NDArray[numpy.float64]:
         """
         Computes a binned version of the detector data frame.
 
@@ -673,7 +673,7 @@ class BinningPassthrough:
 
             A binned version of the detector data frame.
         """
-        return data.astype(numpy.float_)
+        return data.astype(numpy.float64)
 
     def bin_bad_pixel_map(
         self, *, mask: NDArray[numpy.int_] | None

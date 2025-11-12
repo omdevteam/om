@@ -61,13 +61,13 @@ class XesAnalysisAndPlots:
         """
         self._time_resolved: bool = time_resolved
 
-        self._spectra_cumulative_sum: NDArray[numpy.float_ | numpy.int_] | None = None
-        self._spectra_cumulative_sum_smoothed: NDArray[numpy.float_] | None = None
+        self._spectra_cumulative_sum: NDArray[numpy.float64 | numpy.int_] | None = None
+        self._spectra_cumulative_sum_smoothed: NDArray[numpy.float64] | None = None
 
-        self._cumulative_2d: NDArray[numpy.float_ | numpy.int_] | None = None
-        self._cumulative_2d_pumped: NDArray[numpy.float_ | numpy.int_] | None = None
+        self._cumulative_2d: NDArray[numpy.float64 | numpy.int_] | None = None
+        self._cumulative_2d_pumped: NDArray[numpy.float64 | numpy.int_] | None = None
 
-        self._cumulative_2d_dark: NDArray[numpy.float_ | numpy.int_] |  None = None
+        self._cumulative_2d_dark: NDArray[numpy.float64 | numpy.int_] |  None = None
 
         self._num_events_pumped: int = 0
         self._num_events_dark: int = 0
@@ -78,15 +78,15 @@ class XesAnalysisAndPlots:
     def update_plots(
         self,
         *,
-        detector_data: NDArray[numpy.float_ | numpy.int_],
+        detector_data: NDArray[numpy.float64 | numpy.int_],
         optical_laser_active: bool,
     ) -> tuple[
-        NDArray[numpy.float_ | numpy.int_] | None,
-        NDArray[numpy.float_] | None,
-        NDArray[numpy.float_ | numpy.int_] | None,
-        NDArray[numpy.float_] | None,
-        NDArray[numpy.float_] | None,
-        NDArray[numpy.float_] | None,
+        NDArray[numpy.float64 | numpy.int_] | None,
+        NDArray[numpy.float64] | None,
+        NDArray[numpy.float64 | numpy.int_] | None,
+        NDArray[numpy.float64] | None,
+        NDArray[numpy.float64] | None,
+        NDArray[numpy.float64] | None,
     ]:
         """
         Updates and recovers the X-ray Emission Spectroscopy data plots.
@@ -148,16 +148,16 @@ class XesAnalysisAndPlots:
             )
 
         # Calculate normalized spectrum from cumulative 2D images.
-        cumulative_xes: dict[str, NDArray[numpy.float_]] = (
+        cumulative_xes: dict[str, NDArray[numpy.float64]] = (
             self._energy_spectrum_retrieval.calculate_spectrum(data=self._cumulative_2d)
         )
 
         self._spectra_cumulative_sum = cumulative_xes["spectrum"]
         self._spectra_cumulative_sum_smoothed = cumulative_xes["spectrum_smoothed"]
 
-        spectra_cumulative_sum_pumped: NDArray[numpy.float_] | None = None
-        spectra_cumulative_sum_dark: NDArray[numpy.float_] | None = None
-        spectra_cumulative_sum_difference: NDArray[numpy.float_] | None = None
+        spectra_cumulative_sum_pumped: NDArray[numpy.float64] | None = None
+        spectra_cumulative_sum_dark: NDArray[numpy.float64] | None = None
+        spectra_cumulative_sum_difference: NDArray[numpy.float64] | None = None
 
         if numpy.mean(numpy.abs(self._spectra_cumulative_sum)) > 0:
             self._spectra_cumulative_sum /= numpy.mean(
@@ -190,7 +190,7 @@ class XesAnalysisAndPlots:
                 )
 
             # Calculate spectrum from cumulative 2D images
-            cumulative_xes_pumped: dict[str, NDArray[numpy.float_]] = (
+            cumulative_xes_pumped: dict[str, NDArray[numpy.float64]] = (
                 self._energy_spectrum_retrieval.calculate_spectrum(
                     data=self._cumulative_2d_pumped
                 )
@@ -198,7 +198,7 @@ class XesAnalysisAndPlots:
             spectra_cumulative_sum_pumped = cumulative_xes_pumped["spectrum"]
 
             # calculate spectrum from cumulative 2D images
-            cumulative_xes_dark: dict[str, NDArray[numpy.float_]] = (
+            cumulative_xes_dark: dict[str, NDArray[numpy.float64]] = (
                 self._energy_spectrum_retrieval.calculate_spectrum(
                     data=self._cumulative_2d_dark
                 )

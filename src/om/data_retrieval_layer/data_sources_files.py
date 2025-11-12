@@ -100,7 +100,7 @@ class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float64]:
         """
         Retrieves an Eiger 16M detector data frame from files.
 
@@ -119,7 +119,7 @@ class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
 
             A detector data frame.
         """
-        return cast(NDArray[numpy.float_], event["data"].data)
+        return cast(NDArray[numpy.float64], event["data"].data)
 
 
 class Eiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
@@ -191,7 +191,7 @@ class Lambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a Lambda 1.5M detector data frame from files.
 
@@ -423,7 +423,7 @@ class Jungfrau1MFiles(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.float64 | numpy.int_]:
         """
         Retrieves a Jungfrau 1M detector data frame from a file-based event.
 

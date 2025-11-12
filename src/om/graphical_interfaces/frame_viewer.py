@@ -80,7 +80,7 @@ class FrameViewer(OmGuiBase):
             tag="omframedata",
         )
 
-        self._img: NDArray[numpy.float_] | None = None
+        self._img: NDArray[numpy.float64] | None = None
         self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
@@ -147,8 +147,8 @@ class FrameViewer(OmGuiBase):
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: NDArray[numpy.float_],
-        peak_list_y_in_frame: NDArray[numpy.float_],
+        peak_list_x_in_frame: NDArray[numpy.float64],
+        peak_list_y_in_frame: NDArray[numpy.float64],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtWidgets.QApplication.processEvents()

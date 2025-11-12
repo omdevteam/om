@@ -48,7 +48,7 @@ except ImportError:
 class _AsapoEvent:
     # This named tuple is used internally to store ASAP::O event data, metadata and
     # corresponding ASAP::O stream information.
-    event_data: NDArray[numpy.float_ | numpy.int_]
+    event_data: NDArray[numpy.float64 | numpy.int_]
     event_metadata: dict[str, Any]
     stream_name: str
     stream_metadata: dict[str, Any]
@@ -158,7 +158,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             time.sleep(1)
             last_stream = consumer.get_last_stream()["name"]
         stream_metadata: dict[str, Any] = consumer.get_stream_meta(last_stream)
-        event_data: NDArray[numpy.float_ | numpy.int_]
+        event_data: NDArray[numpy.float64 | numpy.int_]
         event_metadata: dict[str, Any]
         while True:
             try:
@@ -382,7 +382,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         stream: str = event_id_parts[0].strip()
         asapo_event_id: int = int(event_id_parts[1])
 
-        event_data: NDArray[numpy.float_ | numpy.int_]
+        event_data: NDArray[numpy.float64 | numpy.int_]
         event_metadata: dict[str, Any]
         event_data, event_metadata = self._consumer.get_by_id(
             asapo_event_id,

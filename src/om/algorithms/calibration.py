@@ -61,10 +61,10 @@ class Jungfrau1MCalibration:
         """
 
         num_panels: int = len(dark_filenames)
-        self._dark: NDArray[numpy.float_] = numpy.ndarray(
+        self._dark: NDArray[numpy.float64] = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float32
         )
-        self._gain: NDArray[numpy.float_] = numpy.ndarray(
+        self._gain: NDArray[numpy.float64] = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float32
         )
 
@@ -87,7 +87,7 @@ class Jungfrau1MCalibration:
 
         self._photon_energy_kev: float = photon_energy_kev
 
-    def apply_calibration(self, *, data: NDArray[numpy.int_]) -> NDArray[numpy.float_]:
+    def apply_calibration(self, *, data: NDArray[numpy.int_]) -> NDArray[numpy.float64]:
         """
         Applies the calibration to a detector data frame.
 
@@ -103,7 +103,7 @@ class Jungfrau1MCalibration:
 
             The calibrated data frame.
         """
-        calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float_)
+        calibrated_data: NDArray[numpy.float64] = data.astype(numpy.float64)
 
         where_gain: list[tuple[NDArray[numpy.int_], ...]] = [
             numpy.where(data & 2**14 == 0),
