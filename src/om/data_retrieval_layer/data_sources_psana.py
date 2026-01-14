@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import (
     Any,
     Callable,
-    TypeVar,
     cast,
 )
 
@@ -55,20 +54,10 @@ except ImportError:
     )
 
 
-T = TypeVar("T")
-
-
 class OmDetectorInterfacePsanaDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmDetectorInterfacePsanaDataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,
@@ -259,12 +248,12 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
         time, and returned in the form of a tuple with two entries:
 
         * The first entry in the tuple is a 1D array storing information about the time
-        points at which the waveform data has been digitized. The size of this array
-        matches the size of each waveform in the second entry.
+          points at which the waveform data has been digitized. The size of this array
+          matches the size of each waveform in the second entry.
 
         * The second entry is a 2D array that stores the waveform information from all
-        the channels. The first axis of the array corresponds to the channel number,
-        the second one stores, for each channel, the digitized waveform data.
+          the channels. The first axis of the array corresponds to the channel number,
+          the second one stores, for each channel, the digitized waveform data.
 
         Arguments:
 

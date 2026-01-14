@@ -31,7 +31,6 @@ from typing import (
     Generator,
     Literal,
     TextIO,
-    TypeVar,
     cast,
 )
 
@@ -58,20 +57,11 @@ except ImportError:
         "The following required module cannot be imported: fabio"
     )
 
-T = TypeVar("T")
-
 
 class OmBaseFileDataEventHandlerMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmBaseFileDataEventHandlerMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,
@@ -252,10 +242,10 @@ class PilatusFilesEventHandler(
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 
@@ -487,10 +477,10 @@ class Jungfrau1MFilesDataEventHandler(
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 
@@ -715,10 +705,10 @@ class EigerFilesDataEventHandler(
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 
@@ -929,10 +919,10 @@ class RayonixMccdFilesEventHandler(
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 
@@ -1150,10 +1140,10 @@ class Lambda1M5FilesDataEventHandler(
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 
@@ -1207,7 +1197,7 @@ class Lambda1M5FilesDataEventHandler(
         This function retrieves all data related to the event specified by the provided
         identifier. A Lambda 1.5M unique event identifier is a string consisting of two
         parts. The first part is the absolute or relative path to the HDF5 file storing
-        the first panel of the detector data frame attached to the event ("*_m01.nxs"),
+        the first panel of the detector data frame attached to the event ("m01.nxs"),
         while the second part is the index of the event within the file. The two parts
         are separated by the '//' symbol.
 

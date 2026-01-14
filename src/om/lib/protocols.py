@@ -135,11 +135,11 @@ class OmDataEventHandlerProtocol(Protocol):
 
             data_sources: A dictionary containing a set of Data Source class instances.
 
-                * Each dictionary key must define the name of a data source.
+              * Each dictionary key must define the name of a data source.
 
-                * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the data source.
+              * The corresponding dictionary value must store the instance of the
+                [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                that describes the data source.
 
             parameters: An object storing OM's configuration parameters.
         """
@@ -244,11 +244,11 @@ class OmDataEventHandlerProtocol(Protocol):
 
             A dictionary storing the extracted data.
 
-                * Each dictionary key identifies a Data Source in the event for which
-                  data has been retrieved.
+            * Each dictionary key identifies a Data Source in the event for which
+              data has been retrieved.
 
-                * The corresponding dictionary value stores the data that could be
-                  extracted from the Data Source for the provided event.
+            * The corresponding dictionary value stores the data that could be
+              extracted from the Data Source for the provided event.
         """
         ...
 

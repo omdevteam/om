@@ -84,3 +84,31 @@ might not be exhaustive:
 * Kanupriya Pande
 * Thomas A. White
 * Chun Hong Yoon
+
+## Documentation
+
+This repository contains Sphinx-based documentation for OM.
+
+### Building the Documentation
+
+Install the required dependencies:
+
+```bash
+pip install -r docs-requirements.txt
+```
+
+Build the HTML documentation:
+
+```bash
+make html
+```
+
+The generated documentation will be in `build/html/`. Open `build/html/index.html` in your browser to view it.
+
+### Documentation Structure
+
+- `source/` - Documentation source files (Markdown with MyST)
+- `source/conf.py` - Sphinx configuration
+- `build/` - Generated documentation (not in version control)
+
+For more information about building and customizing the documentation, see the documentation source files in the `source/` directory.

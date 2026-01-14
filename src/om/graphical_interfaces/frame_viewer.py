@@ -51,6 +51,7 @@ except ImportError:
         "The following required module cannot be imported: pyqtgraph"
     )
 
+app: typer.Typer = typer.Typer(add_completion=False)
 
 class FrameViewer(OmGuiBase):
     """
@@ -280,7 +281,7 @@ class FrameViewer(OmGuiBase):
         else:
             self._start_stream()
 
-
+@app.command()
 def main(
     *,
     url: Annotated[
@@ -311,5 +312,7 @@ def main(
     sys.exit(app.exec_())
 
 
-def run() -> None:
-    typer.run(main)
+typer_click_object = typer.main.get_command(app)
+
+if __name__ == "__main__":
+    app()

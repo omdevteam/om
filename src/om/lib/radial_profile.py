@@ -305,7 +305,7 @@ class RadialProfileAnalysis:
                   If the value of the `background_subtraction` parameter is True, this
                   parameter must be provided and cannot be None.
 
-                * `sample_detection`int: Whether sample droplet detection should be part
+                * `sample_detection`: Whether sample droplet detection should be part
                   of the analysis carried out by this class. Defaults to False.
 
                 * `total_intensity_jet_threshold`: An intensity threshold used to

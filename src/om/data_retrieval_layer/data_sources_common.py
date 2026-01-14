@@ -25,7 +25,7 @@ to a specific facility or experiment.
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -35,8 +35,6 @@ from om.lib.files import load_hdf5_data
 from om.lib.logging import log
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
-
-T = TypeVar("T")
 
 
 @dataclass
@@ -52,13 +50,6 @@ class OmJungfrau1MDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmJungfrau1MDataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,

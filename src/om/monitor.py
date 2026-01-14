@@ -40,7 +40,10 @@ from om.lib.protocols import (
     OmProcessingProtocol,
 )
 
+app: typer.Typer = typer.Typer(add_completion=False)
 
+
+@app.command()
 def main(
     *,
     source: Annotated[
@@ -63,8 +66,7 @@ def main(
         typer.Option(
             "--config",
             "-c",
-            help="configuration file (default: monitor.yaml file in the current "
-            "working directory",
+            help="Path to the configuration file onfiguration file.",
         ),
     ] = Path("monitor.yaml"),
     event_list: Annotated[
@@ -182,5 +184,7 @@ def main(
     parallelization_layer.start()
 
 
-def run() -> None:
-    typer.run(main)
+typer_click_object = typer.main.get_command(app)
+
+if __name__ == "__main__":
+    app()

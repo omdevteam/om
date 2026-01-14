@@ -13,6 +13,8 @@ from typing_extensions import Annotated
 
 from om.lib.logging import log
 
+app: typer.Typer = typer.Typer(add_completion=False)
+
 
 def listen(
     url: str, data_buffer: list[dict[str, Any]], max_buffer_len: int, panel_id: int
@@ -75,7 +77,7 @@ def listen(
         # Receive next message
         msg = socket.recv_multipart()
 
-
+@app.command()
 def main(
     input_url: Annotated[list[Path], typer.Argument(help="input_url")],
     output_url: Annotated[str, typer.Argument(help="output_url")],
@@ -136,5 +138,7 @@ def main(
                     socket.send_pyobj((fr0, fr1))
 
 
+typer_click_object = typer.main.get_command(app)
+
 if __name__ == "__main__":
-    typer.run(main)
+    app()

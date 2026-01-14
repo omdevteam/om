@@ -24,9 +24,8 @@ This module contains a set of python exceptions that are specific to OM.
 
 class OmException(Exception):
     """
-    Base class for OM's exceptions.
-
-    All other OM-specific exceptions should inherit from this exception.
+    Base class for OM's exceptions. All other OM-specific exceptions should
+    inherit from this exception.
     """
 
 

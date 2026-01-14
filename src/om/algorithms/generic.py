@@ -77,28 +77,28 @@ class RadialProfile:
                   radial profile.
 
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
-                   file containing a bad pixel map. The map can be used to exclude
-                   regions of the data frame from the calculation of the radial
-                   profile. If the value of this entry is None, the calculation
-                   includes the full frame. Defaults to None.
+                  file containing a bad pixel map. The map can be used to exclude
+                  regions of the data frame from the calculation of the radial
+                  profile. If the value of this entry is None, the calculation
+                  includes the full frame. Defaults to None.
 
-                    - The map must be a numpy array with the same shape as the data
-                      frame on which the algorithm is applied.
+                  - The map must be a numpy array with the same shape as the data
+                    frame on which the algorithm is applied.
 
-                    - Each pixel in the map must have a value of either 0, meaning that
-                      the corresponding pixel in the data frame should be ignored, or
-                      1, meaning that the corresponding pixel should be included in the
-                      calculation of the profile.
+                  - Each pixel in the map must have a value of either 0, meaning that
+                    the corresponding pixel in the data frame should be ignored, or
+                    1, meaning that the corresponding pixel should be included in the
+                    calculation of the profile.
 
-                    - The map is only used to exclude regions from the calculation: the
-                      data is not modified in any way.
+                  - The map is only used to exclude regions from the calculation: the
+                    data is not modified in any way.
 
                 * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
                   where the bad pixel map data is located. Defaults to None.
 
-                    - If the `bad_pixel_map_filename` entry is not None, this entry
-                      must also be provided, and cannot be None. Otherwise it is
-                      ignored.
+                  - If the `bad_pixel_map_filename` entry is not None, this entry
+                    must also be provided, and cannot be None. Otherwise it is
+                    ignored.
         """
         if (
             parameters.bad_pixel_map_filename is not None
@@ -232,8 +232,8 @@ class Binning:
                 entries:
 
                 * `bin_size`: The size of the binning area in pixels (A square area of
-                   `bin_size` x `bin_size` pixels in the original data frame
-                   is transformed by the algorithm into a single binned pixel).
+                  `bin_size` x `bin_size` pixels in the original data frame
+                  is transformed by the algorithm into a single binned pixel).
 
                 * `bad_pixel_map_filename`: The absolute or relative path to an HDF5
                   file containing a bad pixel map. The map can be used to exclude
@@ -241,20 +241,20 @@ class Binning:
                   value of this entry is None, the full frame is used to compute the
                   binned data. Defaults to None.
 
-                    * The map must be a numpy array of the same shape as the data frame
-                      on which the algorithm is applied.
+                  - The map must be a numpy array of the same shape as the data frame
+                    on which the algorithm is applied.
 
-                    * Each pixel in the map must have a value of either 0, meaning
-                      that the corresponding pixel in the data frame must be ignored
-                      in the binning calculation, or 1, meaning that the pixel
-                      must be included in the calculation.
+                  - Each pixel in the map must have a value of either 0, meaning
+                    that the corresponding pixel in the data frame must be ignored
+                    in the binning calculation, or 1, meaning that the pixel
+                    must be included in the calculation.
 
                 * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
                   where the bad pixel map is stored.
 
-                    * If the value of the `bad_pixel_map_filename` entry is not None,
-                      this parameter must also be provided, and cannot be None.
-                      Otherwise it is ignored.
+                  - If the value of the `bad_pixel_map_filename` entry is not None,
+                    this parameter must also be provided, and cannot be None.
+                    Otherwise it is ignored.
 
                 * `min_good_pix_count`: The minimum number of non-excluded pixels that
                   must be present in a binning area for the generated binned pixel to
@@ -588,14 +588,12 @@ class BinningPassthrough:
         This algorithm exists to avoid filling the code base with if statements that
         just check if binning is required and call the Binning algorithm accordingly.
 
-        After a single initial check of the form:
+        After a single initial check of the form::
 
-        ```
-        if binning_required:
-            binning = Binning(...)
-        else:
-            binning = BinningPassthrough(...)
-        ```
+            if binning_required:
+                binning = Binning(...)
+            else:
+                binning = BinningPassthrough(...)
 
         The rest of the code can avoid performing checks and simply call the methods of
         the `binning` instance, expecting the correct behavior.

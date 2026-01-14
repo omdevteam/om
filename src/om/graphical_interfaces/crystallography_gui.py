@@ -51,6 +51,7 @@ except ImportError:
         "The following required module cannot be imported: pyqtgraph"
     )
 
+app: typer.Typer = typer.Typer(add_completion=False)
 
 class CrystallographyGui(OmGuiBase):
     """
@@ -399,7 +400,7 @@ class CrystallographyGui(OmGuiBase):
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
 
-
+@app.command()
 def main(
     *,
     url: Annotated[
@@ -428,6 +429,7 @@ def main(
     _ = CrystallographyGui(url=url)
     sys.exit(app.exec_())
 
+typer_click_object = typer.main.get_command(app)
 
-def run() -> None:
-    typer.run(main)
+if __name__ == "__main__":
+    app()

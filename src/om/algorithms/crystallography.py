@@ -57,10 +57,10 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         detector data frame using the `peakfinder8` strategy, described in the
         following publication:
 
-        A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
-        and H. N. Chapman, "Cheetah: software for high-throughput reduction and
-        analysis of serial femtosecond x-ray diffraction data", J Appl  Crystallogr,
-        vol. 47, pp. 1118-1131 (2014).
+            A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
+            T. A. White, and H. N. Chapman, "Cheetah: software for high-throughput
+            reduction and analysis of serial femtosecond x-ray diffraction data",
+            J Appl  Crystallogr, vol. 47, pp. 1118-1131 (2014).
 
         After the algorithm has been initialized, it can be invoked to detect peaks in
         a data frame.
@@ -86,8 +86,8 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
                 entries:
 
                 * `max_num_peaks`: The maximum number of peaks that the algorithm
-                   should retrieve from each  data frame. Additional peaks will be
-                   ignored.
+                  should retrieve from each  data frame. Additional peaks will be
+                  ignored.
 
                 * `adc_threshold`: The minimum ADC threshold for peak detection.
 
@@ -101,34 +101,34 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
                   local background.
 
                 * `min_res`: The minimum distance at which a peak can be located, in
-                   pixels, from the center of the detector.
+                  pixels, from the center of the detector.
 
                 * `max_res`: The maximum distance at which a peak can be located, in
-                   pixels, from the center of the detector.
+                  pixels, from the center of the detector.
 
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
-                   file containing a bad pixel map. The map can be used to exclude
-                   regions of the data frame from the peak search. If the value of this
-                   entry is None, the peak search extends to the full frame. Defaults
-                   to None.
+                  file containing a bad pixel map. The map can be used to exclude
+                  regions of the data frame from the peak search. If the value of this
+                  entry is None, the peak search extends to the full frame. Defaults
+                  to None.
 
-                    - The map must be a numpy array with the same shape as the data
-                      frame on which the algorithm is applied.
+                  - The map must be a numpy array with the same shape as the data
+                    frame on which the algorithm is applied.
 
-                    - Each pixel in the map must have a value of either 0, meaning that
-                      the corresponding pixel in the data frame should be ignored, or
-                      1, meaning that the corresponding pixel should be included in the
-                      peak search.
+                  - Each pixel in the map must have a value of either 0, meaning that
+                    the corresponding pixel in the data frame should be ignored, or
+                    1, meaning that the corresponding pixel should be included in the
+                    peak search.
 
-                    - The map is only used to exclude areas from the peak search: the
-                      data is not modified in any way.
+                  - The map is only used to exclude areas from the peak search: the
+                    data is not modified in any way.
 
                 * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
                   where the bad pixel map data is located. Defaults to None.
 
-                    * If the `bad_pixel_map_filename` entry is not None, this entry
-                      must also be provided, and cannot be None. Otherwise it is
-                      ignored.
+                  * If the `bad_pixel_map_filename` entry is not None, this entry
+                    must also be provided, and cannot be None. Otherwise it is
+                    ignored.
 
         """
         self._peakfinder8_parameters: Peakfinder8PeakDetectionParameters = parameters
@@ -339,7 +339,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         Returns:
 
             The radius, in pixels, currently used for the estimation of the local
-                background.
+            background.
         """
         return self._local_bg_radius
 
@@ -437,8 +437,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
 
         Returns:
 
-            A [`TypePeakList`][om.algorithms.crystallography.TypePeakList] dictionary
-                with information about the detected peaks.
+            A dictionary with information about the detected peaks.
         """
         if self._mask is None:
             if self._bad_pixel_map is None:

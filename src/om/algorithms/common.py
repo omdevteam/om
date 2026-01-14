@@ -27,31 +27,25 @@ class PeakList:
 
     This typed dictionary stores information about a set of peaks found by a
     peak-finding algorithm in a detector data frame.
-
-    Attributes:
-
-        num_peaks: The number of peaks detected in the data frame.
-
-        fs: A list of fractional fs indexes that locate the detected peaks in the data
-            frame.
-
-        ss: A list of fractional ss indexes that locate the detected peaks in the data
-            frame.
-
-        intensity: A list of integrated intensities for the detected peaks.
-
-        num_pixels: A list storing the number of pixels in each detected peak.
-
-        max_pixel_intensity: A list storing, for each peak, the value of the pixel with
-            the maximum intensity.
-
-        snr: A list storing  the signal-to-noise ratio of each detected peak.
     """
 
     num_peaks: int
+    """The number of peaks detected in the data frame."""
+
     fs: list[float]
+    """A list of fractional fs indexes that locate the detected peaks in the datai frame."""
+
     ss: list[float]
+    """A list of fractional ss indexes that locate the detected peaks in the data frame."""
+
     intensity: list[float]
+    """A list of integrated intensities for the detected peaks."""
+
     num_pixels: list[float]
+    """A list storing the number of pixels in each detected peak."""
+
     max_pixel_intensity: list[float]
+    """A list storing, for each peak, the value of the pixel with the maximum intensity."""
+
     snr: list[float]
+    """A list storing  the signal-to-noise ratio of each detected peak."""

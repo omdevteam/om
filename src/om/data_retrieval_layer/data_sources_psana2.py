@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import (
     Any,
     Callable,
-    TypeVar,
     cast,
 )
 
@@ -55,20 +54,10 @@ except ImportError:
     )
 
 
-T = TypeVar("T")
-
-
 class OmDetectorInterfacePsana2DataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmDetectorInterfacePsana2DataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,

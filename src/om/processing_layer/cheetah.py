@@ -62,12 +62,6 @@ msgpack_numpy.patch()
 
 
 class OmCheetahMixin:
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmCheetahMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(self, *, parameters: MonitorParameters) -> None:
         """

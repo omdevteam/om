@@ -50,8 +50,8 @@ class EnergySpectrumRetrieval:
 
         Warning:
 
-            This algorithm is designed to be applied to camera frames, rather than
-            data frames from multi-panel area detectors.
+            This algorithm is designed to be applied to single-panel camera frames,
+            rather than data frames from multi-panel area detectors.
 
         Arguments:
 
@@ -60,20 +60,20 @@ class EnergySpectrumRetrieval:
                 entries:
 
                 * `intensity_threshold_in_ADU`: An intensity threshold, in ADU units,
-                    for pixels in the camera frame to be considered in the spectrum
-                    calculation. Pixel below this threshold are ignored.
+                  for pixels in the camera frame to be considered in the spectrum
+                  calculation. Pixel below this threshold are ignored.
 
                 * `rotation_in_degrees`: The rotation, in degrees, that should be
-                    applied to the to align the spectrum information with the vertical
-                    axis of the camera data frame.
+                  applied to the to align the spectrum information with the vertical
+                  axis of the camera data frame.
 
                 * `min_row_in_pix_for_integration`: The starting row index for the
-                    section of the camera data frame containing the spectrum
-                    information (pixels outside this area are ignored).
+                  section of the camera data frame containing the spectrum
+                  information (pixels outside this area are ignored).
 
                 * `min_row_in_pix_for_integration`: The ending row index for the
-                    section of the camera data frame containing the spectrum
-                    information (pixels outside this area are ignored).
+                  section of the camera data frame containing the spectrum
+                  information (pixels outside this area are ignored).
         """
         self._xes_parameters: XesParameters = parameters
 
@@ -106,13 +106,13 @@ class EnergySpectrumRetrieval:
         Returns:
 
             A dictionary storing the spectrum information extracted from the camera
-                frame.
+            frame.
 
-                * The value corresponding to the key named `spectrum` is a 1D array
-                storing the raw spectrum information.
+            * The value corresponding to the key named `spectrum` is a 1D array
+              storing the raw spectrum information.
 
-                * The value corresponding to the key named `spectrum_smooth` is a 1D
-                array storing a filtered, smoothed version of the spectrum.
+            * The value corresponding to the key named `spectrum_smooth` is a 1D
+              array storing a filtered, smoothed version of the spectrum.
         """
 
         # Apply a threshold

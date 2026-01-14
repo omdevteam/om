@@ -1,0 +1,10 @@
+/* Only bold the immediate first paragraph, not nested content */
+.py.function > dd > p:first-child:not(.field-list *),
+.py.method > dd > p:first-child:not(.field-list *),
+.py.class > dd > p:first-child:not(.field-list *) {
+    font-weight: bold;
+}
+
+section[id^="module-"] > p:first-of-type {
+    font-weight: bold;
+}

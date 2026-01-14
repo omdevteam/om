@@ -212,10 +212,10 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 

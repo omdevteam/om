@@ -191,8 +191,8 @@ class XesProcessing(OmProcessingProtocol):
         Returns:
 
             A tuple with two entries. The first entry is a dictionary storing the
-                processed data that should be sent to the collecting node. The second
-                entry is the OM rank number of the node that processed the information.
+            processed data that should be sent to the collecting node. The second
+            entry is the OM rank number of the node that processed the information.
         """
         processed_data: dict[str, Any] = {}
         camera_data: NDArray[numpy.float_] = data["detector_data"]
@@ -288,7 +288,7 @@ class XesProcessing(OmProcessingProtocol):
 
         spectrum_for_gui = received_data["spectrum"]
 
-        spectra_cumulative_sum: NDArray[numpy.float_ | numpy.int_] | None 
+        spectra_cumulative_sum: NDArray[numpy.float_ | numpy.int_] | None
         spectra_cumulative_sum_smoothed: NDArray[numpy.float_] | None
         cumulative_2d: NDArray[numpy.float_ | numpy.int_] | None
         spectra_cumulative_sum_pumped: NDArray[numpy.float_] | None
@@ -353,7 +353,7 @@ class XesProcessing(OmProcessingProtocol):
         Returns:
 
             Usually nothing. Optionally, a dictionary storing information to be sent to
-                the processing node.
+            the processing node.
         """
         log.info(f"Processing node {node_rank} shutting down.")
         return None

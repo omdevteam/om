@@ -46,19 +46,16 @@ class ClassSumData:
     A dictionary storing the number of detector frames belonging to a specific data
     class, their sum, and the virtual powder pattern generated from the Bragg peaks
     detected in them.
-
-    Attributes:
-
-        num_frames: The number of detector frames belonging to the data class.
-
-        sum_frames: The sum of the detector frames belonging to the class.
-
-        peak_powder: The virtual powder pattern for the data class.
     """
 
     num_frames: int
+    """The number of detector frames belonging to the data class."""
+
     sum_frames: NDArray[numpy.float_]
+    """The sum of the detector frames belonging to the class."""
+
     peak_powder: NDArray[numpy.float_]
+    """The virtual powder pattern for the data class."""
 
 
 @dataclass(order=True)
@@ -68,33 +65,28 @@ class FramelistData:
 
     This named tuple is used to store the detector frame data which is later written
     into the `frames.txt` file.
-
-    Attributes:
-
-        timestamp: The timestamp of the frame.
-
-        event_id: A unique identifier for the event attached to the frame.
-
-        frame_is_hit: A flag indicating whether the event attached to the frame is
-            labelled as a hit.
-
-        filename: The name of the file containing the frame.
-
-        index_in_file: The index of the frame in the file.
-
-        num_peaks: The number of peaks in the frame.
-
-        average_intensity: The average intensity of the Bragg peaks detected in the
-            frame.
     """
-
     timestamp: numpy.float64
+    """The timestamp of the frame."""
+
     event_id: str | None
+    """A unique identifier for the event attached to the frame."""
+
     frame_is_hit: int
+    """A flag indicating whether the event attached to the frame is
+    labelled as a hit."""
+
     filename: str
+    """The name of the file containing the frame."""
+
     index_in_file: int
+    """The index of the frame in the file."""
+
     num_peaks: int
+    """The number of peaks in the frame."""
+
     average_intensity: numpy.float64
+    """The average intensity of the Bragg peaks detected in the frame."""
 
     def __post_init__(self) -> None:
         self.sort_index = self.timestamp
@@ -120,12 +112,7 @@ class CheetahStatusFileWriter:
         Arguments:
 
             parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
-                entries:
-
-                * `processed_directory`: A relative or absolute path to the
-                  directory where the output files are to be written.
-
+                parameter group.
         """
         self._status_filename: pathlib.Path = (
             pathlib.Path(parameters.processed_directory).resolve() / "status.txt"
@@ -187,34 +174,34 @@ class CheetahlistFilesWriter:
         """
         Cheetah list files writer.
 
-        This class manages the information that gets written to the `frames.txt`,
-        `cleaned.txt`, `events.lst`, `hits.lst` and `peaks.txt` files, required by the
+        This class manages the information that gets written to the 'frames.txt',
+        'cleaned.txt', 'events.lst', 'hits.lst' and 'peaks.txt' files, required by the
         Cheetah GUI.
 
-        * `frames.txt` contains a list of all the detector frames processed by Cheetah,
+        * 'frames.txt' contains a list of all the detector frames processed by Cheetah,
           with information about the frame timestamp, event ID, whether the frame is a
           hit, the name of the file containing the frame, the index of the frame in the
           file, the number of peaks detected in the frame, and the average intensity of
           the peaks in the frame.
 
-        * `cleaned.txt` contains a list of all the detector frames that have been
-          identified as hits by Cheetah, with the same information as `frames.txt`.
+        * 'cleaned.txt' contains a list of all the detector frames that have been
+          identified as hits by Cheetah, with the same information as 'frames.txt'.
 
-        * `events.lst` contains a list of all the event identifiers for the detector
+        * 'events.lst' contains a list of all the event identifiers for the detector
           frames processed by Cheetah.
 
-        * `hits.lst` contains a list of all the event identifiers for the detector
+        * 'hits.lst' contains a list of all the event identifiers for the detector
           frames that have been identified as hits by Cheetah.
 
-        * `peaks.txt` contains a list of all the Bragg peaks detected by Cheetah, with
-           information about the event ID of the frame to which the peak belongs, the
-           number of peaks in the frame, the fast-scan and slow-scan coordinates of the
-           peak, the peak intensity, the number of pixels in the peak, the maximum
-           pixel intensity in the peak, and the signal-to-noise ratio of the peak.
+        * 'peaks.txt' contains a list of all the Bragg peaks detected by Cheetah, with
+          information about the event ID of the frame to which the peak belongs, the
+          number of peaks in the frame, the fast-scan and slow-scan coordinates of the
+          peak, the peak intensity, the number of pixels in the peak, the maximum
+          pixel intensity in the peak, and the signal-to-noise ratio of the peak.
 
         Arguments:
 
-            cheetah_parameters: An object storing Cheetah's configuration parameters.
+            parameters: An object storing Cheetah's configuration parameters.
         """
         self._status_filename: pathlib.Path = (
             pathlib.Path(parameters.processed_directory).resolve() / "status.txt"
@@ -384,14 +371,8 @@ class CheetahClassSumsAccumulator:
 
         Arguments:
 
-            cheetah_parameters: A set of OM configuration parameters collected
-                together in a parameter group. The parameter group must contain the
-                following entries:
-
-                class_sums_sending_interval: The maximum number of detector frames that
-                    the accumulator can receive before returning the sum and virtual
-                    powder plot information. After the data is returned, the frame
-                    counter is reset.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group.
 
             num_classes: The total number of data classes currently managed by Cheetah.
         """
@@ -498,18 +479,8 @@ class CheetahClassSumsCollector:
 
         Arguments:
 
-            cheetah_parameters: A set of OM configuration parameters collected together
-                in a parameter group. The parameter group must contain the following
-                entries:
-
-                * `write_class_sums`: Whether the information stored by the collector
-                  should be written to disk regularly.
-
-                * `class_sums_update_interval`: If the information stored by the
-                  collector must be written to disk (see the `write_class_sums`
-                  parameter), this parameter determines how many times the collector
-                  can be updated before the accumulated data is written to a file.
-                  After the file has been written, the update count is reset.
+            parameters: A set of OM configuration parameters collected together
+                in a parameter group.
 
             num_classes: The total number of data classes currently managed by Cheetah.
 
@@ -602,48 +573,8 @@ class HDF5Writer:
 
         Arguments:
 
-            cheetah_parameters: A set of OM configuration parameters collected together
-                in a parameter group. The parameter group must contain the following
-                entries:
-
-                processed_directory: A relative or absolute path to the directory where
-                    the output files are written.
-
-                compression: The compression filter to be applied to the data in the
-                    output file.
-
-                hdf5_fields: A dictionary storing information about the internal HDF5
-                    path where each data entry must be written.
-
-                    * The keys in the dictionary must store the names of data entries
-                      to write.
-
-                    * The corresponding dictionary values must contain the internal
-                      HDF5 paths where the entries must be written.
-
-                processed_filename_prefix: A string that is prepended to the name of
-                    the output files. Optional. If the value of this entry is None, the
-                    string 'processed_' will be used as prefix. Defaults to None.
-
-                processed_filename_extension: An extension string that is appended to
-                    the name of the output files. Optional. If the value of this entry
-                    is None, the string 'h5' is be used as extension. Defaults to
-                    None.
-
-                compression_opts: The compression level to be used, if data compression
-                    is applied to the output files. The information in this entry only
-                    applies if the corresponding `compression` entry is not None,
-                    otherwise, it is ignored. Optional. If the value of this entry is
-                    None, the compression level is set to 4. Defaults to None.
-
-                compression_shuffle: Whether the `shuffle` filter is applied. If the
-                    value of this entry is True, the filter is applied to the data
-                    being written, otherwise it is not. Defaults to False.
-
-                max_num_peaks: The maximum number of detected Bragg peaks that must be
-                    written to the HDF5 file for each event. Optional. If the value
-                    of this entry is None, only the first 1024 peaks detected in each
-                    frame are written to the output file. Defaults to None.
+            parameters: A set of OM configuration parameters collected together
+                in a parameter group.
 
             node_rank: The rank of the OM node that writes the data in the output
                 files.

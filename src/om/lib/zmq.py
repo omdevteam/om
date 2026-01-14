@@ -83,10 +83,10 @@ class ZmqDataBroadcaster:
                 entries:
 
                 * `data_broadcast_url`: The URL where the socket will be opened. It
-                must be a string in the format used by ZeroMQ, or None. If the value of
-                this argument is None, the IP address of the local machine is
-                auto-detected, and the socket is opened at port 12321 using the
-                'tcp://' protocol. Defaults to None.
+                  must be a string in the format used by ZeroMQ, or None. If the value of
+                  this argument is None, the IP address of the local machine is
+                  auto-detected, and the socket is opened at port 12321 using the
+                  'tcp://' protocol. Defaults to None.
         """
 
         if data_broadcast_url is None:
@@ -170,10 +170,10 @@ class ZmqResponder:
                 entries:
 
                 * `responding_url`: The URL where the socket will be opened. It must be
-                a string in the format used by ZeroMQ, or None. If the value of this
-                argument is None, the IP address of the local machine is auto-detected,
-                and the socket is opened at port 12321 using the 'tcp://' protocol.
-                Defaults to None.
+                  a string in the format used by ZeroMQ, or None. If the value of this
+                  argument is None, the IP address of the local machine is auto-detected,
+                  and the socket is opened at port 12321 using the 'tcp://' protocol.
+                  Defaults to None.
 
             blocking: whether the socket should be of blocking type. Defaults to False.
         """

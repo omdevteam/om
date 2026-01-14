@@ -76,12 +76,12 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         the interface.
 
         * For this Event Handler, a data event corresponds to the content of an
-            individual ASAP::O event.
+          individual ASAP::O event.
 
         * The source string required by this Data Event Handler is either the ID of the
-            beamtime for which OM is being used (for online data retrieval) or the ID
-            of the beamtime and the name of the ASAP::O stream separated by a colon
-            (for offline data retrieval).
+          beamtime for which OM is being used (for online data retrieval) or the ID
+          of the beamtime and the name of the ASAP::O stream separated by a colon
+          (for offline data retrieval).
 
         Arguments:
 
@@ -92,7 +92,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  :class:`~om.protocols.data_retrieval_layer.OmDataSourceProtocol`
                   that describes the source.
 
             parameters: An object storing OM's configuration parameters.
@@ -309,10 +309,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the event being processed.
+                  Data Source for the event being processed.
 
         Raises:
 

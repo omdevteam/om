@@ -13,12 +13,13 @@ from typing_extensions import Annotated
 from om.lib.exceptions import OmInvalidSourceError
 from om.lib.logging import log
 
-app = typer.Typer()
+app: typer.Typer = typer.Typer(add_completion=False)
 
 
+@app.command()
 def main(
-    input: Annotated[Path, typer.Argument(help="input")],
-    output: Annotated[Path, typer.Argument(help="input")],
+    input: Annotated[Path, typer.Argument(help="text file containing list of dark files for one panel \n")],
+    output: Annotated[Path, typer.Argument(help="output .h5 file")],
     s: Annotated[
         int,
         typer.Option(
@@ -30,9 +31,6 @@ def main(
 ) -> None:
     """
     Make dark calibration files from raw Jungfrau data.
-
-    INPUT: text file containing list of dark files for one panel \n
-    OUTPUT: output .h5 file
     """
     if not input.exists():
         raise RuntimeError(f"The following file cannot be found: {input}")
@@ -86,5 +84,7 @@ def main(
         f.create_dataset("/gain2", data=dark[2].reshape(512, 1024))
 
 
+typer_click_object = typer.main.get_command(app)
+
 if __name__ == "__main__":
-    typer.run(main)
+    app()

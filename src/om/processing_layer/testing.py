@@ -152,8 +152,8 @@ class TestProcessing(OmProcessingProtocol):
         Returns:
 
             A tuple with two entries. The first entry is a dictionary storing the
-                processed data that should be sent to the collecting node. The second
-                entry is the OM rank number of the node that processed the information.
+            processed data that should be sent to the collecting node. The second
+            entry is the OM rank number of the node that processed the information.
         """
         processed_data: dict[str, Any] = {}
 
@@ -278,7 +278,7 @@ class TestProcessing(OmProcessingProtocol):
         Returns:
 
             Usually nothing. Optionally, a dictionary storing information to be sent to
-                the processing node.
+            the processing node.
         """
         log.info(f"Processing node {node_rank} shutting down.")
         return None

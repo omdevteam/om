@@ -76,23 +76,14 @@ class CrystallographyPeakFinding:
                   to detect the Bragg peaks in a detector data frame. Currently, the
                   following strategies are available:
 
-                    - `peakfinder8_peak_detection`: Instructs OM to use the
-                      `peakfinder8` peak detection strategy. If this strategy is
-                      selected, the set of OM's configuration parameters must include a
-                      parameter group called `peakfinder8_peak_detection` with the
-                      entries required to fine-tune the peak-finding strategy. Please
-                      refer to the documentation of the
-                      [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]W
-                      algorithm).
-
-                    - `peaknet_peak_detection`: Instructs OM to use the
-                      `peaknet` machine-learning-based peak detection strategy. If this
-                      strategy is selected, the set of OM's configuration parameters
-                      must include a parameter group called `peaknet_peak_detection`
-                      with the entries required to fine-tune the peak-finding strategy.
-                      Please refer to the documentation of the
-                      [`PeaknetPeakDetection`][om.algorithms.crystallography.PeaknetPeakDetection]
-                      algorithm).
+                  - `peakfinder8_peak_detection`: Instructs OM to use the
+                    `peakfinder8` peak detection strategy. If this strategy is
+                    selected, the set of OM's configuration parameters must include a
+                    parameter group called `peakfinder8_peak_detection` with the
+                    entries required to fine-tune the peak-finding strategy. Please
+                    refer to the documentation of the
+                    :class:`~om.algorithms.crystallography.Peakfinder8PeakDetection`
+                    algorithm).
 
                 * `min_num_peaks_for_hit`: The minimum number of peaks that must be
                   identified in a detector data frame for the related data event to be

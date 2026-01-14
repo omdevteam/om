@@ -47,6 +47,7 @@ except ImportError:
         "The following required module cannot be imported: pyqtgraph"
     )
 
+app: typer.Typer = typer.Typer(add_completion=False)
 
 class XesGui(OmGuiBase):
     """
@@ -184,7 +185,7 @@ class XesGui(OmGuiBase):
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
-
+@app.command()
 def main(
     *,
     url: Annotated[
@@ -221,5 +222,7 @@ def main(
     sys.exit(app.exec_())
 
 
-def run() -> None:
-    typer.run(main)
+typer_click_object = typer.main.get_command(app)
+
+if __name__ == "__main__":
+    app()

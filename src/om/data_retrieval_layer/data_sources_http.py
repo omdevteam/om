@@ -23,7 +23,7 @@ HTTP/REST interface of detectors manufactured by the company Dectris.
 """
 
 import datetime
-from typing import Any, TypeVar
+from typing import Any
 
 import numpy
 from numpy.typing import NDArray
@@ -37,15 +37,6 @@ class OmBaseGenericDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    T = TypeVar("T")
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmBaseGenericDataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,
@@ -169,15 +160,15 @@ class EventIdEiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(self, *, event: dict[str, Any]) -> str:
         """
-        Retrieves an event identifier from an Eiger 16M'S HTTP/REST interface.
+        Retrieves an event identifier from the HTTP/REST interface of an Eiger 16M.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        A data event retrieved from Eiger 16M's HTTP/REST interface contains detector
-        frame data in the format of a TIFF image. The combination of the series_id and
-        frame_id tags retrieved from the header of the TIFF image are used to
-        generate an event identifier, with the format: `<series_id>_<frame_id>.
+        A data event retrieved from the HTTP-REST interface of an Eiger 16M contains
+        detector frame data in the format of a TIFF image. The combination of the
+        series_id and frame_id tags retrieved from the header of the TIFF image are
+        used to generate an event identifier, with the format: `<series_id>_<frame_id>`.
 
         Arguments:
 

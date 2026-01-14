@@ -58,6 +58,7 @@ except ImportError:
         "The following required module cannot be imported: pyqtgraph"
     )
 
+app: typer.Typer = typer.Typer(add_completion=False)
 
 class _ParameterTweakerParameters(BaseModel):
     geometry_file: str
@@ -486,7 +487,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         else:
             self._start_stream()
 
-
+@app.command()
 def main(
     *,
     url: Annotated[
@@ -530,6 +531,7 @@ def main(
     _ = CrystallographyParameterTweaker(url=url, parameters=parameters)
     sys.exit(app.exec_())
 
+typer_click_object = typer.main.get_command(app)
 
-def run() -> None:
-    typer.run(main)
+if __name__ == "__main__":
+    app()

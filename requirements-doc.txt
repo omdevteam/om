@@ -1,6 +1,5 @@
-mkdocs
-mkdocstrings
-mkdocstrings-python
-mkdocs-click
-mkdocs-material
-mkdocs-material-extensions
+sphinx
+myst-parser
+pydata_sphinx_theme
+sphinx-click
+sphinxcontrib-images

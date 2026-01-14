@@ -39,16 +39,16 @@ Homepage = "https://www.ondamonitor.com"
 Repository = "httpd://github.com/omdevteam/om"
 
 [project.scripts]
-om_monitor = "om.monitor:run"
+om_monitor = "om.monitor:app"
 om_jungfrau_dark = "om.tools.jungfrau_dark:run"
 om_jungfrau_zmq_receiver = "om.tools.jungfrau_zmq_receiver:run"
 
 [project.gui-scripts]
-om_crystallography_gui = "om.graphical_interfaces.crystallography_gui:run"
-om_frame_viewer = "om.graphical_interfaces.frame_viewer:run"
-om_crystallography_parameter_tweaker = "om.graphical_interfaces.crystallography_parameter_tweaker:run"
-om_xes_gui = "om.graphical_interfaces.xes_gui:run"
-om_swaxs_gui = "om.graphical_interfaces.swaxs_gui:run"
+om_crystallography_gui = "om.graphical_interfaces.crystallography_gui:app"
+om_frame_viewer = "om.graphical_interfaces.frame_viewer:app"
+om_crystallography_parameter_tweaker = "om.graphical_interfaces.crystallography_parameter_tweaker:app"
+om_xes_gui = "om.graphical_interfaces.xes_gui:app"
+om_swaxs_gui = "om.graphical_interfaces.swaxs_gui:app"
 
 [build-system]
 requires = ["setuptools", "numpy", "cython"]

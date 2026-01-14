@@ -22,7 +22,7 @@ This module contains Data Source classes that deal with data retrieved from the 
 software framework (used at the PETRA III facility).
 """
 
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -39,20 +39,11 @@ except ImportError:
         "The following required module cannot be imported: seedee"
     )
 
-T = TypeVar("T")
-
 
 class OmBaseAsapoDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmBaseAsapoDataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,

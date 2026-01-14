@@ -22,7 +22,7 @@ This module contains Data Source classes that deal with data retrieved from ZMQ 
 streams.
 """
 
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -31,20 +31,11 @@ from om.data_retrieval_layer.data_sources_common import OmJungfrau1MDataSourceMi
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
-T = TypeVar("T")
-
 
 class OmBaseZmqDataSourceMixin:
     """
     See documentation of the `__init__` function.
     """
-
-    def __new__(cls: type[T], *args: Any, **kwargs: Any) -> T:
-        if cls is OmBaseZmqDataSourceMixin:
-            raise TypeError(
-                f"{cls.__name__} is a Mixin class and should not be instantiated"
-            )
-        return object.__new__(cls)
 
     def __init__(
         self,
