@@ -26,6 +26,7 @@ import math
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import numpy
 from numpy.typing import NDArray
@@ -82,11 +83,13 @@ class BadRegion:
     considered valid. Otherwise, the x,y definition will be used.
     """
 
+
 @dataclass
 class Beam:
     """
     A dictionary storing information about the x-ray beam.
     """
+
     photon_energy: float
     """The photon energy of the beam in eV."""
 
@@ -166,7 +169,7 @@ class Panel:
     adu_per_eV: float
     """The number of ADUs per eV of photon energy for the panel."""
 
-    dim_structure: list[ int | str | None]
+    dim_structure: list[int | str | None]
     """A description of the internal layout of the data block storing the panel's
     data. The value corresponding to this key is a list of strings which define
     the role of each axis in the data block. See the
@@ -351,20 +354,20 @@ class PixelMaps:
     set of maps are assumed to be relative to the detector's reference system.
     """
 
-    x: NDArray[numpy.float_]
+    x: NDArray[numpy.floating[Any]]
     """A pixel map for the x coordinate."""
 
-    y: NDArray[numpy.float_]
+    y: NDArray[numpy.floating[Any]]
     """A pixel map for the y coordinate."""
 
-    z: NDArray[numpy.float_]
+    z: NDArray[numpy.floating[Any]]
     """A pixel map for the z coordinate."""
 
-    radius: NDArray[numpy.float_]
+    radius: NDArray[numpy.floating[Any]]
     """A pixel map storing the distance of each pixel from the center of the
     reference system (usually the center of the detector)."""
 
-    phi: NDArray[numpy.float_]
+    phi: NDArray[numpy.floating[Any]]
     """A pixel map storing, for each pixel, the amplitude of the angle drawn by
     the pixel, the center of the reference system, and the x axis."""
 
@@ -611,7 +614,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
         for dim_index, entry in enumerate(panel.dim_structure):
             if entry is None:
                 raise OmGeometryError(
-                    f"Dimension {dim_index} for panel {panel_name} is " "undefined."
+                    f"Dimension {dim_index} for panel {panel_name} is undefined."
                 )
             if entry == "ss":
                 found_ss += 1
@@ -646,23 +649,23 @@ def _validate_detector_geometry(detector: Detector) -> None:
 
         if panel.orig_min_fs < 0:
             raise OmGeometryError(
-                "Please specify the minimum fs coordinate for panel " f"{panel_name}."
+                f"Please specify the minimum fs coordinate for panel {panel_name}."
             )
         if panel.orig_max_fs < 0:
             raise OmGeometryError(
-                "Please specify the maximum fs coordinate for panel " f"{panel_name}."
+                f"Please specify the maximum fs coordinate for panel {panel_name}."
             )
         if panel.orig_min_ss < 0:
             raise OmGeometryError(
-                "Please specify the minimum ss coordinate for panel " f"{panel_name}."
+                f"Please specify the minimum ss coordinate for panel {panel_name}."
             )
         if panel.orig_max_ss < 0:
             raise OmGeometryError(
-                "Please specify the maximum ss coordinate for panel " f"{panel_name}."
+                f"Please specify the maximum ss coordinate for panel {panel_name}."
             )
         if panel.cnx == float("NaN"):
             raise OmGeometryError(
-                "Please specify the corner X coordinate for panel " f"{panel_name}."
+                f"Please specify the corner X coordinate for panel {panel_name}."
             )
         if panel.clen == float("NaN") and panel.clen_from == "":
             raise OmGeometryError(
@@ -683,8 +686,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
 
     if num_placeholders_in_masks > num_placeholders_in_panels:
         raise OmGeometryError(
-            "Number of placeholders in mask cannot be larger the number than "
-            "for data."
+            "Number of placeholders in mask cannot be larger the number than for data."
         )
 
     bad_region_name: str
@@ -701,7 +703,7 @@ def _validate_detector_geometry(detector: Detector) -> None:
         for name in detector.rigid_groups[group]:
             if name not in detector.panels:
                 raise OmGeometryError(
-                    "Cannot add panel to rigid_group. Panel not " f"found: {name}."
+                    f"Cannot add panel to rigid_group. Panel not found: {name}."
                 )
     group_collection: str
     for group_collection in detector.rigid_group_collections:
@@ -935,12 +937,12 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
     min_d: float = float("inf")
     max_d: float = 0.0
     for panel_name, panel in detector.panels.items():
-        if panel.rail_x is None:
+        if panel.rail_x == float("NaN"):
             panel.rail_x = 0.0
             panel.rail_y = 0.0
             panel.rail_z = 1.0
 
-        if panel.clen_for_centering is None:
+        if panel.clen_for_centering == float("NaN"):
             panel.clen_for_centering = 0.0
 
         d: float = panel.fsx * panel.ssy - panel.ssx * panel.fsy
@@ -984,13 +986,13 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
         [geometry.panels[k].orig_max_ss for k in geometry.panels]
     ).max()
 
-    x_map: NDArray[numpy.float_] = numpy.zeros(
+    x_map: NDArray[numpy.floating[Any]] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    y_map: NDArray[numpy.float_] = numpy.zeros(
+    y_map: NDArray[numpy.floating[Any]] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    z_map: NDArray[numpy.float_] = numpy.zeros(
+    z_map: NDArray[numpy.floating[Any]] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
 
@@ -1001,8 +1003,8 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
     for panel_name in geometry.panels:
         first_panel_camera_length: float = geometry.panels[panel_name].clen
 
-        ss_grid: NDArray[numpy.int_]
-        fs_grid: NDArray[numpy.int_]
+        ss_grid: NDArray[numpy.signedinteger[Any]]
+        fs_grid: NDArray[numpy.signedinteger[Any]]
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
                 geometry.panels[panel_name].orig_max_ss
@@ -1016,49 +1018,51 @@ def _compute_pix_maps(*, geometry: Detector) -> PixelMaps:
             ),
             indexing="ij",
         )
-        y_panel: NDArray[numpy.float_] = (
+        y_panel: NDArray[numpy.floating[Any]] = (
             ss_grid * geometry.panels[panel_name].ssy
             + fs_grid * geometry.panels[panel_name].fsy
             + geometry.panels[panel_name].cny
         )
-        x_panel: NDArray[numpy.float_] = (
+        x_panel: NDArray[numpy.floating[Any]] = (
             ss_grid * geometry.panels[panel_name].ssx
             + fs_grid * geometry.panels[panel_name].fsx
             + geometry.panels[panel_name].cnx
         )
         x_map[
-            geometry.panels[panel_name]
-            .orig_min_ss : geometry.panels[panel_name]
-            .orig_max_ss
+            geometry.panels[panel_name].orig_min_ss : geometry.panels[
+                panel_name
+            ].orig_max_ss
             + 1,
-            geometry.panels[panel_name]
-            .orig_min_fs : geometry.panels[panel_name]
-            .orig_max_fs
+            geometry.panels[panel_name].orig_min_fs : geometry.panels[
+                panel_name
+            ].orig_max_fs
             + 1,
         ] = x_panel
         y_map[
-            geometry.panels[panel_name]
-            .orig_min_ss : geometry.panels[panel_name]
-            .orig_max_ss
+            geometry.panels[panel_name].orig_min_ss : geometry.panels[
+                panel_name
+            ].orig_max_ss
             + 1,
-            geometry.panels[panel_name]
-            .orig_min_fs : geometry.panels[panel_name]
-            .orig_max_fs
+            geometry.panels[panel_name].orig_min_fs : geometry.panels[
+                panel_name
+            ].orig_max_fs
             + 1,
         ] = y_panel
         z_map[
-            geometry.panels[panel_name]
-            .orig_min_ss : geometry.panels[panel_name]
-            .orig_max_ss
+            geometry.panels[panel_name].orig_min_ss : geometry.panels[
+                panel_name
+            ].orig_max_ss
             + 1,
-            geometry.panels[panel_name]
-            .orig_min_fs : geometry.panels[panel_name]
-            .orig_max_fs
+            geometry.panels[panel_name].orig_min_fs : geometry.panels[
+                panel_name
+            ].orig_max_fs
             + 1,
         ] = first_panel_camera_length
 
-    r_map: NDArray[numpy.float_] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-    phi_map: NDArray[numpy.float_] = numpy.arctan2(y_map, x_map)
+    r_map: NDArray[numpy.floating[Any]] = numpy.sqrt(
+        numpy.square(x_map) + numpy.square(y_map)
+    )
+    phi_map: NDArray[numpy.floating[Any]] = numpy.arctan2(y_map, x_map)
 
     return PixelMaps(
         x=x_map,
@@ -1384,9 +1388,9 @@ class DataVisualizer:
     def visualize_data(
         self,
         *,
-        data: NDArray[numpy.int_ | numpy.float_],
-        array_for_visualization: NDArray[numpy.float_] | None = None,
-    ) -> NDArray[numpy.float_]:
+        data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
+        array_for_visualization: NDArray[numpy.floating[Any]] | None = None,
+    ) -> NDArray[numpy.floating[Any]]:
         """
         Applies geometry information to a detector data frame.
 
@@ -1421,7 +1425,7 @@ class DataVisualizer:
                 cannot be used to store the pixel information.
         """
         if array_for_visualization is None:
-            visualization_array: NDArray[numpy.float_] = numpy.zeros(
+            visualization_array: NDArray[numpy.floating[Any]] = numpy.zeros(
                 self._min_array_shape, dtype=numpy.float32
             )
         else:

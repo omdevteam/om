@@ -43,7 +43,7 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # type: ignore
+    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
@@ -86,7 +86,9 @@ class SwaxsGui(OmGuiBase):
 
         self._received_data: Dict[str, Any] = {}
 
-        pyqtgraph.setConfigOption("background", 0.2)
+        pyqtgraph.setConfigOption(  # pyright: ignore[reportUnknownMemberType]
+            "background", 0.2
+        )
 
         # radial profiles
         self._radial_widget: Any = pyqtgraph.PlotWidget()
@@ -97,12 +99,19 @@ class SwaxsGui(OmGuiBase):
             tuple(range(1000, 0)), [0.0] * 1000, name="frame"
         )
         self._recent_avg_plot: Any = self._radial_widget.plot(
-            tuple(range(1000, 0)), [0.0] * 1000, pen=pyqtgraph.mkPen("y"), name="recent"
+            tuple(range(1000, 0)),
+            [0.0] * 1000,
+            pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
+            name="recent",
         )
         self._cumulative_hits_radial_plot: Any = self._radial_widget.plot(
             tuple(range(1000, 0)),
             [0.0] * 1000,
-            pen=pyqtgraph.mkPen("c"),
+            pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "c"
+            ),
             name="hits only",
         )
 
@@ -117,7 +126,9 @@ class SwaxsGui(OmGuiBase):
         self._hit_rate_plot: Any = self._hit_rate_widget.plot(
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("y"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
             symbolSize=3,
             name="Hit Rate",
         )
@@ -135,7 +146,9 @@ class SwaxsGui(OmGuiBase):
             [0.0] * 5000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("y"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
             symbolSize=3,
             name="ROI1",
         )
@@ -144,7 +157,9 @@ class SwaxsGui(OmGuiBase):
             [0.0] * 5000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("c"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "c"
+            ),
             symbolSize=3,
             name="ROI2",
         )
@@ -153,7 +168,9 @@ class SwaxsGui(OmGuiBase):
             [0.0] * 5000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("m"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "m"
+            ),
             symbolSize=3,
             name="ROI1/ROI2",
         )
@@ -162,7 +179,9 @@ class SwaxsGui(OmGuiBase):
             [0.0] * 5000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("w"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "w"
+            ),
             symbolSize=3,
             name="Frame Mean",
         )
@@ -180,7 +199,9 @@ class SwaxsGui(OmGuiBase):
             [0.0] * 5000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("y"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
             symbolSize=3,
             name="Particle Size",
         )
@@ -195,24 +216,50 @@ class SwaxsGui(OmGuiBase):
         colormap = pyqtgraph.ColorMap(pos, colors)
         self._radial_stack_view.setColorMap(colormap)
 
-        horizontal_layout: Any = QtWidgets.QHBoxLayout()
+        horizontal_layout: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        splitter_0: Any = QtWidgets.QSplitter()
-        splitter_0.addWidget(self._radial_stack_view)
+        splitter_0: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter()  # pyright: ignore[reportUnknownMemberType]
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._radial_stack_view  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        vertical_splitter: Any = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        vertical_splitter.addWidget(self._radial_widget)
-        vertical_splitter.addWidget(self._hit_rate_widget)
-        vertical_splitter.addWidget(self._roi_widget)
-        vertical_splitter.addWidget(self._rg_widget)
-        splitter_0.addWidget(vertical_splitter)
-        horizontal_layout.addWidget(splitter_0)
-        self._central_widget: Any = QtWidgets.QWidget()
-        self._central_widget.setLayout(horizontal_layout)
-        self.setCentralWidget(self._central_widget)
-        self.show()
+        vertical_splitter: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter(QtCore.Qt.Vertical)  # pyright: ignore[reportUnknownMemberType]
+        )
+        vertical_splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._radial_widget
+        )
+        vertical_splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._hit_rate_widget
+        )
+        vertical_splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._roi_widget
+        )
+        vertical_splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._rg_widget
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            vertical_splitter
+        )
+        horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            splitter_0
+        )
+        self._central_widget: Any = (
+            QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._central_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            horizontal_layout
+        )
+        self.setCentralWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._central_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+        self.show()  # pyright: ignore[reportUnknownMemberType]
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
     def update_gui(self) -> None:
         """
@@ -234,14 +281,14 @@ class SwaxsGui(OmGuiBase):
             # If no data has been received, returns without drawing anything.
             return
 
-        radial: NDArray[numpy.float_] = local_data["radial_profile"]
-        q: NDArray[numpy.float_] = local_data["q"]
+        radial: NDArray[numpy.floating[Any]] = local_data["radial_profile"]
+        q: NDArray[numpy.floating[Any]] = local_data["q"]
         self._radial_plot.setData(q, radial)
 
-        recent_avg: NDArray[numpy.float_] = local_data["recent_radial_average"]
+        recent_avg: NDArray[numpy.floating[Any]] = local_data["recent_radial_average"]
         self._recent_avg_plot.setData(q, recent_avg)
 
-        cumulative_hits_radial: NDArray[numpy.float_] = local_data[
+        cumulative_hits_radial: NDArray[numpy.floating[Any]] = local_data[
             "cumulative_hits_radial"
         ]
         self._cumulative_hits_radial_plot.setData(q, cumulative_hits_radial)
@@ -260,23 +307,29 @@ class SwaxsGui(OmGuiBase):
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])
         # Suppress the warning during calculation
-        with numpy.errstate(divide='ignore', invalid='ignore'):
-            roi_ratio = numpy.array(local_data["roi1_int_history"]) / numpy.array(local_data["roi2_int_history"])
+        with numpy.errstate(divide="ignore", invalid="ignore"):
+            roi_ratio = numpy.array(local_data["roi1_int_history"]) / numpy.array(
+                local_data["roi2_int_history"]
+            )
         # Replace nan, posinf, and neginf with 0
         roi_ratio = numpy.nan_to_num(roi_ratio, nan=0.0, posinf=0.0, neginf=0.0)
         self._roi_ratio_plot.setData(tuple(range(-5000, 0)), roi_ratio)
-        self._frame_mean_plot.setData(tuple(range(-5000, 0)), local_data["image_sum_history"])
+        self._frame_mean_plot.setData(
+            tuple(range(-5000, 0)), local_data["image_sum_history"]
+        )
 
         self._rg_plot.setData(tuple(range(-5000, 0)), local_data["rg_history"])
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         time_now: float = time.time()
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
-        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
+        self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
+            f"Estimated delay: {estimated_delay} seconds"
+        )
 
 @app.command()
 def main(
@@ -303,9 +356,15 @@ def main(
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    app: Any = QtWidgets.QApplication(sys.argv)
+    app: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtWidgets.QApplication(  # pyright: ignore[reportUnknownMemberType]
+            sys.argv
+        )
+    )
     _ = SwaxsGui(url=url)
-    sys.exit(app.exec_())
+    sys.exit(
+        app.exec_()  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+    )
 
 
 typer_click_object = typer.main.get_command(app)

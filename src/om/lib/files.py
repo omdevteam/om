@@ -22,14 +22,13 @@ This module contains classes and functions that allow OM to load data from files
 HDF5 format.
 """
 
-import sys
 from pathlib import Path
 from typing import Any, TextIO
 
-import h5py  # type: ignore
+import h5py  # pyright: ignore[reportMissingTypeStubs]
 import numpy
-import yaml  # type: ignore
 from numpy.typing import NDArray
+from yaml import YAMLError, safe_load
 
 from om.lib.exceptions import (
     OmConfigurationFileReadingError,
@@ -43,7 +42,7 @@ def load_hdf5_data(
     *,
     hdf5_filename: Path,
     hdf5_path: str,
-) -> NDArray[numpy.int_ | numpy.float_]:
+) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
     """
     Loads data from an HDF5 file.
 
@@ -71,15 +70,15 @@ def load_hdf5_data(
     try:
         hdf5_file_handle: Any
         with h5py.File(hdf5_filename_path, "r") as hdf5_file_handle:
-            data: NDArray[numpy.float_ | numpy.int_] = hdf5_file_handle[hdf5_path][:]
+            data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+                hdf5_file_handle[hdf5_path][:]
+            )
     except (IOError, OSError, KeyError) as exc:
-        exc_type, exc_value = sys.exc_info()[:2]
         raise OmHdf5FileReadingError(
-            "The following error occurred while reading "  # type: ignore
+            "The following error occurred while reading "
             f"the {hdf5_path} field from the {hdf5_filename} dark "
             f"data HDF5 file: "
-            f"{exc_type.__name__}: "  # pyright: ignore[reportOptionalMemberAccess]
-            f"{exc_value}"
+            f"{type(exc).__name__}: {exc}"
         ) from exc
     return data
 
@@ -96,14 +95,12 @@ def load_configuration_parameters(
     try:
         open_file: TextIO
         with open(config_path, "r") as open_file:
-            loaded_yaml_file: dict[str, dict[str, Any]] = yaml.safe_load(open_file)
+            loaded_yaml_file: dict[str, dict[str, Any]] = safe_load(open_file)
     except OSError:
         raise OmConfigurationFileReadingError(
             f"Cannot open or read the following configuration file: {config}."
         )
-    except (
-        yaml.parser.ParserError  # pyright: ignore[reportAttributeAccessIssue]
-    ) as exc:
+    except YAMLError as exc:
         raise OmConfigurationFileSyntaxError(
             f"Syntax error in the configuration file: {exc}."
         ) from exc

@@ -20,6 +20,7 @@ OnDA Monitor for Crystallography.
 
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
+
 import sys
 from collections import deque
 from itertools import islice
@@ -62,28 +63,35 @@ class SwaxsProcessing(OmProcessingProtocol):
         if parameters.radial_profile is None:
             log.error("'swaxs' section must be present in the configuration file")
             sys.exit(1)
-
-        self._monitor_parameters: MonitorParameters = parameters
-        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
-
-        # Geometry
-        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
-            geometry_filename=parameters.radial_profile.geometry_file
-        )
-
-        # Post-processing binning
-        if parameters.radial_profile.post_processing_binning:
-            if parameters.binning is None:
-                log.error("'binning' section is not present in the configuration file")
-                sys.exit(1)
-            self._post_processing_binning: Binning | BinningPassthrough = Binning(
-                parameters=parameters.binning,
-                layout_info=self._geometry_information.get_layout_info(),
-            )
         else:
-            self._post_processing_binning = BinningPassthrough(
-                layout_info=self._geometry_information.get_layout_info()
+            self._monitor_parameters: MonitorParameters = parameters
+            self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
+
+            # Geometry
+            self._geometry_information: GeometryInformation = (
+                GeometryInformation.from_file(
+                    geometry_filename=parameters.radial_profile.geometry_file
+                )
             )
+
+            # Post-processing binning
+            if parameters.radial_profile.post_processing_binning:
+                if parameters.binning is None:
+                    log.error(
+                        "'binning' section is not present in the configuration file"
+                    )
+                    sys.exit(1)
+                else:
+                    self._post_processing_binning: Binning | BinningPassthrough = (
+                        Binning(
+                            parameters=parameters.binning,
+                            layout_info=self._geometry_information.get_layout_info(),
+                        )
+                    )
+            else:
+                self._post_processing_binning = BinningPassthrough(
+                    layout_info=self._geometry_information.get_layout_info()
+                )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -223,9 +231,9 @@ class SwaxsProcessing(OmProcessingProtocol):
         """
         processed_data: dict[str, Any] = {}
 
-        radial_profile: NDArray[numpy.float_]
-        _: NDArray[numpy.float_]
-        q: NDArray[numpy.float_]
+        radial_profile: NDArray[numpy.floating[Any]]
+        _: NDArray[numpy.floating[Any]]
+        q: NDArray[numpy.floating[Any]]
         sample_detected: bool
         roi1_intensity: float
         roi2_intensity: float
@@ -272,7 +280,9 @@ class SwaxsProcessing(OmProcessingProtocol):
         )
 
         if send_detector_data:
-            data_to_send: NDArray[numpy.int_ | numpy.float_] = data["detector_data"]
+            data_to_send: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+                data["detector_data"]
+            )
 
             data_to_send = self._post_processing_binning.bin_detector_data(
                 data=data_to_send
@@ -346,15 +356,15 @@ class SwaxsProcessing(OmProcessingProtocol):
         received_data: dict[str, Any] = processed_data[0]
         return_dict: dict[str, dict[str, Any]] = {}
 
-        q_history: deque[NDArray[numpy.float_]]
-        radials_history: deque[NDArray[numpy.float_]]
+        q_history: deque[NDArray[numpy.floating[Any]]]
+        radials_history: deque[NDArray[numpy.floating[Any]]]
         image_sum_history: deque[float]
         downstream_intensity_history: deque[float]
         roi1_intensity_history: deque[float]
         roi2_intensity_history: deque[float]
         hit_rate_history: deque[float]
         rg_history: deque[float]
-        cumulative_hits_radial: NDArray[numpy.float_]
+        cumulative_hits_radial: NDArray[numpy.floating[Any]]
         (
             q_history,
             radials_history,
@@ -524,17 +534,20 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
                 "'radial_profile' section must be present in the configuration file"
             )
             sys.exit(1)
-        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
+        else:
+            self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
 
-        if parameters.cheetah is None:
-            log.error("'cheetah' section must be present in the configuration file")
-            sys.exit(1)
-        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+            if parameters.cheetah is None:
+                log.error("'cheetah' section must be present in the configuration file")
+                sys.exit(1)
+            self._cheetah_parameters: CheetahParameters = parameters.cheetah
 
-        # Geometry
-        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
-            geometry_filename=parameters.radial_profile.geometry_file
-        )
+            # Geometry
+            self._geometry_information: GeometryInformation = (
+                GeometryInformation.from_file(
+                    geometry_filename=parameters.radial_profile.geometry_file
+                )
+            )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -655,8 +668,8 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         """
         processed_data: dict[str, Any] = {}
 
-        radial_profile: NDArray[numpy.float_]
-        q: NDArray[numpy.float_]
+        radial_profile: NDArray[numpy.floating[Any]]
+        q: NDArray[numpy.floating[Any]]
         sample_detected: bool
         roi1_intensity: float
         roi2_intensity: float

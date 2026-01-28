@@ -26,10 +26,10 @@ import sys
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
-import msgpack  # type: ignore
-import msgpack_numpy  # type: ignore
+import msgpack  # pyright: ignore[reportMissingTypeStubs]
+import msgpack_numpy  # pyright: ignore[reportMissingTypeStubs]
 import numpy
 from numpy.typing import NDArray
 
@@ -48,6 +48,7 @@ from om.lib.event_management import EventCounter
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
 from om.lib.logging import log
 from om.lib.parameters import (
+    BinningParameters,
     CheetahParameters,
     CrystallographyParameters,
     MonitorParameters,
@@ -85,29 +86,39 @@ class OmCheetahMixin:
         if parameters.cheetah is None:
             log.error("'cheetah' section is not present in the configuration file")
             sys.exit(1)
-        if parameters.crystallography is None:
+        elif parameters.crystallography is None:
             log.error(
                 "'crystallography' section is not present in the configuration file"
             )
             sys.exit(1)
+        else:
+            self._cheetah_parameters: CheetahParameters = parameters.cheetah
+            self._crystallography_parameters: CrystallographyParameters = (
+                parameters.crystallography
+            )
+            self._monitor_parameters: MonitorParameters = parameters
 
-        self._cheetah_parameters: CheetahParameters = parameters.cheetah
-        self._crystallography_parameters: CrystallographyParameters = (
-            parameters.crystallography
-        )
-        self._monitor_parameters: MonitorParameters = parameters
+            # Processed data directory
+            Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
 
-        # Processed data directory
-        Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
+            # Geometry
+            self._geometry_information = GeometryInformation.from_file(
+                geometry_filename=self._crystallography_parameters.geometry_file
+            )
 
-        # Geometry
-        self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=self._crystallography_parameters.geometry_file
-        )
-
-        self._post_processing_binning_enabled: bool = (
-            self._crystallography_parameters.post_processing_binning
-        )
+            self._post_processing_binning_enabled: bool = (
+                self._crystallography_parameters.post_processing_binning
+            )
+            if self._post_processing_binning_enabled:
+                if parameters.binning is None:
+                    log.error(
+                        "'binning' section is not present in the configuration file"
+                    )
+                    sys.exit(1)
+                else:
+                    self._monitor_parameters_binning: BinningParameters = (
+                        parameters.binning
+                    )
 
     def _common_initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -141,7 +152,7 @@ class OmCheetahMixin:
                 log.error("'binning' section is not present in the configuration file")
                 sys.exit(1)
             self._post_processing_binning: Binning | BinningPassthrough = Binning(
-                parameters=self._monitor_parameters.binning,
+                parameters=self._monitor_parameters_binning,
                 layout_info=self._geometry_information.get_layout_info(),
             )
         else:
@@ -159,7 +170,7 @@ class OmCheetahMixin:
         )
 
         # An array to store processed data converted to float32 (required by CrystFEL)
-        self._float_detector_data: NDArray[numpy.float_] = numpy.zeros(
+        self._float_detector_data: NDArray[numpy.floating[Any]] = numpy.zeros(
             self._processed_data_shape, dtype=numpy.float32
         )
 
@@ -220,7 +231,7 @@ class OmCheetahMixin:
 
     def common_process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
-    ) -> tuple[NDArray[numpy.float_ | numpy.int_], PeakList, bool]:
+    ) -> tuple[NDArray[numpy.floating[Any] | numpy.signedinteger[Any]], PeakList, bool]:
         """
         Processes a detector data frame.
 
@@ -269,9 +280,9 @@ class OmCheetahMixin:
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
         )
-        binned_detector_data: NDArray[numpy.float_ | numpy.int_] = (
-            self._post_processing_binning.bin_detector_data(data=data["detector_data"])
-        )
+        binned_detector_data: NDArray[
+            numpy.floating[Any] | numpy.signedinteger[Any]
+        ] = self._post_processing_binning.bin_detector_data(data=data["detector_data"])
 
         # Add data to the class sums
         self._class_sum_accumulator.add_frame(
@@ -585,7 +596,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             received_data["filename"],
             received_data["index"],
             received_data["peak_list"].num_peaks,
-            numpy.mean(received_data["peak_list"].intensity),
+            numpy.mean(cast(numpy.floating[Any], received_data["peak_list"].intensity)),
         )
         self._list_files_writer.add_frame(
             frame_data=frame_data, peak_list=received_data["peak_list"]
@@ -882,21 +893,24 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 self._handle_external_requests()
 
             last_request: tuple[bytes, bytes] = self._request_list[-1]
-            data_to_send: Any = msgpack.packb(
-                {
-                    "detector_data": received_data["detector_data"],
-                    "peak_list": asdict(received_data["peak_list"]),
-                    "beam_energy": received_data["beam_energy"],
-                    "detector_distance": received_data["detector_distance"],
-                    "event_id": received_data["event_id"],
-                    "timestamp": received_data["timestamp"],
-                    "source": self._source,
-                    "configuration_file": str(self._configuration_file),
-                },
-                use_bin_type=True,
+            data_to_send: Any = (  # pyright: ignore[reportUnknownVariableType]
+                msgpack.packb(  # pyright: ignore[reportUnknownMemberType]
+                    {
+                        "detector_data": received_data["detector_data"],
+                        "peak_list": asdict(received_data["peak_list"]),
+                        "beam_energy": received_data["beam_energy"],
+                        "detector_distance": received_data["detector_distance"],
+                        "event_id": received_data["event_id"],
+                        "timestamp": received_data["timestamp"],
+                        "source": self._source,
+                        "configuration_file": str(self._configuration_file),
+                    },
+                    use_bin_type=True,
+                )
             )
             self._responding_socket.send_data(
-                identity=last_request[0], message=data_to_send
+                identity=last_request[0],
+                message=data_to_send,  # pyright: ignore[reportUnknownArgumentType]
             )
             _ = self._request_list.pop()
 
@@ -908,7 +922,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             "",
             -1,
             received_data["peak_list"].num_peaks,
-            numpy.mean(received_data["peak_list"].intensity),
+            numpy.mean(cast(numpy.floating[Any], received_data["peak_list"].intensity)),
         )
         self._list_files_writer.add_frame(
             frame_data=frame_data, peak_list=received_data["peak_list"]

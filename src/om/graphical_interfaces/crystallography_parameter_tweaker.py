@@ -22,11 +22,11 @@ This module contains a graphical interface that can be used to test peak-finding
 parameters in real time during crystallography experiments.
 """
 
-from collections import deque
 import copy
 import signal
 import sys
 import time
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +43,7 @@ from om.lib.exceptions import OmMissingDependencyError
 from om.lib.files import load_configuration_parameters
 from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.logging import log
+from om.lib.parameters import MonitorParameters
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
@@ -52,7 +53,7 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # type: ignore
+    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
@@ -69,7 +70,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, url: str, parameters: dict[str, Any]):
+    def __init__(self, *, url: str, parameters: MonitorParameters):
         """
         OM Parameter Tweaker for Crystallography.
 
@@ -96,23 +97,23 @@ class CrystallographyParameterTweaker(OmGuiBase):
             tag="omtweakingdata",
         )
 
-        if "crystallography" not in parameters:
+        if parameters.crystallography is None:
             raise AttributeError(
                 "The following section must be present in the configuration file: "
                 "crystallography"
             )
 
-        if "peakfinder8_peak_detection" not in parameters:
+        if parameters.peakfinder8_peak_detection is None:
             raise AttributeError(
                 "The following section must be present in the configuration file: "
                 "peakfinder8_peak_detection"
             )
 
         parameter_tweaker_parameters: _ParameterTweakerParameters = (
-            _ParameterTweakerParameters.model_validate(parameters["crystallography"])
+            _ParameterTweakerParameters.model_validate(parameters.crystallography)
         )
 
-        self._img: NDArray[numpy.float_] | None = None
+        self._img: NDArray[numpy.floating[Any]] | None = None
         self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
@@ -131,27 +132,31 @@ class CrystallographyParameterTweaker(OmGuiBase):
             pixel_maps=geometry_information.get_pixel_maps()
         )
 
-        self._visual_pixel_map_x: NDArray[numpy.int_] = (
+        self._visual_pixel_map_x: NDArray[numpy.signedinteger[Any]] = (
             self._data_visualizer.get_visualization_pixel_maps().x.ravel()
         )
-        self._visual_pixel_map_y: NDArray[numpy.int_] = (
+        self._visual_pixel_map_y: NDArray[numpy.signedinteger[Any]] = (
             self._data_visualizer.get_visualization_pixel_maps().y.ravel()
         )
 
-        self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
+        self._assembled_img: NDArray[numpy.floating[Any]] = numpy.zeros(
             shape=self._data_visualizer.get_min_array_shape_for_visualization(),
             dtype=numpy.float32,
         )
 
         self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-            parameters=parameters["peakfinder8_peak_detection"],
+            parameters=parameters.peakfinder8_peak_detection,
             radius_pixel_map=geometry_information.get_pixel_maps().radius,
             layout_info=geometry_information.get_layout_info(),
         )
 
-        pyqtgraph.setConfigOption("background", 0.2)
+        pyqtgraph.setConfigOption(  # pyright: ignore[reportUnknownMemberType]
+            "background", 0.2
+        )
 
-        self._ring_pen: Any = pyqtgraph.mkPen("r", width=2)
+        self._ring_pen: Any = pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+            "r", width=2
+        )
         self._peak_canvas: Any = pyqtgraph.ScatterPlotItem()
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -159,150 +164,342 @@ class CrystallographyParameterTweaker(OmGuiBase):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._peak_canvas)
 
-        self._back_button: Any = QtWidgets.QPushButton(text="Back")
-        self._back_button.clicked.connect(self._back_button_clicked)
+        self._back_button: Any = QtWidgets.QPushButton(  # pyright: ignore[reportUnknownMemberType]
+            text="Back"
+        )
+        self._back_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._back_button_clicked
+        )
 
-        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
-        self._forward_button.clicked.connect(self._forward_button_clicked)
+        self._forward_button: Any = QtWidgets.QPushButton(  # pyright: ignore[reportUnknownMemberType]
+            text="Forward"
+        )
+        self._forward_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._forward_button_clicked
+        )
 
-        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
-        self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
+        self._play_pause_button: Any = (
+            QtWidgets.QPushButton(text="Pause")  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._play_pause_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._play_pause_button_clicked
+        )
 
-        self._float_regex: Any = QtCore.QRegExp(r"[0-9.,]+")
-        self._float_validator: Any = QtGui.QRegExpValidator()
-        self._float_validator.setRegExp(self._float_regex)
+        self._float_regex: Any = QtCore.QRegExp(  # pyright: ignore[reportUnknownMemberType]
+            r"[0-9.,]+"
+        )
+        self._float_validator: Any = (
+            QtGui.QRegExpValidator()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._float_validator.setRegExp(  # pyright: ignore[reportUnknownMemberType]
+            self._float_regex  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._int_regex: Any = QtCore.QRegExp(r"[0-9]+")
-        self._int_validator: Any = QtGui.QRegExpValidator()
-        self._int_validator.setRegExp(self._int_regex)
+        self._int_regex: Any = QtCore.QRegExp(  # pyright: ignore[reportUnknownMemberType]
+            r"[0-9]+"
+        )
+        self._int_validator: Any = (
+            QtGui.QRegExpValidator()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._int_validator.setRegExp(  # pyright: ignore[reportUnknownMemberType]
+            self._int_regex  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._param_label: Any = QtWidgets.QLabel(self)
-        self._param_label.setText("<b>Peakfinder Parameters:</b>")
+        self._param_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._param_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "<b>Peakfinder Parameters:</b>"
+        )
 
-        self._adc_threshold_label: Any = QtWidgets.QLabel(self)
-        self._adc_threshold_label.setText("adc_threshold")
-        self._adc_threshold_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._adc_threshold_line_edit.setText(
+        self._adc_threshold_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._adc_threshold_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "adc_threshold"
+        )
+        self._adc_threshold_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._adc_threshold_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
             str(self._peak_detection.get_adc_thresh())
         )
-        self._adc_threshold_line_edit.setValidator(self._float_validator)
-        self._adc_threshold_line_edit.editingFinished.connect(
+        self._adc_threshold_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._float_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._adc_threshold_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout2: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout2.addWidget(self._adc_threshold_label)
-        self._horizontal_layout2.addWidget(self._adc_threshold_line_edit)
+        self._horizontal_layout2: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout2.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._adc_threshold_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout2.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._adc_threshold_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._min_snr_label: Any = QtWidgets.QLabel(self)
-        self._min_snr_label.setText("minimum_snr")
-        self._min_snr_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._min_snr_line_edit.setText(str(self._peak_detection.get_minimum_snr()))
-        self._min_snr_line_edit.setValidator(self._float_validator)
-        self._min_snr_line_edit.editingFinished.connect(
+        self._min_snr_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_snr_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "minimum_snr"
+        )
+        self._min_snr_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_snr_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
+            str(self._peak_detection.get_minimum_snr())  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_snr_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._float_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_snr_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout3: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout3.addWidget(self._min_snr_label)
-        self._horizontal_layout3.addWidget(self._min_snr_line_edit)
+        self._horizontal_layout3: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout3.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_snr_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout3.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_snr_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._min_pixel_count_label: Any = QtWidgets.QLabel(self)
-        self._min_pixel_count_label.setText("min_pixel_count")
-        self._min_pixel_count_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._min_pixel_count_line_edit.setText(
+        self._min_pixel_count_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_pixel_count_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "min_pixel_count"
+        )
+        self._min_pixel_count_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_pixel_count_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
             str(self._peak_detection.get_min_pixel_count())
         )
-        self._min_pixel_count_line_edit.setValidator(self._int_validator)
-        self._min_pixel_count_line_edit.editingFinished.connect(
+        self._min_pixel_count_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._int_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_pixel_count_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout4: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout4.addWidget(self._min_pixel_count_label)
-        self._horizontal_layout4.addWidget(self._min_pixel_count_line_edit)
+        self._horizontal_layout4: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout4.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_pixel_count_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout4.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_pixel_count_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._max_pixel_count_label: Any = QtWidgets.QLabel(self)
-        self._max_pixel_count_label.setText("max_pixel_count")
-        self._max_pixel_count_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._max_pixel_count_line_edit.setText(
+        self._max_pixel_count_label: Any = (  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_pixel_count_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "max_pixel_count"
+        )
+        self._max_pixel_count_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_pixel_count_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
             str(self._peak_detection.get_max_pixel_count())
         )
-        self._max_pixel_count_line_edit.setValidator(self._int_validator)
-        self._max_pixel_count_line_edit.editingFinished.connect(
+        self._max_pixel_count_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._int_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_pixel_count_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout5: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout5.addWidget(self._max_pixel_count_label)
-        self._horizontal_layout5.addWidget(self._max_pixel_count_line_edit)
+        self._horizontal_layout5: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout5.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._max_pixel_count_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout5.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._max_pixel_count_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._local_bg_radius_label: Any = QtWidgets.QLabel(self)
-        self._local_bg_radius_label.setText("local_bg_radius")
-        self._local_bg_radius_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._local_bg_radius_line_edit.setText(
+        self._local_bg_radius_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._local_bg_radius_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "local_bg_radius"
+        )
+        self._local_bg_radius_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._local_bg_radius_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
             str(self._peak_detection.get_local_bg_radius())
         )
-        self._local_bg_radius_line_edit.setValidator(self._int_validator)
-        self._local_bg_radius_line_edit.editingFinished.connect(
+        self._local_bg_radius_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._int_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._local_bg_radius_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout6: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout6.addWidget(self._local_bg_radius_label)
-        self._horizontal_layout6.addWidget(self._local_bg_radius_line_edit)
+        self._horizontal_layout6: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout6.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._local_bg_radius_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout6.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._local_bg_radius_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._min_res_label: Any = QtWidgets.QLabel(self)
-        self._min_res_label.setText("min_res")
-        self._min_res_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._min_res_line_edit.setText(str(self._peak_detection.get_min_res()))
-        self._min_res_line_edit.setValidator(self._int_validator)
-        self._min_res_line_edit.editingFinished.connect(
+        self._min_res_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_res_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "min_res"
+        )
+        self._min_res_line_edit: Any = QtWidgets.QLineEdit(  # pyright: ignore[reportUnknownMemberType]
+            self
+        )
+        self._min_res_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
+            str(self._peak_detection.get_min_res())
+        )
+        self._min_res_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._int_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_res_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout7: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout7.addWidget(self._min_res_label)
-        self._horizontal_layout7.addWidget(self._min_res_line_edit)
+        self._horizontal_layout7: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout7.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_res_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout7.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_res_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._max_res_label: Any = QtWidgets.QLabel(self)
-        self._max_res_label.setText("max_res")
-        self._max_res_line_edit: Any = QtWidgets.QLineEdit(self)
-        self._max_res_line_edit.setText(str(self._peak_detection.get_max_res()))
-        self._max_res_line_edit.setValidator(self._int_validator)
-        self._max_res_line_edit.editingFinished.connect(
+        self._max_res_label: Any = (
+            QtWidgets.QLabel(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_res_label.setText(  # pyright: ignore[reportUnknownMemberType]
+            "max_res"
+        )
+        self._max_res_line_edit: Any = (
+            QtWidgets.QLineEdit(self)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_res_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
+            str(self._peak_detection.get_max_res())
+        )
+        self._max_res_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._int_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_res_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_peak_detection_parameters
         )
-        self._horizontal_layout8: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout8.addWidget(self._max_res_label)
-        self._horizontal_layout8.addWidget(self._max_res_line_edit)
+        self._horizontal_layout8: Any = QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        self._horizontal_layout8.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._max_res_label  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout8.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._max_res_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._splitter: Any = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
-        self._horizontal_layout1: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout1.addWidget(self._back_button)
-        self._horizontal_layout1.addWidget(self._forward_button)
-        self._horizontal_layout1.addWidget(self._play_pause_button)
-        self._vertical_layout_0: Any = QtWidgets.QVBoxLayout()
-        self._vertical_layout_0.addWidget(self._image_view)
-        self._vertical_layout_0.addLayout(self._horizontal_layout1)
+        self._splitter: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter(QtCore.Qt.Horizontal)  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout1: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout1.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._back_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout1.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._forward_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout1.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._play_pause_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_0: Any = (
+            QtWidgets.QVBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._image_view
+        )
+        self._vertical_layout_0.addLayout(  # pyright: ignore[reportUnknownMemberType]
+            self._horizontal_layout1  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._vertical_layout_1: Any = QtWidgets.QVBoxLayout()
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout8)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout7)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout6)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout5)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout4)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout3)
-        self._vertical_layout_1.insertLayout(0, self._horizontal_layout2)
-        self._vertical_layout_1.insertWidget(0, self._param_label)
-        self._vertical_layout_1.addStretch(1)
-        self._vertical_layout_0_widget: Any = QtWidgets.QWidget()
-        self._vertical_layout_0_widget.setLayout(self._vertical_layout_0)
-        self._vertical_layout_1_widget: Any = QtWidgets.QWidget()
-        self._vertical_layout_1_widget.setLayout(self._vertical_layout_1)
+        self._vertical_layout_1: Any = (
+            QtWidgets.QVBoxLayout()  # pyright: ignore[reportUnknownMemberType]# pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout8,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout7,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout6,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout5,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout4,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout3,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertLayout(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._horizontal_layout2,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.insertWidget(  # pyright: ignore[reportUnknownMemberType]
+            0,
+            self._param_label,  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1.addStretch(  # pyright: ignore[reportUnknownMemberType]
+            1
+        )
+        self._vertical_layout_0_widget: Any = (  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_0_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            self._vertical_layout_0  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1_widget: Any = (  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout_1_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            self._vertical_layout_1  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._splitter.addWidget(self._vertical_layout_0_widget)
-        self._splitter.addWidget(self._vertical_layout_1_widget)
-        self._splitter.setStretchFactor(0, 3)
-        self._splitter.setStretchFactor(1, 1)
+        self._splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._vertical_layout_0_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._splitter.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._vertical_layout_1_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._splitter.setStretchFactor(  # pyright: ignore[reportUnknownMemberType]
+            0, 3
+        )
+        self._splitter.setStretchFactor(  # pyright: ignore[reportUnknownMemberType]
+            1, 1
+        )
 
-        self.setCentralWidget(self._splitter)
+        self.setCentralWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._splitter  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self.show()
+        self.show()  # pyright: ignore[reportUnknownMemberType]
 
     def _update_peaks(
         self,
@@ -311,7 +508,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         peak_list_y_in_frame: list[float],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._peak_canvas.setData(
             x=peak_list_x_in_frame,
@@ -366,8 +563,8 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         peak_fs: float
         peak_ss: float
-        peak_value: float
-        for peak_fs, peak_ss, peak_value in zip(
+        _: float
+        for peak_fs, peak_ss, _ in zip(
             peak_list.fs,
             peak_list.ss,
             peak_list.intensity,
@@ -394,7 +591,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
             # If the frame buffer is empty, returns without drawing anything.
             return
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._assembled_img = self._data_visualizer.visualize_data(
             data=current_data["detector_data"],
@@ -408,18 +605,20 @@ class CrystallographyParameterTweaker(OmGuiBase):
             autoHistogramRange=False,
         )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._detect_peaks()
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         time_now: float = time.time()
         estimated_delay: float = round(time_now - current_data["timestamp"], 6)
-        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
+        self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
+            f"Estimated delay: {estimated_delay} seconds"
+        )
 
     def update_gui(self) -> None:
         """
@@ -525,11 +724,17 @@ def main(
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    parameters: dict[str, dict[str, Any]] = load_configuration_parameters(config=config)
+    parameters: MonitorParameters = load_configuration_parameters(config=config)
 
-    app: Any = QtWidgets.QApplication(sys.argv)
+    app: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtWidgets.QApplication(  # pyright: ignore[reportUnknownMemberType]
+            sys.argv
+        )
+    )
     _ = CrystallographyParameterTweaker(url=url, parameters=parameters)
-    sys.exit(app.exec_())
+    sys.exit(
+        app.exec_()  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
+    )
 
 typer_click_object = typer.main.get_command(app)
 

@@ -184,7 +184,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         data_event["additional_info"] = {}
 
         while True:
-            sg: tuple[dict[str, Any], dict[str, Any]] = self._zmq_socket.recv_pyobj()
+            msg: tuple[dict[str, Any], dict[str, Any]] = self._zmq_socket.recv_pyobj()
             data_event["data"] = msg
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)

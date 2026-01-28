@@ -32,7 +32,7 @@ from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
-    from PIL import Image  # type: ignore
+    from PIL import Image
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PIL.Image"
@@ -91,7 +91,7 @@ class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.floating[Any]]:
         """
         Retrieves an Eiger 16M detector data frame from files.
 
@@ -110,7 +110,7 @@ class PilatusSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
 
             A detector data frame.
         """
-        return cast(NDArray[numpy.float_], event["data"].data)
+        return cast(NDArray[numpy.floating[Any]], event["data"].data)
 
 
 class Eiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
@@ -138,7 +138,7 @@ class Eiger16MFiles(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
             A detector data frame.
         """
         return cast(
-            NDArray[numpy.int_],
+            NDArray[numpy.signedinteger[Any]],
             event["additional_info"]["h5file"]["entry/data/data"][
                 event["additional_info"]["index"]
             ],
@@ -150,7 +150,7 @@ class RayonixMccdSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtoco
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.int_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.signedinteger[Any]]:
         """
         Retrieves a Rayonix MX340-HS detector data frame from files.
 
@@ -171,7 +171,7 @@ class RayonixMccdSingleFrameFiles(OmBaseFileDataSourceMixin, OmDataSourceProtoco
         """
         img: Any
         with Image.open(event["additional_info"]["full_path"]) as img:
-            data: NDArray[numpy.int_] = numpy.array(img)
+            data: NDArray[numpy.signedinteger[Any]] = numpy.array(img)
         return data
 
 
@@ -182,7 +182,7 @@ class Lambda1M5Files(OmBaseFileDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves a Lambda 1.5M detector data frame from files.
 
@@ -414,7 +414,7 @@ class Jungfrau1MFiles(OmJungfrau1MDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves a Jungfrau 1M detector data frame from a file-based event.
 

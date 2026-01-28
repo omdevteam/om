@@ -26,7 +26,7 @@ from typing import Any, cast
 
 import numpy
 from numpy.typing import NDArray
-from scipy import constants  # type: ignore
+from scipy import constants
 
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.parameters import DataSourceParameters
@@ -92,7 +92,7 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves a detector data frame from ASAP::O.
 
@@ -113,8 +113,8 @@ class DetectorDataAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         """
         # TODO: Fix type hinting
         return cast(
-            NDArray[numpy.float_ | numpy.int_],
-            seedee.deserialize(
+            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
+            seedee.deserialize(  # pyright: ignore[reportUnknownMemberType]
                 event["data"], event["metadata"]["meta"]["_data_format"]
             ),
         )

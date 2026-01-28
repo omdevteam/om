@@ -23,16 +23,13 @@ between the processing and collecting nodes. Modules in this package contain fun
 and classes for specific communication approaches or techniques.
 """
 
-import mpi4py  # noqa: F401
+from importlib.machinery import ModuleSpec
+from importlib.util import find_spec
 
-from .mpi import MpiParallelization  # noqa: F401
+from .multiprocessing import (
+    MultiprocessingParallelization as MultiprocessingParallelization,
+)
 
-try:
-    import mpi4py  # noqa: F401
-
-    from .mpi import MpiParallelization  # noqa: F401
-
-except ModuleNotFoundError:
-    ...
-
-from .multiprocessing import MultiprocessingParallelization  # noqa: F401
+spec: ModuleSpec | None = find_spec("mpi4py")
+if spec is not None:
+    from .mpi import MpiParallelization as MpiParallelization

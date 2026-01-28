@@ -30,7 +30,7 @@ from typing import Any
 import numpy
 import typer
 from numpy.typing import NDArray
-from scipy import constants  # type: ignore
+from scipy import constants
 from typing_extensions import Annotated
 
 from om.graphical_interfaces.common import OmGuiBase
@@ -45,7 +45,8 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # type: ignore
+    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
+
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
@@ -107,9 +108,13 @@ class CrystallographyGui(OmGuiBase):
 
         self._received_data: dict[str, Any] = {}
 
-        pyqtgraph.setConfigOption("background", 0.2)
+        pyqtgraph.setConfigOption(  # pyright: ignore[reportUnknownMemberType]
+            "background", 0.2
+        )
 
-        self._resolution_rings_pen: Any = pyqtgraph.mkPen("r", width=0.5)
+        self._resolution_rings_pen: Any = pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+            "r", width=0.5
+        )
         self._resolution_rings_canvas: Any = pyqtgraph.ScatterPlotItem()
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -117,23 +122,33 @@ class CrystallographyGui(OmGuiBase):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._resolution_rings_canvas)
 
-        self._resolution_rings_regex: Any = QtCore.QRegExp(r"[0-9.,]+")
-        self._resolution_rings_validator: Any = QtGui.QRegExpValidator()
-        self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
+        self._resolution_rings_regex: Any = QtCore.QRegExp(  # pyright: ignore[reportUnknownMemberType]
+            r"[0-9.,]+"
+        )
+        self._resolution_rings_validator: Any = QtGui.QRegExpValidator()  # pyright: ignore[reportUnknownMemberType]
+        self._resolution_rings_validator.setRegExp(  # pyright: ignore[reportUnknownMemberType]
+            self._resolution_rings_regex  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._resolution_rings_check_box: Any = QtWidgets.QCheckBox(
+        self._resolution_rings_check_box: Any = QtWidgets.QCheckBox(  # pyright: ignore[reportUnknownMemberType]
             text="Show Resolution Rings"
         )
-        self._resolution_rings_check_box.setEnabled(True)
-        self._resolution_rings_line_edit: Any = QtWidgets.QLineEdit()
-        self._resolution_rings_line_edit.setValidator(self._resolution_rings_validator)
-        self._resolution_rings_line_edit.setText(
+        self._resolution_rings_check_box.setEnabled(  # pyright: ignore[reportUnknownMemberType]
+            True
+        )
+        self._resolution_rings_line_edit: Any = QtWidgets.QLineEdit()  # pyright: ignore[reportUnknownMemberType]
+        self._resolution_rings_line_edit.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._resolution_rings_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._resolution_rings_line_edit.setText(  # pyright: ignore[reportUnknownMemberType]
             ",".join(str(x) for x in self._resolution_rings_in_a)
         )
-        self._resolution_rings_line_edit.editingFinished.connect(
+        self._resolution_rings_line_edit.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_resolution_rings_radii
         )
-        self._resolution_rings_line_edit.setEnabled(True)
+        self._resolution_rings_line_edit.setEnabled(  # pyright: ignore[reportUnknownMemberType]
+            True
+        )
 
         self._hit_rate_plot_widget: Any = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
@@ -149,43 +164,81 @@ class CrystallographyGui(OmGuiBase):
         self._peakogram_plot_widget = pyqtgraph.PlotWidget(
             title="Peakogram", lockAspect=False
         )
-        self._peakogram_plot_widget.showGrid(x=True, y=True)
-        self._peakogram_plot_widget.setLabel(
+        self._peakogram_plot_widget.showGrid(  # pyright: ignore[reportUnknownMemberType]
+            x=True, y=True
+        )
+        self._peakogram_plot_widget.setLabel(  # pyright: ignore[reportUnknownMemberType]
             axis="left", text="Peak maximum intensity, AU"
         )
-        self._peakogram_plot_widget.setLabel(
+        self._peakogram_plot_widget.setLabel(  # pyright: ignore[reportUnknownMemberType]
             axis="bottom",
             text="Resolution, pixels",
         )
         self._peakogram_plot_image_view = pyqtgraph.ImageView(
             view=self._peakogram_plot_widget.getPlotItem(),
         )
-        self._peakogram_plot_image_view.ui.roiBtn.hide()
-        self._peakogram_plot_image_view.ui.menuBtn.hide()
-        self._peakogram_plot_image_view.view.invertY(False)
-        self._peakogram_plot_image_view.setColorMap(pyqtgraph.colormap.get("CET-I1"))
+        self._peakogram_plot_image_view.ui.roiBtn.hide()  # pyright: ignore[reportUnknownMemberType]
+        self._peakogram_plot_image_view.ui.menuBtn.hide()  # pyright: ignore[reportUnknownMemberType]
+        self._peakogram_plot_image_view.view.invertY(  # pyright: ignore[reportUnknownMemberType]
+            False
+        )
+        self._peakogram_plot_image_view.setColorMap(  # pyright: ignore[reportUnknownMemberType]
+            pyqtgraph.colormap.get("CET-I1")  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self._resolution_rings_check_box.stateChanged.connect(
+        self._resolution_rings_check_box.stateChanged.connect(  # pyright: ignore[reportUnknownMemberType]
             self._update_resolution_rings_status
         )
 
-        horizontal_layout: Any = QtWidgets.QHBoxLayout()
-        horizontal_layout.addWidget(self._resolution_rings_check_box)
-        horizontal_layout.addWidget(self._resolution_rings_line_edit)
-        splitter_1: Any = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        splitter_1.addWidget(self._hit_rate_plot_widget)
-        splitter_1.addWidget(self._peakogram_plot_image_view)
-        splitter_0: Any = QtWidgets.QSplitter()
-        splitter_0.addWidget(self._image_view)
-        splitter_0.addWidget(splitter_1)
-        vertical_layout: Any = QtWidgets.QVBoxLayout()
-        vertical_layout.addWidget(splitter_0)
-        vertical_layout.addLayout(horizontal_layout)
-        self._central_widget: Any = QtWidgets.QWidget()
-        self._central_widget.setLayout(vertical_layout)
-        self.setCentralWidget(self._central_widget)
-        self.resize(1200, 600)
-        self.show()
+        horizontal_layout: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._resolution_rings_check_box  # pyright: ignore[reportUnknownMemberType]
+        )
+        horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._resolution_rings_line_edit  # pyright: ignore[reportUnknownMemberType]
+        )
+        splitter_1: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter(  # pyright: ignore[reportUnknownMemberType]
+                QtCore.Qt.Vertical  # pyright: ignore[reportUnknownMemberType]
+            )
+        )
+        splitter_1.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._hit_rate_plot_widget
+        )
+        splitter_1.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._peakogram_plot_image_view
+        )
+        splitter_0: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter()  # pyright: ignore[reportUnknownMemberType]
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._image_view
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            splitter_1
+        )
+        vertical_layout: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QVBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        vertical_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            splitter_0
+        )
+        vertical_layout.addLayout(  # pyright: ignore[reportUnknownMemberType]
+            horizontal_layout
+        )
+        self._central_widget: Any = QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        self._central_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            vertical_layout
+        )
+        self.setCentralWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._central_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+        self.resize(  # pyright: ignore[reportUnknownMemberType]
+            1200, 600
+        )
+        self.show()  # pyright: ignore[reportUnknownMemberType]
 
     def _update_resolution_rings_status(self) -> None:
         if self._virtual_powder_plot_img is None:
@@ -237,7 +290,7 @@ class CrystallographyGui(OmGuiBase):
         if self._resolution_rings_enabled is False:
             return
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         try:
             lambda_: float = (
@@ -283,7 +336,7 @@ class CrystallographyGui(OmGuiBase):
                     self._img_center_y,
                 )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
     def update_gui(self) -> None:
         """
@@ -330,7 +383,7 @@ class CrystallographyGui(OmGuiBase):
         else:
             self._virtual_powder_plot_img = local_data["virtual_powder_plot"]
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         if local_data["geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
@@ -343,7 +396,7 @@ class CrystallographyGui(OmGuiBase):
             if self._resolution_rings_check_box.isChecked() is True:
                 self._resolution_rings_check_box.setChecked(False)
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._hit_rate_plot.setData(
             tuple(range(-5000, 0)), local_data["hit_rate_history"]
@@ -354,7 +407,9 @@ class CrystallographyGui(OmGuiBase):
                 self._hit_rate_plot_dark = self._hit_rate_plot_widget.plot(
                     tuple(range(-5000, 0)),
                     local_data["hit_rate_history"],
-                    pen=pyqtgraph.mkPen(color="light green"),
+                    pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                        color="light green"
+                    ),
                 )
             else:
                 self._hit_rate_plot_dark.setData(
@@ -362,7 +417,7 @@ class CrystallographyGui(OmGuiBase):
                     local_data["hit_rate_history_dark"],
                 )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         if self._virtual_powder_plot_img is not None:
             self._image_view.setImage(
@@ -374,11 +429,11 @@ class CrystallographyGui(OmGuiBase):
 
         self._draw_resolution_rings()
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
-        peakogram: NDArray[numpy.float_] = local_data["peakogram"]
+        peakogram: NDArray[numpy.floating[Any]] = local_data["peakogram"]
         peakogram[numpy.where(peakogram == 0)] = numpy.nan
-        self._peakogram_plot_image_view.setImage(
+        self._peakogram_plot_image_view.setImage(  # pyright: ignore[reportUnknownMemberType]
             numpy.log(peakogram),
             pos=(0, 0),
             scale=(
@@ -389,16 +444,20 @@ class CrystallographyGui(OmGuiBase):
             autoLevels=False,
             autoHistogramRange=False,
         )
-        self._peakogram_plot_widget.setAspectLocked(False)
+        self._peakogram_plot_widget.setAspectLocked(  # pyright: ignore[reportUnknownMemberType]
+            False
+        )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         time_now: float = time.time()
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
-        self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
+        self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
+            f"Estimated delay: {estimated_delay}"
+        )
 
 @app.command()
 def main(
@@ -425,9 +484,15 @@ def main(
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    app: Any = QtWidgets.QApplication(sys.argv)
+    app: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtWidgets.QApplication(  # pyright: ignore[reportUnknownMemberType]
+            sys.argv
+        )
+    )
     _ = CrystallographyGui(url=url)
-    sys.exit(app.exec_())
+    sys.exit(
+        app.exec_()  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+    )
 
 typer_click_object = typer.main.get_command(app)
 

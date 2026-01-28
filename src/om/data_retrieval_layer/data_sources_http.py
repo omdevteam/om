@@ -27,7 +27,7 @@ from typing import Any
 
 import numpy
 from numpy.typing import NDArray
-from PIL import Image  # type: ignore
+from PIL import Image
 
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
@@ -87,7 +87,7 @@ class Eiger16MHttp(OmBaseGenericDataSourceMixin, OmDataSourceProtocol):
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> NDArray[numpy.float_ | numpy.int_]:
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves an Eiger 16M detector data frame.
 

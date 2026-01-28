@@ -24,7 +24,7 @@ the psana2 software framework (used at the LCLS facility).
 
 import os
 import sys
-from typing import Any, ContextManager, Generator, Literal
+from typing import Any, ContextManager, Generator, Literal, cast
 
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,
@@ -141,18 +141,16 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                 log.error("Part of the source string for psana2 cannot be parsed:")
                 log.error(f"{item}")
                 sys.exit(1)
-        self._psana_source: Any = (
-            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                **(self._source_dict)
-            )
+        self._psana_source: Any = psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
+            **(self._source_dict)
         )
 
-        if not "exp" in self._source_dict:
+        if "exp" not in self._source_dict:
             self._offline: bool = True
         else:
-            self._offline: bool = False
+            self._offline = False
 
-        self._context: ContextManage | None = None
+        self._context: ContextManager[Any] | None = None
 
     def designated_collector_rank(self) -> Literal["first", "last"]:
         return "last"
@@ -250,9 +248,9 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             data_event["additional_info"]["timestamp"] = instantiated_data_sources[
                 "timestamp"
             ].get_data(event=data_event)
-            data_event["additional_info"][
-                "instantiated_data_sources"
-            ] = instantiated_data_sources
+            data_event["additional_info"]["instantiated_data_sources"] = (
+                instantiated_data_sources
+            )
 
             yield data_event
 
@@ -323,10 +321,8 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        psana_source: Any = (
-            psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                **(self._source_dict)
-            )
+        psana_source: Any = psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
+            **(self._source_dict)
         )
 
         self._run: Any = next(psana_source.runs())
@@ -339,7 +335,7 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             )
         )
 
-        self._context = self._run.build_table()
+        self._context = cast(ContextManager[Any], self._run.build_table())
         self._context.__enter__()
 
     def retrieve_event_data(self, event_id: str) -> dict[str, Any]:

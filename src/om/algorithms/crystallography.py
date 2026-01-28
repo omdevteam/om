@@ -24,7 +24,7 @@ dictionaries that store data produced or required by these algorithms.
 """
 
 import random
-from typing import cast
+from typing import Any, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -33,12 +33,11 @@ from om.algorithms.common import PeakList
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import DetectorLayoutInformation
 from om.lib.parameters import Peakfinder8PeakDetectionParameters
-from om.lib.protocols import OmPeakDetectionProtocol
 
 from ._crystallography_cython import peakfinder_8  # type: ignore
 
 
-class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
+class Peakfinder8PeakDetection:
     """
     See documentation of the `__init__` function.
     """
@@ -46,7 +45,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float_],
+        radius_pixel_map: NDArray[numpy.floating[Any]],
         layout_info: DetectorLayoutInformation,
         parameters: Peakfinder8PeakDetectionParameters,
     ) -> None:
@@ -150,8 +149,8 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             parameters.bad_pixel_map_filename is not None
             and parameters.bad_pixel_map_hdf5_path is not None
         ):
-            self._bad_pixel_map: NDArray[numpy.int_] | None = cast(
-                NDArray[numpy.int_] | None,
+            self._bad_pixel_map: NDArray[numpy.signedinteger[Any]] | None = cast(
+                NDArray[numpy.signedinteger[Any]] | None,
                 load_hdf5_data(
                     hdf5_filename=parameters.bad_pixel_map_filename,
                     hdf5_path=parameters.bad_pixel_map_hdf5_path,
@@ -161,7 +160,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._bad_pixel_map = None
 
         self._mask: NDArray[numpy.int_] | None = None
-        self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
+        self._radius_pixel_map: NDArray[numpy.floating[Any]] = radius_pixel_map
 
         self._radial_stats_pixel_index: NDArray[numpy.int_] | None = None
         self._radial_stats_radius: NDArray[numpy.int_] | None = None
@@ -208,8 +207,10 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._bad_pixel_map = bad_pixel_map
         self._mask = None
 
-    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
-        self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
+    def set_radius_pixel_map(
+        self, radius_pixel_map: NDArray[numpy.floating[Any]]
+    ) -> None:
+        self._radius_pixel_map = radius_pixel_map.astype(numpy.floating[Any])
         if self._peakfinder8_parameters.fast_mode is True:
             self._compute_radial_stats_pixels(
                 num_pixels_per_bin=self._num_pixels_per_bin
@@ -422,7 +423,7 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
         self._mask = None
 
     def find_peaks(
-        self, *, data: NDArray[numpy.int_] | NDArray[numpy.float_]
+        self, *, data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
     ) -> PeakList:
         """
         Finds peaks in a detector data frame.
@@ -448,24 +449,27 @@ class Peakfinder8PeakDetection(OmPeakDetectionProtocol):
             self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
 
-        peak_list: tuple[list[float], ...] = peakfinder_8(
-            self._max_num_peaks,
-            data.astype(numpy.float32),
-            self._mask,
-            self._radius_pixel_map,
-            self._radial_stats_num_pixels,
-            self._radial_stats_pixel_index,
-            self._radial_stats_radius,
-            int(self._peakfinder8_parameters.fast_mode),
-            self._asic_nx,
-            self._asic_ny,
-            self._nasics_x,
-            self._nasics_y,
-            self._adc_thresh,
-            self._minimum_snr,
-            self._min_pixel_count,
-            self._max_pixel_count,
-            self._local_bg_radius,
+        peak_list: tuple[list[float], ...] = cast(
+            tuple[list[float], ...],
+            peakfinder_8(
+                self._max_num_peaks,
+                data.astype(numpy.float32),
+                self._mask,
+                self._radius_pixel_map,
+                self._radial_stats_num_pixels,
+                self._radial_stats_pixel_index,
+                self._radial_stats_radius,
+                int(self._peakfinder8_parameters.fast_mode),
+                self._asic_nx,
+                self._asic_ny,
+                self._nasics_x,
+                self._nasics_y,
+                self._adc_thresh,
+                self._minimum_snr,
+                self._min_pixel_count,
+                self._max_pixel_count,
+                self._local_bg_radius,
+            ),
         )
 
         return PeakList(

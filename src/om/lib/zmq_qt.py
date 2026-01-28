@@ -38,12 +38,16 @@ except ImportError:
     )
 
 
-class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
+class ZmqDataListener(
+    QtCore.QObject  # pyright: ignore[reportUntypedBaseClass, reportUnknownMemberType]
+):
     """
     See documentation for the `__init__` function.
     """
 
-    zmqmessage: Any = QtCore.pyqtSignal(dict)
+    zmqmessage: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtCore.pyqtSignal(dict)  # pyright: ignore[reportUnknownMemberType]
+    )
     """
     Qt signal emitted when data is received.
 
@@ -84,7 +88,7 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
             tag: The label used by the socket to filter incoming data. Only data whose
                 label matches this argument will be accepted and received.
         """
-        QtCore.QObject.__init__(self)
+        QtCore.QObject.__init__(self)  # pyright: ignore[reportUnknownMemberType]
         self._url: str | None = url
         self._subscription_string: str = tag
         self._zmq_context: Any = zmq.Context()
@@ -93,8 +97,12 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore[misc]
 
         # Initializes the listening timer. Every time this timer ticks, an instance of
         # this class tries to read from the socket.
-        self._listening_timer: Any = QtCore.QTimer()
-        self._listening_timer.timeout.connect(self._listen)
+        self._listening_timer: Any = (
+            QtCore.QTimer()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._listening_timer.timeout.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._listen
+        )
 
     def start_listening(self) -> None:
         """

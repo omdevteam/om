@@ -30,7 +30,6 @@ from typing import Any, Generator, Literal
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import data_sources_psana
 from om.data_retrieval_layer.data_event_handlers_common import instantiate_data_sources
 from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
 from om.lib.parameters import DataRetrievalLayerParameters
@@ -48,7 +47,7 @@ except ImportError:
 class _AsapoEvent:
     # This named tuple is used internally to store ASAP::O event data, metadata and
     # corresponding ASAP::O stream information.
-    event_data: NDArray[numpy.float_ | numpy.int_]
+    event_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
     event_metadata: dict[str, Any]
     stream_name: str
     stream_metadata: dict[str, Any]
@@ -109,19 +108,21 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         return False
 
     def _initialize_asapo_consumer(self) -> Any:
-        consumer: Any = asapo_consumer.create_consumer(
-            self._data_retrieval_parameters.asapo_url,
-            self._data_retrieval_parameters.asapo_path,
-            self._data_retrieval_parameters.asapo_has_filesystem,
-            self._source.split(":")[0],
-            self._data_retrieval_parameters.asapo_data_source,
-            self._data_retrieval_parameters.asapo_token,
-            3000,
-            instance_id="auto",
-            pipeline_step="onda_monitor",
+        consumer = (  # pyright: ignore[reportUnknownVariableType]
+            asapo_consumer.create_consumer(  # pyright: ignore[reportUnknownMemberType]
+                self._data_retrieval_parameters.asapo_url,
+                self._data_retrieval_parameters.asapo_path,
+                self._data_retrieval_parameters.asapo_has_filesystem,
+                self._source.split(":")[0],
+                self._data_retrieval_parameters.asapo_data_source,
+                self._data_retrieval_parameters.asapo_token,
+                3000,
+                instance_id="auto",
+                pipeline_step="onda_monitor",
+            )
         )
 
-        return consumer
+        return consumer  # pyright: ignore[reportUnknownVariableType]
 
     def _offline_event_generator(
         self, consumer: Any, consumer_group_id: str, stream_name: str
@@ -130,7 +131,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         while not stream_metadata:
             try:
                 stream_metadata = consumer.get_stream_meta(stream_name)
-            except asapo_consumer.AsapoNoDataError:
+            except asapo_consumer.AsapoNoDataError:  # pyright: ignore[reportUnknownMemberType]
                 print(f"Stream {stream_name} doesn't exist.")
                 time.sleep(5)
 
@@ -142,11 +143,11 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 yield _AsapoEvent(
                     event_data, event_metadata, stream_name, stream_metadata
                 )
-            except asapo_consumer.AsapoNoDataError:
+            except asapo_consumer.AsapoNoDataError:  # pyright: ignore[reportUnknownMemberType]
                 ...
             except (
-                asapo_consumer.AsapoEndOfStreamError,
-                asapo_consumer.AsapoStreamFinishedError,
+                asapo_consumer.AsapoEndOfStreamError,  # pyright: ignore[reportUnknownMemberType]
+                asapo_consumer.AsapoStreamFinishedError,  # pyright: ignore[reportUnknownMemberType]
             ):
                 break
 
@@ -158,7 +159,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             time.sleep(1)
             last_stream = consumer.get_last_stream()["name"]
         stream_metadata: dict[str, Any] = consumer.get_stream_meta(last_stream)
-        event_data: NDArray[numpy.float_ | numpy.int_]
+        event_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
         event_metadata: dict[str, Any]
         while True:
             try:
@@ -169,11 +170,11 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                     event_data, event_metadata, last_stream, stream_metadata
                 )
             except (
-                asapo_consumer.AsapoEndOfStreamError,
-                asapo_consumer.AsapoNoDataError,
-                asapo_consumer.AsapoDataNotInCacheError,
-                asapo_consumer.AsapoStreamFinishedError,
-                asapo_consumer.AsapoWrongInputError,
+                asapo_consumer.AsapoEndOfStreamError,  # pyright: ignore[reportUnknownMemberType]
+                asapo_consumer.AsapoNoDataError,  # pyright: ignore[reportUnknownMemberType]
+                asapo_consumer.AsapoDataNotInCacheError,  # pyright: ignore[reportUnknownMemberType]
+                asapo_consumer.AsapoStreamFinishedError,  # pyright: ignore[reportUnknownMemberType]
+                asapo_consumer.AsapoWrongInputError,  # pyright: ignore[reportUnknownMemberType]
             ):
                 current_stream = consumer.get_last_stream()["name"]
                 if current_stream in (last_stream, ""):
@@ -382,7 +383,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         stream: str = event_id_parts[0].strip()
         asapo_event_id: int = int(event_id_parts[1])
 
-        event_data: NDArray[numpy.float_ | numpy.int_]
+        event_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
         event_metadata: dict[str, Any]
         event_data, event_metadata = self._consumer.get_by_id(
             asapo_event_id,

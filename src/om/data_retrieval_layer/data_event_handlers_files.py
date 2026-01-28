@@ -34,7 +34,7 @@ from typing import (
     cast,
 )
 
-import h5py  # type: ignore
+import h5py  # pyright: ignore[reportMissingTypeStubs]
 import numpy
 from numpy.typing import NDArray
 
@@ -51,7 +51,7 @@ from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
-    import fabio  # type: ignore
+    import fabio  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: fabio"
@@ -218,8 +218,9 @@ class PilatusFilesEventHandler(
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)
             )
 
-            data_event["data"] = fabio.open(data_event["additional_info"]["full_path"])
-
+            data_event["data"] = fabio.open(  # pyright: ignore[reportUnknownMemberType]
+                data_event["additional_info"]["full_path"]
+            )
             yield data_event
 
     def extract_data(
@@ -317,7 +318,9 @@ class PilatusFilesEventHandler(
         data_event["additional_info"]["file_modification_time"] = numpy.float64(
             pathlib.Path(event_id).stat().st_mtime
         )
-        data_event["data"] = fabio.open(pathlib.Path(event_id))
+        data_event["data"] = fabio.open(  # pyright: ignore[reportUnknownMemberType]
+            pathlib.Path(event_id)
+        )
         data_event["additional_info"]["timestamp"] = (
             self._instantiated_data_sources_for_retrieval["timestamp"].get_data(
                 event=data_event

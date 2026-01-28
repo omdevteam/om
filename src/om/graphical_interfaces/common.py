@@ -37,20 +37,30 @@ except ImportError:
     )
 
 
-class _QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
+class _QtMetaclass(
+    type(QtCore.QObject),  # pyright: ignore [reportUnknownArgumentType, reportUnknownMemberType, reportUntypedBaseClass]
+    ABCMeta,
+):
     # This metaclass is used internally to resolve an issue with classes that inherit
     # from Qt and non-Qt classes at the same time.
     pass
 
 
-class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[misc]
+class OmGuiBase(
+    QtWidgets.QMainWindow,  # pyright: ignore [reportUnknownMemberType, reportUntypedBaseClass]
+    metaclass=_QtMetaclass,
+):
     """
     See documentation of the `__init__` function.
     """
 
     # Signals to connect or disconnect from an OM monitor.
-    _listening_thread_start_processing: Any = QtCore.pyqtSignal()
-    _listening_thread_stop_processing: Any = QtCore.pyqtSignal()
+    _listening_thread_start_processing: Any = (  # pyright: ignore [reportUnknownVariableType]
+        QtCore.pyqtSignal()  # pyright: ignore [reportUnknownMemberType]
+    )
+    _listening_thread_stop_processing: Any = (  # pyright: ignore [reportUnknownVariableType]
+        QtCore.pyqtSignal()  # pyright: ignore [reportUnknownMemberType]
+    )
 
     def __init__(self, *, url: str, tag: str):
         """
@@ -81,15 +91,20 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[
             tag: A string used to filter the data received from an OnDA Monitor. The
                 GUI only receives data whose tag matches this argument.
         """
-        super(OmGuiBase, self).__init__()
+        super(
+            OmGuiBase,  # pyright: ignore [reportUnknownMemberType]
+            self,
+        ).__init__()
 
         self._received_data: dict[str, Any] = {}
         self.listening: bool = False
 
         # Initializes an empty status bar
-        self.statusBar().showMessage("")
+        self.statusBar().showMessage("")  # pyright: ignore [reportUnknownMemberType]
 
-        self._data_listener_thread: Any = QtCore.QThread(parent=self)
+        self._data_listener_thread: Any = (
+            QtCore.QThread(parent=self)  # pyright: ignore [reportUnknownMemberType]
+        )
         self._data_listener: ZmqDataListener = ZmqDataListener(url=url, tag=tag)
         self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(
@@ -98,13 +113,22 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore[
         self._listening_thread_stop_processing.connect(
             self._data_listener.stop_listening
         )
-        self._data_listener.moveToThread(self._data_listener_thread)
-        self._data_listener_thread.start()
+        self._data_listener.moveToThread(  # pyright: ignore [reportUnknownMemberType]
+            self._data_listener_thread  # pyright: ignore [reportUnknownMemberType]
+        )
+        self._data_listener_thread.start()  # pyright: ignore [reportUnknownMemberType]
+
         self.start_listening()
 
-        self._refresh_timer = QtCore.QTimer()
-        self._refresh_timer.timeout.connect(self.update_gui)
-        self._refresh_timer.start(500)
+        self._refresh_timer = (  # pyright: ignore [reportUnknownMemberType]
+            QtCore.QTimer()  # pyright: ignore [reportUnknownMemberType]
+        )
+        self._refresh_timer.timeout.connect(  # pyright: ignore [reportUnknownMemberType]
+            self.update_gui
+        )
+        self._refresh_timer.start(  # pyright: ignore [reportUnknownMemberType]
+            500
+        )
 
     def start_listening(self) -> None:
         """

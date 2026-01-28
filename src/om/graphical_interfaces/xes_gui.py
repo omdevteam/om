@@ -41,7 +41,7 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # type: ignore
+    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
@@ -90,49 +90,90 @@ class XesGui(OmGuiBase):
             [0.0] * 1000,
             pen=None,
             symbol="o",
-            symbolPen=pyqtgraph.mkPen("y"),
-            symbolBrush=pyqtgraph.mkBrush("y"),
+            symbolPen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
+            symbolBrush=pyqtgraph.mkBrush(  # pyright: ignore[reportUnknownMemberType]
+                "y"
+            ),
             symbolSize=3,
         )
 
         self._time_resolved = time_resolved
         if not self._time_resolved:
             self._xes_spectra_sum_plot: Any = self._xes_spectrum_plot_widget.plot(
-                [0.0] * 1000, pen=pyqtgraph.mkPen("w")
+                [0.0] * 1000,
+                pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                    "w"
+                ),
             )
             self._xes_spectra_sum_smoothed_plot: Any = (
                 self._xes_spectrum_plot_widget.plot(
-                    [0.0] * 1000, pen=pyqtgraph.mkPen("c", width=3)
+                    [0.0] * 1000,
+                    pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                        "c", width=3
+                    ),
                 )
             )
         else:
             self._xes_spectra_sum_pumped_plot: Any = (
                 self._xes_spectrum_plot_widget.plot(
-                    [0.0] * 1000, pen=pyqtgraph.mkPen("w")
+                    [0.0] * 1000,
+                    pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                        "w"
+                    ),
                 )
             )
             self._xes_spectra_sum_dark_plot: Any = self._xes_spectrum_plot_widget.plot(
-                [0.0] * 1000, pen=pyqtgraph.mkPen("c")
+                [0.0] * 1000,
+                pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                    "c", width=3
+                ),
             )
             self._xes_spectra_sum_difference_plot: Any = (
                 self._xes_spectrum_plot_widget.plot(
-                    [0.0] * 1000, pen=pyqtgraph.mkPen("r")
+                    [0.0] * 1000,
+                    pen=pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+                        "r", width=3
+                    ),
                 )
             )
 
-        pyqtgraph.setConfigOption("background", 0.2)
+        pyqtgraph.setConfigOption(  # pyright: ignore[reportUnknownMemberType]
+            "background", 0.2
+        )
 
-        horizontal_layout: Any = QtWidgets.QHBoxLayout()
-        splitter_0: Any = QtWidgets.QSplitter()
-        splitter_0.addWidget(self._image_view)
-        splitter_0.addWidget(self._xes_spectrum_plot_widget)
-        vertical_layout: Any = QtWidgets.QVBoxLayout()
-        vertical_layout.addWidget(splitter_0)
-        vertical_layout.addLayout(horizontal_layout)
-        self._central_widget: Any = QtWidgets.QWidget()
-        self._central_widget.setLayout(vertical_layout)
-        self.setCentralWidget(self._central_widget)
-        self.show()
+        horizontal_layout: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        splitter_0: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QSplitter()  # pyright: ignore[reportUnknownMemberType]
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._image_view
+        )
+        splitter_0.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._xes_spectrum_plot_widget
+        )
+        vertical_layout: Any = (  # pyright: ignore[reportUnknownVariableType]
+            QtWidgets.QVBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        vertical_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            splitter_0
+        )
+        vertical_layout.addLayout(  # pyright: ignore[reportUnknownMemberType]
+            horizontal_layout
+        )
+        self._central_widget: Any = (
+            QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._central_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            vertical_layout
+        )
+        self.setCentralWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._central_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+        self.show()  # pyright: ignore[reportUnknownMemberType]
 
     def update_gui(self) -> None:
         """
@@ -167,7 +208,7 @@ class XesGui(OmGuiBase):
                 local_data["spectra_sum_difference"]
             )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._image_view.setImage(
             local_data["detector_data"].T,
@@ -176,14 +217,16 @@ class XesGui(OmGuiBase):
             autoRange=False,
         )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         time_now: float = time.time()
         estimated_delay: float = round(time_now - local_data["timestamp"], 6)
-        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
+        self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
+            f"Estimated delay: {estimated_delay} seconds"
+        )
 
 @app.command()
 def main(
@@ -217,9 +260,15 @@ def main(
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    app: Any = QtWidgets.QApplication(sys.argv)
+    app: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtWidgets.QApplication(  # pyright: ignore[reportUnknownMemberType]
+            sys.argv
+        )
+    )
     _ = XesGui(url, time_resolved)
-    sys.exit(app.exec_())
+    sys.exit(
+        app.exec_()  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
+    )
 
 
 typer_click_object = typer.main.get_command(app)

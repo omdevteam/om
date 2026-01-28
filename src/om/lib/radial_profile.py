@@ -25,7 +25,7 @@ operations on radial profile information computed from detector data frames.
 import sys
 from collections import deque
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -40,11 +40,11 @@ from om.lib.parameters import MonitorParameters
 
 def _fit_by_least_squares(
     *,
-    radial_profile: NDArray[numpy.float_],
-    vectors: NDArray[numpy.float_],
+    radial_profile: NDArray[numpy.floating[Any]],
+    vectors: NDArray[numpy.floating[Any]],
     start_bin: int | None = None,
     stop_bin: int | None = None,
-) -> NDArray[numpy.float_]:
+) -> NDArray[numpy.floating[Any]]:
     # This function fits a set of linearly combined vectors to a radial profile,
     # using a least-squares-based approach. The fit only takes into account the
     # range of radial bins defined by the xmin and xmax arguments.
@@ -52,26 +52,26 @@ def _fit_by_least_squares(
         start_bin = 0
     if stop_bin is None:
         stop_bin = len(radial_profile)
-    a: NDArray[numpy.float_] = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
-    b: NDArray[numpy.float_] = numpy.nan_to_num(radial_profile)
+    a: NDArray[numpy.floating[Any]] = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
+    b: NDArray[numpy.floating[Any]] = numpy.nan_to_num(radial_profile)
     a = a[start_bin:stop_bin]
     b = b[start_bin:stop_bin]
-    coefficients: NDArray[numpy.float_]
+    coefficients: NDArray[numpy.floating[Any]]
     coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
     return coefficients
 
 
 def _cumulative_moving_average(
-    new_radial: NDArray[numpy.float_],
-    previous_cumulative_avg: NDArray[numpy.float_],
+    new_radial: NDArray[numpy.floating[Any]],
+    previous_cumulative_avg: NDArray[numpy.floating[Any]],
     num_events: int,
-) -> NDArray[numpy.float_]:
+) -> NDArray[numpy.floating[Any]]:
     return ((previous_cumulative_avg * num_events) + new_radial) / (num_events + 1)
 
 
 def _calc_rg_by_guinier(
-    q: NDArray[numpy.float_],
-    radial: NDArray[numpy.float_],
+    q: NDArray[numpy.floating[Any]],
+    radial: NDArray[numpy.floating[Any]],
     nb: int | None = None,
     ne: int | None = None,
 ) -> float:
@@ -107,8 +107,8 @@ def _calc_rg_by_guinier(
 
 
 def _calc_rg_by_guinier_peak(
-    q: NDArray[numpy.float_],
-    radial: NDArray[numpy.float_],
+    q: NDArray[numpy.floating[Any]],
+    radial: NDArray[numpy.floating[Any]],
     exp: int = 1,
     nb: int | None = None,
     ne: int | None = None,
@@ -121,9 +121,9 @@ def _calc_rg_by_guinier_peak(
         nb = 0
     if ne is None:
         ne = len(q)
-    qs: NDArray[numpy.float_] = q[nb:ne]
-    Is: NDArray[numpy.float_] = radial[nb:ne]
-    qdI: NDArray[numpy.float_] = qs**d * Is
+    qs: NDArray[numpy.floating[Any]] = q[nb:ne]
+    Is: NDArray[numpy.floating[Any]] = radial[nb:ne]
+    qdI: NDArray[numpy.floating[Any]] = qs**d * Is
     try:
         # fit a quick quadratic for smoothness, ax^2 + bx + c
         a: float
@@ -141,8 +141,10 @@ def _calc_rg_by_guinier_peak(
 
 
 def _sphere_form_factor(
-    radius: float, q_mags: NDArray[numpy.float_], check_divide_by_zero: bool = True
-) -> NDArray[numpy.float_]:
+    radius: float,
+    q_mags: NDArray[numpy.floating[Any]],
+    check_divide_by_zero: bool = True,
+) -> NDArray[numpy.floating[Any]]:
     # By Rick Kirian and Joe Chen
     # Copied from reborn.simulate.form_factors with permission.
     # Form factor :math:`f(q)` for a sphere of radius :math:`r`, at given :math:`q`
@@ -163,9 +165,9 @@ def _sphere_form_factor(
     # E.g., water molecules have 10 electrons, a molecular weight of 18 g/mol and a
     # density of 1 g/ml, so you can google search the electron density of water, which
     # is 10*(1 g/cm^3)/(18 g/6.022e23) = 3.346e29 per m^3 .
-    qr: NDArray[numpy.float_] = q_mags * radius
+    qr: NDArray[numpy.floating[Any]] = q_mags * radius
     if check_divide_by_zero is True:
-        amp: NDArray[numpy.float_] = numpy.zeros_like(qr)
+        amp: NDArray[numpy.floating[Any]] = numpy.zeros_like(qr)
         amp[qr == 0] = (4 * numpy.pi * radius**3) / 3
         w: NDArray[numpy.bool_] = qr != 0
         amp[w] = (
@@ -185,8 +187,8 @@ class _SphericalDroplets:
     # Copied from reborn.analysis.optimize with permission.
     def __init__(
         self,
-        q: NDArray[numpy.float_] | None = None,
-        r: NDArray[numpy.float_] | None = None,
+        q: NDArray[numpy.floating[Any]] | None = None,
+        r: NDArray[numpy.floating[Any]] | None = None,
     ):
         if q is None:
             q = numpy.linspace(0, 1e10, 517)
@@ -194,13 +196,15 @@ class _SphericalDroplets:
             r = numpy.linspace(
                 50, 3000, 20
             )  # set of spherical radii to test in angstroms
-        self.q: NDArray[numpy.float_] = q.copy()
-        self.r: NDArray[numpy.float_] = (
+        self.q: NDArray[numpy.floating[Any]] = q.copy()
+        self.r: NDArray[numpy.floating[Any]] = (
             r.copy()
         )  # radius range of sphere to scan through
 
         self.N: int = len(self.r)
-        self.I_R_precompute: NDArray[numpy.float_] = numpy.zeros((self.N, len(self.q)))
+        self.I_R_precompute: NDArray[numpy.floating[Any]] = numpy.zeros(
+            (self.N, len(self.q))
+        )
         for i in range(self.N):
             self.I_R_precompute[i, :] = (
                 _sphere_form_factor(
@@ -209,18 +213,20 @@ class _SphericalDroplets:
             ) ** 2
 
     def fit_profile(
-        self, I_D: NDArray[numpy.float_], mask: NDArray[numpy.float_] | None = None
+        self,
+        I_D: NDArray[numpy.floating[Any]],
+        mask: NDArray[numpy.floating[Any]] | None = None,
     ):
         if mask is None:
             mask = numpy.ones_like(I_D)
 
         w: NDArray[numpy.bool_] = mask > 0
 
-        A_save: NDArray[numpy.float_] = numpy.zeros(self.N)
-        error_vec: NDArray[numpy.float_] = numpy.zeros(self.N)
+        A_save: NDArray[numpy.floating[Any]] = numpy.zeros(self.N)
+        error_vec: NDArray[numpy.floating[Any]] = numpy.zeros(self.N)
         for i in range(self.N):
             I_R = self.I_R_precompute[i, :]
-            A: numpy.float_ = numpy.sum(I_D[w] * I_R[w]) / numpy.sum(I_R[w] ** 2)
+            A: numpy.floating[Any] = numpy.sum(I_D[w] * I_R[w]) / numpy.sum(I_R[w] ** 2)
             diff_sq = (A * I_R[w] - I_D[w]) ** 2
             error_vec[i] = numpy.sum(diff_sq)
             A_save[i] = A
@@ -230,7 +236,7 @@ class _SphericalDroplets:
         A_min: float = A_save[ind_min]
         r_min: float = self.r[ind_min]
         e_min: float = error_vec[ind_min]
-        I_R_min: NDArray[numpy.float_] = self.I_R_precompute[ind_min, :]
+        I_R_min: NDArray[numpy.floating[Any]] = self.I_R_precompute[ind_min, :]
 
         r_dic = dict(
             A_min=A_min, e_min=e_min, error_vec=error_vec, I_R_min=I_R_min.copy()
@@ -377,87 +383,83 @@ class RadialProfileAnalysis:
         if parameters.radial_profile is None:
             log.error("'swaxs' section must be present in the configuration file")
             sys.exit(1)
-
-        self._background_subtraction: bool = (
-            parameters.radial_profile.background_subtraction
-        )
-        if self._background_subtraction is True:
-            self._background_profile_vectors: NDArray[numpy.float_] = cast(
-                NDArray[numpy.float_],
-                load_hdf5_data(
-                    hdf5_filename=Path(
-                        parameters.radial_profile.background_profile_filename
+        else:
+            self._background_subtraction: bool = (
+                parameters.radial_profile.background_subtraction
+            )
+            if self._background_subtraction is True:
+                self._background_profile_vectors: NDArray[numpy.floating[Any]] = cast(
+                    NDArray[numpy.floating[Any]],
+                    load_hdf5_data(
+                        hdf5_filename=Path(
+                            parameters.radial_profile.background_profile_filename
+                        ),
+                        hdf5_path=parameters.radial_profile.background_profile_hdf5_path,
                     ),
-                    hdf5_path=parameters.radial_profile.background_profile_hdf5_path,
-                ),
+                )
+
+                self._background_subtraction_min_bin: int = (
+                    parameters.radial_profile.background_subtraction_min_fit_bin
+                )
+                self._background_subtraction_max_bin: int = (
+                    parameters.radial_profile.background_subtraction_max_fit_bin
+                )
+            # Sample detection
+            self._sample_detection: bool = parameters.radial_profile.sample_detection
+            if self._sample_detection is True:
+                self._total_intensity_jet_threshold: float = (
+                    parameters.radial_profile.total_intensity_jet_threshold
+                )
+                self._roi1_qmin: float = parameters.radial_profile.roi1_qmin
+                self._roi1_qmax: float = parameters.radial_profile.roi1_qmax
+                self._roi2_qmin: float = parameters.radial_profile.roi2_qmin
+                self._roi2_qmax: float = parameters.radial_profile.roi2_qmax
+
+                self._ratio_threshold_min: float = parameters.radial_profile.minimum_roi1_to_roi2_intensity_ratio_for_sample
+                self._ratio_threshold_max: float = parameters.radial_profile.maximum_roi1_to_roi2_intensity_ratio_for_sample
+
+            self._estimate_particle_size: bool = (
+                parameters.radial_profile.estimate_particle_size
+            )
+            if self._estimate_particle_size:
+                self._size_estimation_method: Literal["guinier", "sphere", "peak"] = (
+                    parameters.radial_profile.size_estimation_method
+                )
+                if self._size_estimation_method == "guinier":
+                    self._guinier_qmin: float = parameters.radial_profile.guinier_qmin
+                    self._guinier_qmax: float = parameters.radial_profile.guinier_qmax
+
+            self._coffset: float = geometry_information.get_detector_distance_offset()
+            self._pixel_size: float = geometry_information.get_pixel_size()
+
+            self._radial_profile = RadialProfile(
+                radius_pixel_map=geometry_information.get_pixel_maps().radius,
+                parameters=parameters.radial_profile,
             )
 
-            self._background_subtraction_min_bin: int = (
-                parameters.radial_profile.background_subtraction_min_fit_bin
-            )
-            self._background_subtraction_max_bin: int = (
-                parameters.radial_profile.background_subtraction_max_fit_bin
-            )
-        # Sample detection
-        self._sample_detection: bool = parameters.radial_profile.sample_detection
-        if self._sample_detection is True:
-            self._total_intensity_jet_threshold: float = (
-                parameters.radial_profile.total_intensity_jet_threshold
-            )
-            self._roi1_qmin: float = parameters.radial_profile.roi1_qmin
-            self._roi1_qmax: float = parameters.radial_profile.roi1_qmax
-            self._roi2_qmin: float = parameters.radial_profile.roi2_qmin
-            self._roi2_qmax: float = parameters.radial_profile.roi2_qmax
-
-            self._ratio_threshold_min: float = (
-                parameters.radial_profile.minimum_roi1_to_roi2_intensity_ratio_for_sample
-            )
-            self._ratio_threshold_max: float = (
-                parameters.radial_profile.maximum_roi1_to_roi2_intensity_ratio_for_sample
+            self._radial_bin_labels = self._radial_profile.get_radial_bin_labels()
+            self._radial_bin_centers = self._radial_profile.calculate_profile(
+                data=self._radial_bin_labels
             )
 
-        self._estimate_particle_size: bool = (
-            parameters.radial_profile.estimate_particle_size
-        )
-        if self._estimate_particle_size:
-            self._size_estimation_method: Literal["guinier", "sphere", "peak"] = (
-                parameters.radial_profile.size_estimation_method
+            self._radial_profile_bad_pixel_map: NDArray[numpy.bool_] | None = (
+                self._radial_profile.get_bad_pixel_map()
             )
-            if self._size_estimation_method == "guinier":
-                self._guinier_qmin: float = parameters.radial_profile.guinier_qmin
-                self._guinier_qmax: float = parameters.radial_profile.guinier_qmax
 
-        self._coffset: float = geometry_information.get_detector_distance_offset()
-        self._pixel_size: float = geometry_information.get_pixel_size()
-
-        self._radial_profile = RadialProfile(
-            radius_pixel_map=geometry_information.get_pixel_maps().radius,
-            parameters=parameters.radial_profile,
-        )
-
-        self._radial_bin_labels = self._radial_profile.get_radial_bin_labels()
-        self._radial_bin_centers = self._radial_profile.calculate_profile(
-            data=self._radial_bin_labels
-        )
-
-        self._radial_profile_bad_pixel_map: NDArray[numpy.bool_] | None = (
-            self._radial_profile.get_bad_pixel_map()
-        )
-
-        # initialize spherical droplets
-        self._spherical_droplets: _SphericalDroplets | None = None
+            # initialize spherical droplets
+            self._spherical_droplets: _SphericalDroplets | None = None
 
     def analyze_radial_profile(
         self,
         *,
-        data: NDArray[numpy.float_ | numpy.int_],
+        data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
         beam_energy: float,
         detector_distance: float,
         downstream_intensity: float,
     ) -> tuple[
-        NDArray[numpy.float_],
-        NDArray[numpy.float_],
-        NDArray[numpy.float_],
+        NDArray[numpy.floating[Any]],
+        NDArray[numpy.floating[Any]],
+        NDArray[numpy.floating[Any]],
         bool,
         float,
         float,
@@ -482,12 +484,12 @@ class RadialProfileAnalysis:
             from the data frame.
         """
 
-        radial_profile: NDArray[numpy.float_] = self._radial_profile.calculate_profile(
-            data=data
+        radial_profile: NDArray[numpy.floating[Any]] = (
+            self._radial_profile.calculate_profile(data=data)
         )
 
-        errors: NDArray[numpy.float_] = cast(
-            NDArray[numpy.float_],
+        errors: NDArray[numpy.floating[Any]] = cast(
+            NDArray[numpy.floating[Any]],
             stats.binned_statistic(
                 self._radial_bin_labels[self._radial_profile_bad_pixel_map].ravel(),
                 data[self._radial_profile_bad_pixel_map].ravel(),
@@ -496,13 +498,13 @@ class RadialProfileAnalysis:
         )
 
         if self._background_subtraction is True:
-            coefficients: NDArray[numpy.float_] = _fit_by_least_squares(
+            coefficients: NDArray[numpy.floating[Any]] = _fit_by_least_squares(
                 radial_profile=radial_profile,
                 vectors=self._background_profile_vectors,
                 start_bin=self._background_subtraction_min_bin,
                 stop_bin=self._background_subtraction_max_bin,
             )
-            background_fit: NDArray[numpy.float_] = radial_profile * 0
+            background_fit: NDArray[numpy.floating[Any]] = radial_profile * 0
             index: int
             for index in range(len(coefficients)):
                 background_fit += (
@@ -515,13 +517,13 @@ class RadialProfileAnalysis:
             constants.c * constants.h / (beam_energy * constants.electron_volt)
         )
         real_detector_distance: float = detector_distance * 1e-3 + self._coffset
-        theta: NDArray[numpy.float_] = (
+        theta: NDArray[numpy.floating[Any]] = (
             numpy.arctan(
                 self._pixel_size * self._radial_bin_centers / real_detector_distance
             )
             * 0.5
         )
-        q: NDArray[numpy.float_] = (
+        q: NDArray[numpy.floating[Any]] = (
             numpy.sin(theta) * 4 * numpy.pi / wavelength
         ) * 1e-10
 
@@ -533,7 +535,6 @@ class RadialProfileAnalysis:
         frame_sum: float = float(data.mean())
 
         if self._sample_detection is True:
-
             frame_has_jet: bool = bool(frame_sum > self._total_intensity_jet_threshold)
 
             if frame_has_jet:
@@ -644,58 +645,61 @@ class RadialProfileAnalysisPlots:
             )
             sys.exit(1)
 
-        self._radius_bin_size: int = parameters.radial_profile.radius_bin_size
-        self._running_average_window_size: int = (
-            parameters.radial_profile.running_average_window_size
-        )
-        self._num_radials_to_send: int = parameters.radial_profile.num_radials_to_send
-        self._num_hits_in_cum_radial_avg: int = (
-            parameters.radial_profile.num_hits_in_cum_radial_avg
-        )
-        self._num_events_to_plot: int = 5000
+        else:
+            self._radius_bin_size: int = parameters.radial_profile.radius_bin_size
+            self._running_average_window_size: int = (
+                parameters.radial_profile.running_average_window_size
+            )
+            self._num_radials_to_send: int = (
+                parameters.radial_profile.num_radials_to_send
+            )
+            self._num_hits_in_cum_radial_avg: int = (
+                parameters.radial_profile.num_hits_in_cum_radial_avg
+            )
+            self._num_events_to_plot: int = 5000
 
-        self._hit_rate_running_window: deque[float] = deque(
-            [0.0] * self._running_average_window_size,
-            maxlen=self._running_average_window_size,
-        )
-        self._avg_hit_rate: int = 0
-        self._num_hits: int = 0
-        self._hit_rate_timestamp_history: deque[float] = deque(
-            self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot
-        )
-        # self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
+            self._hit_rate_running_window: deque[float] = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._avg_hit_rate: int = 0
+            self._num_hits: int = 0
+            self._hit_rate_timestamp_history: deque[float] = deque(
+                self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot
+            )
+            # self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
 
-        self._hit_rate_history: deque[float] = deque([])
-        self._q_history: deque[NDArray[numpy.float_]] = deque([])
-        self._radials_history: deque[NDArray[numpy.float_]] = deque([])
-        self._image_sum_history: deque[float] = deque([])
-        self._downstream_intensity_history: deque[float] = deque([])
-        self._roi1_intensity_history: deque[float] = deque([])
-        self._roi2_intensity_history: deque[float] = deque([])
-        self._rg_history: deque[float] = deque([])
-        self._cumulative_hits_radial: NDArray[numpy.float_] = numpy.array([])
+            self._hit_rate_history: deque[float] = deque([])
+            self._q_history: deque[NDArray[numpy.floating[Any]]] = deque([])
+            self._radials_history: deque[NDArray[numpy.floating[Any]]] = deque([])
+            self._image_sum_history: deque[float] = deque([])
+            self._downstream_intensity_history: deque[float] = deque([])
+            self._roi1_intensity_history: deque[float] = deque([])
+            self._roi2_intensity_history: deque[float] = deque([])
+            self._rg_history: deque[float] = deque([])
+            self._cumulative_hits_radial: NDArray[numpy.floating[Any]] = numpy.array([])
 
     def update_plots(
         self,
         *,
-        radial_profile: NDArray[numpy.float_],
+        radial_profile: NDArray[numpy.floating[Any]],
         detector_data_sum: float,
-        q: NDArray[numpy.float_],
+        q: NDArray[numpy.floating[Any]],
         downstream_intensity: float,
         roi1_intensity: float,
         roi2_intensity: float,
         sample_detected: bool,
         rg: float,
     ) -> tuple[
-        deque[NDArray[numpy.float_]],
-        deque[NDArray[numpy.float_]],
+        deque[NDArray[numpy.floating[Any]]],
+        deque[NDArray[numpy.floating[Any]]],
         deque[float],
         deque[float],
         deque[float],
         deque[float],
         deque[float],
         deque[float],
-        NDArray[numpy.float_],
+        NDArray[numpy.floating[Any]],
     ]:
         """
         #TODO: Documentation.

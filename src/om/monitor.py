@@ -25,7 +25,7 @@ import signal
 import sys
 from pathlib import Path
 
-import typer  # type: ignore
+import typer
 from typing_extensions import Annotated
 
 from om.data_retrieval_layer.event_retrieval import EventListDataEventHandler
@@ -107,7 +107,7 @@ def main(
 
     if parameters.om.parallelization_layer == "MpiParallelization":
         try:
-            from mpi4py import MPI  # type: ignore
+            from mpi4py import MPI
 
             mpi_size: int = MPI.COMM_WORLD.Get_size()
             mpi_rank: int = MPI.COMM_WORLD.Get_rank()

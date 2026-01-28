@@ -9,3 +9,6 @@ dist
 onda.egg-info
 .mypy_cache
 .venv
+# pixi environments
+.pixi/*
+!.pixi/config.toml

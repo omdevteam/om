@@ -25,10 +25,7 @@ from typing import Any, Generator, Literal, TextIO
 from om.lib.exceptions import OmInvalidSourceError
 from om.lib.layer_management import import_class_from_layer
 from om.lib.parameters import DataRetrievalLayerParameters, MonitorParameters
-from om.lib.protocols import (
-    OmDataEventHandlerProtocol,
-    OmDataSourceProtocol,
-)
+from om.lib.protocols import OmDataEventHandlerProtocol
 
 
 class OmEventDataRetrieval:

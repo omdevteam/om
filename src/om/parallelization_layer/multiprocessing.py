@@ -163,9 +163,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
             if processing_node_rank == self._collector_rank:
                 continue
             message_pipe: tuple[
-                connection.PipeConnection,
-                connection.PipeConnection,
-            ] = Pipe(duplex=False)
+                connection.Connection,
+                connection.Connection,
+            ] = Pipe(duplex=False)  # pyright: ignore[reportAssignmentType]
             self._message_pipes[processing_node_rank] = message_pipe[1]
             processing_node = Process(
                 target=_om_processing_node,

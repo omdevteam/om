@@ -109,7 +109,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         # is added as an option to psana before the DataSource is set.
 
         if psana_calibration_directory is not None:
-            psana.setOption(  # pyright: ignore[reportAttributeAccessIssue]
+            psana.setOption(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
                 "psana.calib-dir",
                 psana_calibration_directory,
             )
@@ -119,11 +119,13 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             )
 
         if mpi_data_source is True:
-            return psana.MPIDataSource(  # pyright: ignore[reportAttributeAccessIssue]
-                self._source
+            return (  # pyright: ignore[reportUnknownVariableType]
+                psana.MPIDataSource(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                    self._source
+                )
             )
         else:
-            return psana.DataSource(  # pyright: ignore[reportAttributeAccessIssue]
+            return psana.DataSource(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
                 self._source
             )
 
@@ -345,8 +347,10 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = psana.EventTime(  # pyright: ignore[reportAttributeAccessIssue]
-            int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
+        event_time: Any = (  # pyright: ignore[reportUnknownVariableType]
+            psana.EventTime(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
+            )
         )
         retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:

@@ -109,6 +109,7 @@ class XesParameters(CustomBaseModel):
     speed_report_interval: int
     hit_frame_sending_interval: int | None = None
     non_hit_frame_sending_interval: int | None = None
+    responding_url: str | None = None
 
 
 class RadialProfileParameters(CustomBaseModel):

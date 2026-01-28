@@ -43,7 +43,7 @@ from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 
 try:
-    import msgpack  # type: ignore
+    import msgpack  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: msgpack"
@@ -85,29 +85,36 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 "'crystallography' section is not present in the configuration file"
             )
             sys.exit(1)
-
-        self._crystallography_parameters: CrystallographyParameters = (
-            parameters.crystallography
-        )
-        self._monitor_parameters: MonitorParameters = parameters
-        # Geometry
-        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
-            geometry_filename=self._crystallography_parameters.geometry_file
-        )
-
-        # Post-processing binning
-        if parameters.crystallography.post_processing_binning:
-            if parameters.binning is None:
-                log.error("'binning' section is not present in the configuration file")
-                sys.exit(1)
-            self._post_processing_binning: Binning | BinningPassthrough = Binning(
-                parameters=parameters.binning,
-                layout_info=self._geometry_information.get_layout_info(),
-            )
         else:
-            self._post_processing_binning = BinningPassthrough(
-                layout_info=self._geometry_information.get_layout_info()
+            self._crystallography_parameters: CrystallographyParameters = (
+                parameters.crystallography
             )
+            self._monitor_parameters: MonitorParameters = parameters
+            # Geometry
+            self._geometry_information: GeometryInformation = (
+                GeometryInformation.from_file(
+                    geometry_filename=self._crystallography_parameters.geometry_file
+                )
+            )
+
+            # Post-processing binning
+            if parameters.crystallography.post_processing_binning:
+                if parameters.binning is None:
+                    log.error(
+                        "'binning' section is not present in the configuration file"
+                    )
+                    sys.exit(1)
+                else:
+                    self._post_processing_binning: Binning | BinningPassthrough = (
+                        Binning(
+                            parameters=parameters.binning,
+                            layout_info=self._geometry_information.get_layout_info(),
+                        )
+                    )
+            else:
+                self._post_processing_binning = BinningPassthrough(
+                    layout_info=self._geometry_information.get_layout_info()
+                )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -314,7 +321,9 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         if send_detector_data:
-            data_to_send: NDArray[numpy.int_ | numpy.float_] = data["detector_data"]
+            data_to_send: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+                data["detector_data"]
+            )
 
             data_to_send = self._post_processing_binning.bin_detector_data(
                 data=data_to_send
@@ -402,20 +411,24 @@ class CrystallographyProcessing(OmProcessingProtocol):
         if len(self._request_list) != 0:
             first_request = self._request_list[0]
             if received_data["frame_is_hit"] is True:
-                data_to_send: Any = msgpack.packb(
-                    {
-                        "peak_list": received_data["peak_list"],
-                        "beam_energy": received_data["beam_energy"],
-                        "detector_distance": received_data["detector_distance"],
-                        "event_id": received_data["event_id"],
-                        "timestamp": received_data["timestamp"],
-                        "source": self._monitor_parameters.om.source,
-                        "configuration_file": self._monitor_parameters.om.configuration_file,
-                    },
-                    use_bin_type=True,
+                data_to_send: Any = (  # pyright: ignore[reportUnknownVariableType]
+                    msgpack.packb(  # pyright: ignore[reportUnknownMemberType]
+                        {
+                            "peak_list": received_data["peak_list"],
+                            "beam_energy": received_data["beam_energy"],
+                            "detector_distance": received_data["detector_distance"],
+                            "event_id": received_data["event_id"],
+                            "timestamp": received_data["timestamp"],
+                            "source": self._monitor_parameters.om.source,
+                            "configuration_file": self._monitor_parameters.om.configuration_file,
+                        },
+                        use_bin_type=True,
+                    )
                 )
+
                 self._responding_socket.send_data(
-                    identity=first_request[0], message=data_to_send
+                    identity=first_request[0],
+                    message=data_to_send,  # pyright: ignore[reportUnknownArgumentType]
                 )
                 _ = self._request_list.popleft()
 
@@ -429,8 +442,8 @@ class CrystallographyProcessing(OmProcessingProtocol):
         curr_hit_rate_history: deque[float]
         curr_hit_rate_timestamp_history_dark: deque[float] | None
         curr_hit_rate_history_dark: deque[float] | None
-        curr_virt_powd_plot_img: NDArray[numpy.int_]
-        curr_peakogram: NDArray[numpy.float_]
+        curr_virt_powd_plot_img: NDArray[numpy.signedinteger[Any]]
+        curr_peakogram: NDArray[numpy.floating[Any]]
         peakogram_radius_bin_size: float
         peakogram_intensity_bin_size: float
         peak_list_x_in_frame: list[float]

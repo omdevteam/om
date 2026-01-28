@@ -93,12 +93,14 @@ class OmDetectorInterfacePsanaDataSourceMixin:
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "psana_name" not in extra_parameters:
-            log.error(
-                f"Entry 'psana_name' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        self._psana_name: str = extra_parameters["psana_name"]
+        else:
+            if "psana_name" not in extra_parameters:
+                log.error(
+                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._psana_name: str = extra_parameters["psana_name"]
 
     def initialize_data_source(self) -> None:
         """
@@ -110,7 +112,7 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             self._psana_name
         )
 
@@ -120,7 +122,7 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.floating[Any]]:
         """
         Retrieves a Rayonix detector data frame from psana.
 
@@ -142,8 +144,8 @@ class RayonixPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        rayonix_psana: NDArray[numpy.float_] | None = self._detector_interface.calib(
-            event["data"]
+        rayonix_psana: NDArray[numpy.floating[Any]] | None = (
+            self._detector_interface.calib(event["data"])
         )
         if rayonix_psana is None:
             raise OmDataExtractionError(
@@ -158,7 +160,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.floating[Any]]:
         """
         Retrieves an Opal camera data frame from psana.
 
@@ -180,7 +182,7 @@ class OpalPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        opal_psana: NDArray[numpy.float_] | None = self._detector_interface(
+        opal_psana: NDArray[numpy.floating[Any]] | None = self._detector_interface(
             event["data"]
         )
         if opal_psana is None:
@@ -196,7 +198,7 @@ class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtoco
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.floating[Any]]:
         """
         Retrieves an Opal camera data frame from psana.
 
@@ -218,7 +220,7 @@ class Epix100aPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtoco
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        opal_psana: NDArray[numpy.float_] | None = self._detector_interface(
+        opal_psana: NDArray[numpy.floating[Any]] | None = self._detector_interface(
             event["data"]
         )
         if opal_psana is None:
@@ -236,7 +238,7 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
 
     def get_data(
         self, *, event: dict[str, Any]
-    ) -> tuple[NDArray[numpy.float_], NDArray[numpy.float_]]:
+    ) -> tuple[NDArray[numpy.floating[Any]], NDArray[numpy.floating[Any]]]:
         """
         Retrieves Acqiris waveform data from psana.
 
@@ -264,11 +266,11 @@ class AcqirisPsana(OmDetectorInterfacePsanaDataSourceMixin, OmDataSourceProtocol
             A tuple, with two entries, storing the digitized waveform data from the
                 Acqiris detector.
         """
-        wftime: NDArray[numpy.float_] | None = self._detector_interface.wftime(
+        wftime: NDArray[numpy.floating[Any]] | None = self._detector_interface.wftime(
             event["data"]
         )
-        waveform: NDArray[numpy.float_] | None = self._detector_interface.waveform(
-            event["data"]
+        waveform: NDArray[numpy.floating[Any]] | None = (
+            self._detector_interface.waveform(event["data"])
         )
 
         if wftime is None or waveform is None:
@@ -287,7 +289,7 @@ class AssembledDetectorPsana(
     See documentation of the `__init__` function.
     """
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_]:
+    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.floating[Any]]:
         """
         Retrieves an assembled detector data frame from psana.
 
@@ -310,8 +312,8 @@ class AssembledDetectorPsana(
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        assembled_data: NDArray[numpy.float_] | None = self._detector_interface.image(
-            event["data"]
+        assembled_data: NDArray[numpy.floating[Any]] | None = (
+            self._detector_interface.image(event["data"])
         )
         if assembled_data is None:
             raise OmDataExtractionError(
@@ -459,7 +461,7 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
         """
-        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue]
             "SIOC:SYS0:ML00:AO192"
         )
 
@@ -541,29 +543,30 @@ class AreaDetectorPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "psana_name" not in extra_parameters:
-            log.error(
-                f"Entry 'psana_name' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        if "calibration" not in extra_parameters:
-            log.error(
-                f"Entry 'calibration' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        if "gain_map_filename" in extra_parameters:
-            if "gain_map_hdf5_path" not in extra_parameters:
+        else:
+            if "psana_name" not in extra_parameters:
                 log.error(
-                    "Entry 'gain_map_filename' is defined for data source "
-                    f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
+                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
                 )
                 sys.exit(1)
-
-            self._gain_map_filename = extra_parameters["gain_map_filename"]
-            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
-
-        self._psana_name: str = extra_parameters["psana_name"]
-        self._calibration: bool = extra_parameters["calibration"]
+            elif "calibration" not in extra_parameters:
+                log.error(
+                    f"Entry 'calibration' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            elif "gain_map_filename" in extra_parameters:
+                if "gain_map_hdf5_path" not in extra_parameters:
+                    log.error(
+                        "Entry 'gain_map_filename' is defined for data source "
+                        f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
+                    )
+                    sys.exit(1)
+                else:
+                    self._gain_map_filename = extra_parameters["gain_map_filename"]
+                    self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+            else:
+                self._psana_name: str = extra_parameters["psana_name"]
+                self._calibration: bool = extra_parameters["calibration"]
 
         del additional_info
 
@@ -578,20 +581,23 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         data events, so this function actually does nothing.
         """
 
-        detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-            self._psana_name
+        detector_interface: Any = (  # pyright: ignore[reportUnknownVariableType],
+            psana.Detector(  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue]
+                self._psana_name
+            )
         )
-
         if self._calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
-                detector_interface.calib
+                detector_interface.calib  # pyright: ignore[reportUnknownMemberType]
             )
         else:
-            self._data_retrieval_function = detector_interface.raw
+            self._data_retrieval_function = (
+                detector_interface.raw  # pyright: ignore[reportUnknownMemberType]
+            )
 
         if self._gain_map_filename != Path("") and self._gain_map_hdf5_path != "":
-            self._gain_map: NDArray[numpy.float_] | None = cast(
-                NDArray[numpy.float_] | None,
+            self._gain_map: NDArray[numpy.floating[Any]] | None = cast(
+                NDArray[numpy.floating[Any]] | None,
                 load_hdf5_data(
                     hdf5_filename=self._gain_map_filename,
                     hdf5_path=self._gain_map_hdf5_path,
@@ -600,7 +606,9 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         else:
             self._gain_map = None
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
 
@@ -625,7 +633,7 @@ class AreaDetectorPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        psana_data: NDArray[numpy.float_ | numpy.int_] | None = (
+        psana_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None = (
             self._data_retrieval_function(event["data"])
         )
         if psana_data is None:
@@ -637,7 +645,9 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         # Rearranges the data into 'slab' format.
         psana_data_shape: tuple[int, ...] = psana_data.shape
         if len(psana_data_shape) == 2:
-            psana_data_reshaped: NDArray[numpy.float_ | numpy.int_] = psana_data
+            psana_data_reshaped: NDArray[
+                numpy.floating[Any] | numpy.signedinteger[Any]
+            ] = psana_data
         else:
             psana_data_reshaped = psana_data.reshape(
                 psana_data_shape[0] * psana_data_shape[1], psana_data_shape[2]
@@ -689,19 +699,20 @@ class CspadPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "psana_name" not in extra_parameters:
-            log.error(
-                f"Entry 'psana_name' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        if "calibration" not in extra_parameters:
-            log.error(
-                f"Entry 'calibration' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-
-        self._psana_name = extra_parameters["psana_name"]
-        self._calibration = extra_parameters["calibration"]
+        else:
+            if "psana_name" not in extra_parameters:
+                log.error(
+                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            elif "calibration" not in extra_parameters:
+                log.error(
+                    f"Entry 'calibration' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._psana_name = extra_parameters["psana_name"]
+                self._calibration = extra_parameters["calibration"]
 
     def initialize_data_source(self) -> None:
         """
@@ -713,18 +724,24 @@ class CspadPsana(OmDataSourceProtocol):
         No initialization is required to retrieve event identifiers for psana-based
         data events, so this function actually does nothing.
         """
-        detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
-            self._psana_name
+        detector_interface: Any = (  # pyright: ignore[reportUnknownVariableType]
+            psana.Detector(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                self._psana_name
+            )
         )
 
         if self._calibration:
             self._data_retrieval_function: Callable[[Any], Any] = (
-                detector_interface.calib
+                detector_interface.calib  # pyright: ignore[reportUnknownMemberType]
             )
         else:
-            self._data_retrieval_function = detector_interface.raw
+            self._data_retrieval_function = (
+                detector_interface.raw  # pyright: ignore[reportUnknownMemberType]
+            )
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves a CSPAD detector data frame from psana.
 
@@ -749,7 +766,7 @@ class CspadPsana(OmDataSourceProtocol):
 
             OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
-        cspad_psana: NDArray[numpy.float_ | numpy.int_] | None = (
+        cspad_psana: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None = (
             self._data_retrieval_function(event["data"])
         )
         if cspad_psana is None:
@@ -759,12 +776,11 @@ class CspadPsana(OmDataSourceProtocol):
             )
 
         # Rearranges the data into 'slab' format.
-        cspad_reshaped: NDArray[numpy.float_ | numpy.int_] = cspad_psana.reshape(
-            (4, 8, 185, 388)
+        cspad_reshaped: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+            cspad_psana.reshape((4, 8, 185, 388))
         )
-        cspad_slab: NDArray[numpy.float_ | numpy.int_] = cast(
-            NDArray[numpy.float_ | numpy.int_],
-            numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype),
+        cspad_slab: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+            numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype)
         )
         index: int
         for index in range(cspad_reshaped.shape[0]):
@@ -846,7 +862,7 @@ class TimestampPsana(OmDataSourceProtocol):
             The timestamp for the data event.
         """
         psana_event_id: Any = event["data"].get(
-            psana.EventId  # pyright: ignore[reportAttributeAccessIssue]
+            psana.EventId  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
         )
         timestamp_epoch_format: Any = psana_event_id.time()
         return numpy.float64(
@@ -924,7 +940,7 @@ class EventIdPsana(OmDataSourceProtocol):
             A unique event identifier.
         """
         psana_event_id: Any = event["data"].get(
-            psana.EventId  # pyright: ignore[reportAttributeAccessIssue]
+            psana.EventId  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue]
         )
         timestamp_epoch_format: Any = psana_event_id.time()
         fiducials: Any = psana_event_id.fiducials()
@@ -975,8 +991,9 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
         """
-        detector: Any = psana.Detector  # pyright: ignore[reportAttributeAccessIssue]
-        self._detector_interface: Any = detector("EBeam")
+        self._detector_interface: Any = (
+            psana.Detector("EBeam")  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+        )
 
     def get_data(self, *, event: dict[str, Any]) -> float:
         """
@@ -1040,19 +1057,20 @@ class EvrCodesPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "evr_source" not in extra_parameters:
-            log.error(
-                f"Entry 'evr_source' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        if "event_code" not in extra_parameters:
-            log.error(
-                f"Entry 'event_code' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-
-        self._evr_source: str = extra_parameters["evr_source"]
-        self._event_code: int = extra_parameters["event_code"]
+        else:
+            if "evr_source" not in extra_parameters:
+                log.error(
+                    f"Entry 'evr_source' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            elif "event_code" not in extra_parameters:
+                log.error(
+                    f"Entry 'event_code' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._evr_source: str = extra_parameters["evr_source"]
+                self._event_code: int = extra_parameters["event_code"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1067,7 +1085,7 @@ class EvrCodesPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             self._evr_source
         )
 
@@ -1141,13 +1159,14 @@ class EvrCodelistPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "evr_source" not in extra_parameters:
-            log.error(
-                f"Entry 'evr_source' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-
-        self._evr_source: str = extra_parameters["evr_source"]
+        else:
+            if "evr_source" not in extra_parameters:
+                log.error(
+                    f"Entry 'evr_source' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._evr_source: str = extra_parameters["evr_source"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1162,7 +1181,7 @@ class EvrCodelistPsana(OmDataSourceProtocol):
         to monitor for the emission of the event is instead determined by the
         `psana_evr_source_name` entry in the same parameter group.
         """
-        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportAttributeAccessIssue]
+        self._detector_interface: Any = psana.Detector(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             self._evr_source
         )
 
@@ -1245,15 +1264,16 @@ class LclsExtraPsana(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "extra_data" not in extra_parameters:
-            log.error(
-                f"Entry 'extra_data' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-
-        self._extra_data: list[tuple[str, dict[str, Any], str]] = extra_parameters[
-            "extra_data"
-        ]
+        else:
+            if "extra_data" not in extra_parameters:
+                log.error(
+                    f"Entry 'extra_data' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._extra_data: list[tuple[str, dict[str, Any], str]] = (
+                    extra_parameters["extra_data"]
+                )
 
     def initialize_data_source(self) -> None:
         """

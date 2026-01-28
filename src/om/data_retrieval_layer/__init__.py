@@ -23,47 +23,51 @@ and data events to be processed. Modules in this package contain functions and c
 for specific detectors, facilities or software frameworks.
 """
 
-try:
-    import asapo_consumer  # type: ignore  # noqa: F401
-
-    from .data_event_handlers_asapo import AsapoDataEventHandler  # noqa: F401
-except ModuleNotFoundError:
-    ...
-
-try:
-    import fabio  # type: ignore  # noqa: F401
-
-    from .data_event_handlers_files import PilatusFilesEventHandler  # noqa: F401
-except ModuleNotFoundError:
-    pass
-
-try:
-    import PIL  # type: ignore  # noqa: F401
-
-    from .data_event_handlers_http import EigerHttpDataEventHandler  # noqa: F401
-except ModuleNotFoundError:
-    pass
-
-try:
-    import psana  # type: ignore  # noqa: F401
-
-    from .data_event_handlers_psana import PsanaDataEventHandler  # noqa: F401
-except ModuleNotFoundError:
-    pass
-
-
-try:
-    import psana  # type: ignore  # noqa: F401
-
-    from .data_event_handlers_psana2 import Psana2DataEventHandler  # noqa: F401
-except ModuleNotFoundError:
-    pass
+from importlib.machinery import ModuleSpec
+from importlib.util import find_spec
 
 from .data_event_handlers_files import (
-    EigerFilesDataEventHandler,  # noqa: F401
-    Jungfrau1MFilesDataEventHandler,  # noqa: F401
-    Lambda1M5FilesDataEventHandler,  # noqa: F401
-    RayonixMccdFilesEventHandler,  # noqa: F401
+    EigerFilesDataEventHandler as EigerFilesDataEventHandler,
+)
+from .data_event_handlers_files import (
+    Jungfrau1MFilesDataEventHandler as Jungfrau1MFilesDataEventHandler,
+)
+from .data_event_handlers_files import (
+    Lambda1M5FilesDataEventHandler as Lambda1M5FilesDataEventHandler,
+)
+from .data_event_handlers_files import (
+    RayonixMccdFilesEventHandler as RayonixMccdFilesEventHandler,
+)
+from .data_event_handlers_zmq import (
+    Jungfrau1MZmqDataEventHandler as Jungfrau1MZmqDataEventHandler,
 )
 
-from .data_event_handlers_zmq import Jungfrau1MZmqDataEventHandler  # noqa: F401
+spec: ModuleSpec | None = find_spec("asapo_consumer")
+if spec is not None:
+    from .data_event_handlers_asapo import (
+        AsapoDataEventHandler as AsapoDataEventHandler,
+    )
+
+spec = find_spec("fabio")
+if spec is not None:
+    from .data_event_handlers_files import (
+        PilatusFilesEventHandler as PilatusFilesEventHandler,
+    )
+
+spec = find_spec("PIL")
+if spec is not None:
+    from .data_event_handlers_http import (
+        EigerHttpDataEventHandler as EigerHttpDataEventHandler,
+    )
+
+spec = find_spec("psana")
+if spec is not None:
+    from .data_event_handlers_psana import (
+        PsanaDataEventHandler as PsanaDataEventHandler,
+    )
+
+spec = find_spec("psana")
+if spec is not None:
+    from .data_event_handlers_psana2 import (
+        Psana2DataEventHandler as Psana2DataEventHandler,
+    )

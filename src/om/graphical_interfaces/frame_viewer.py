@@ -45,7 +45,7 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # type: ignore
+    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
@@ -81,15 +81,19 @@ class FrameViewer(OmGuiBase):
             tag="omframedata",
         )
 
-        self._img: NDArray[numpy.float_] | None = None
+        self._img: NDArray[numpy.floating[Any]] | None = None
         self._frame_list: deque[dict[str, Any]] = deque(maxlen=20)
         self._current_frame_index: int = -1
 
         self._received_data: dict[str, Any] = {}
 
-        pyqtgraph.setConfigOption("background", 0.2)
+        pyqtgraph.setConfigOption(  # pyright: ignore[reportUnknownMemberType]
+            "background", 0.2
+        )
 
-        self._ring_pen: Any = pyqtgraph.mkPen("r", width=2)
+        self._ring_pen: Any = pyqtgraph.mkPen(  # pyright: ignore[reportUnknownMemberType]
+            "r", width=2
+        )
         self._peak_canvas: Any = pyqtgraph.ScatterPlotItem()
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -101,58 +105,130 @@ class FrameViewer(OmGuiBase):
         self._image_hist.setHistogramRange(0, 100)
         self._image_hist.sigLevelsChanged.connect(self._hist_range_changed)
 
-        self._back_button: Any = QtWidgets.QPushButton(text="Back")
-        self._back_button.clicked.connect(self._back_button_clicked)
+        self._back_button: Any = QtWidgets.QPushButton(  # pyright: ignore[reportUnknownMemberType]
+            text="Back"
+        )
+        self._back_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._back_button_clicked
+        )
 
-        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
-        self._forward_button.clicked.connect(self._forward_button_clicked)
+        self._forward_button: Any = QtWidgets.QPushButton(  # pyright: ignore[reportUnknownMemberType]
+            text="Forward"
+        )
+        self._forward_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._forward_button_clicked
+        )
 
-        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
-        self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
+        self._play_pause_button: Any = QtWidgets.QPushButton(  # pyright: ignore[reportUnknownMemberType]
+            text="Pause"
+        )
+        self._play_pause_button.clicked.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._play_pause_button_clicked
+        )
 
         self._levels_range: tuple[int | float, int | float] = (0, 1)
-        self._min_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[0]}")
-        self._max_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[1]}")
-        self._level_regex: Any = QtCore.QRegExp(r"-?\d+\.?\d*([eE][+-]?\d+)?")
-        self._level_validator: Any = QtGui.QRegExpValidator()
-        self._level_validator.setRegExp(self._level_regex)
-        self._min_range_le.setValidator(self._level_validator)
-        self._max_range_le.setValidator(self._level_validator)
-        self._min_range_le.editingFinished.connect(self._change_levels)
-        self._max_range_le.editingFinished.connect(self._change_levels)
-        self._min_range_le.setMaximumWidth(100)
-        self._max_range_le.setMaximumWidth(100)
-
-        self._horizontal_layout: Any = QtWidgets.QHBoxLayout()
-        self._horizontal_layout.addWidget(self._back_button)
-        self._horizontal_layout.addWidget(self._forward_button)
-        self._horizontal_layout.addWidget(self._play_pause_button)
-        self._horizontal_layout.addSpacerItem(
-            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding)
+        self._min_range_le: Any = QtWidgets.QLineEdit(  # pyright: ignore[reportUnknownMemberType]
+            f"{self._levels_range[0]}"
         )
-        self._horizontal_layout.addWidget(QtWidgets.QLabel("Levels min:"))
-        self._horizontal_layout.addWidget(self._min_range_le)
-        self._horizontal_layout.addWidget(QtWidgets.QLabel("max:"))
-        self._horizontal_layout.addWidget(self._max_range_le)
+        self._max_range_le: Any = QtWidgets.QLineEdit(  # pyright: ignore[reportUnknownMemberType]
+            f"{self._levels_range[1]}"
+        )
+        self._level_regex: Any = QtCore.QRegExp(  # pyright: ignore[reportUnknownMemberType]
+            r"-?\d+\.?\d*([eE][+-]?\d+)?"
+        )
+        self._level_validator: Any = (
+            QtGui.QRegExpValidator()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._level_validator.setRegExp(  # pyright: ignore[reportUnknownMemberType]
+            self._level_regex  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_range_le.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._level_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._max_range_le.setValidator(  # pyright: ignore[reportUnknownMemberType]
+            self._level_validator  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._min_range_le.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._change_levels
+        )
+        self._max_range_le.editingFinished.connect(  # pyright: ignore[reportUnknownMemberType]
+            self._change_levels
+        )
+        self._min_range_le.setMaximumWidth(  # pyright: ignore[reportUnknownMemberType]
+            100
+        )
+        self._max_range_le.setMaximumWidth(  # pyright: ignore[reportUnknownMemberType]
+            100
+        )
 
-        self._vertical_layout: Any = QtWidgets.QVBoxLayout()
-        self._vertical_layout.addWidget(self._image_view)
-        self._vertical_layout.addLayout(self._horizontal_layout)
-        self._central_widget: Any = QtWidgets.QWidget()
-        self._central_widget.setLayout(self._vertical_layout)
-        self.setCentralWidget(self._central_widget)
+        self._horizontal_layout: Any = (
+            QtWidgets.QHBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._back_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._forward_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._play_pause_button  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout.addSpacerItem(  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QSpacerItem(  # pyright: ignore[reportUnknownMemberType]
+                0,
+                0,
+                QtWidgets.QSizePolicy.Expanding,  # pyright: ignore[reportUnknownMemberType]
+            )
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QLabel(  # pyright: ignore[reportUnknownMemberType]
+                "Levels min:"
+            )
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._min_range_le  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            QtWidgets.QLabel(  # pyright: ignore[reportUnknownMemberType]
+                "max:"
+            )
+        )
+        self._horizontal_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._max_range_le  # pyright: ignore[reportUnknownMemberType]
+        )
 
-        self.resize(600, 600)
-        self.show()
+        self._vertical_layout: Any = (
+            QtWidgets.QVBoxLayout()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._vertical_layout.addWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._image_view
+        )
+        self._vertical_layout.addLayout(  # pyright: ignore[reportUnknownMemberType]
+            self._horizontal_layout  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._central_widget: Any = (
+            QtWidgets.QWidget()  # pyright: ignore[reportUnknownMemberType]
+        )
+        self._central_widget.setLayout(  # pyright: ignore[reportUnknownMemberType]
+            self._vertical_layout  # pyright: ignore[reportUnknownMemberType]
+        )
+        self.setCentralWidget(  # pyright: ignore[reportUnknownMemberType]
+            self._central_widget  # pyright: ignore[reportUnknownMemberType]
+        )
+
+        self.resize(  # pyright: ignore[reportUnknownMemberType]
+            600, 600
+        )
+        self.show()  # pyright: ignore[reportUnknownMemberType]
 
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: NDArray[numpy.float_],
-        peak_list_y_in_frame: NDArray[numpy.float_],
+        peak_list_x_in_frame: NDArray[numpy.floating[Any]],
+        peak_list_y_in_frame: NDArray[numpy.floating[Any]],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._peak_canvas.setData(
             x=peak_list_x_in_frame,
@@ -173,7 +249,7 @@ class FrameViewer(OmGuiBase):
             # If the frame buffer is empty, returns without drawing anything.
             return
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._image_view.setImage(
             current_data["frame_data"].T,
@@ -183,21 +259,23 @@ class FrameViewer(OmGuiBase):
             autoHistogramRange=False,
         )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         self._update_peaks(
             peak_list_x_in_frame=current_data["peak_list_x_in_frame"],
             peak_list_y_in_frame=current_data["peak_list_y_in_frame"],
         )
 
-        QtWidgets.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()  # pyright: ignore[reportUnknownMemberType]
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         time_now: float = time.time()
         estimated_delay: float = round(time_now - current_data["timestamp"], 6)
-        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
+        self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
+            f"Estimated delay: {estimated_delay} seconds"
+        )
 
     def update_gui(self) -> None:
         """
@@ -233,7 +311,7 @@ class FrameViewer(OmGuiBase):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        log.info(f"Showing frame " f"{self._current_frame_index} in the buffer")
+        log.info(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -307,9 +385,15 @@ def main(
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    app: Any = QtWidgets.QApplication(sys.argv)
+    app: Any = (  # pyright: ignore[reportUnknownVariableType]
+        QtWidgets.QApplication(  # pyright: ignore[reportUnknownMemberType]
+            sys.argv
+        )
+    )
     _ = FrameViewer(url=url)
-    sys.exit(app.exec_())
+    sys.exit(
+        app.exec_()  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+    )
 
 
 typer_click_object = typer.main.get_command(app)

@@ -24,7 +24,7 @@ for data extraction,
 
 from typing import Any, BinaryIO
 
-import h5py  # type: ignore
+import h5py  # pyright: ignore[reportMissingTypeStubs]
 import numpy
 from numpy.typing import NDArray
 
@@ -61,11 +61,11 @@ class Jungfrau1MCalibration:
         """
 
         num_panels: int = len(dark_filenames)
-        self._dark: NDArray[numpy.float_] = numpy.ndarray(
-            (3, 512 * num_panels, 1024), dtype=numpy.float32
+        self._dark: NDArray[numpy.float64] = numpy.ndarray(
+            (3, 512 * num_panels, 1024), dtype=numpy.float64
         )
-        self._gain: NDArray[numpy.float_] = numpy.ndarray(
-            (3, 512 * num_panels, 1024), dtype=numpy.float32
+        self._gain: NDArray[numpy.float64] = numpy.ndarray(
+            (3, 512 * num_panels, 1024), dtype=numpy.float64
         )
 
         panel_id: int
@@ -87,7 +87,9 @@ class Jungfrau1MCalibration:
 
         self._photon_energy_kev: float = photon_energy_kev
 
-    def apply_calibration(self, *, data: NDArray[numpy.int_]) -> NDArray[numpy.float_]:
+    def apply_calibration(
+        self, *, data: NDArray[numpy.signedinteger[Any]]
+    ) -> NDArray[numpy.floating[Any]]:
         """
         Applies the calibration to a detector data frame.
 
@@ -103,7 +105,7 @@ class Jungfrau1MCalibration:
 
             The calibrated data frame.
         """
-        calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float_)
+        calibrated_data: NDArray[numpy.float64] = data.astype(numpy.float64)
 
         where_gain: list[tuple[NDArray[numpy.int_], ...]] = [
             numpy.where(data & 2**14 == 0),

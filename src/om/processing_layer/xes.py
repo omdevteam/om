@@ -70,9 +70,9 @@ class XesProcessing(OmProcessingProtocol):
         if parameters.xes is None:
             log.error("'xes' section is not present in the configuration file")
             sys.exit(1)
-
-        self._xes_parameters: XesParameters = parameters.xes
-        self._monitor_parameters: MonitorParameters = parameters
+        else:
+            self._xes_parameters: XesParameters = parameters.xes
+            self._monitor_parameters: MonitorParameters = parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -195,7 +195,7 @@ class XesProcessing(OmProcessingProtocol):
             entry is the OM rank number of the node that processed the information.
         """
         processed_data: dict[str, Any] = {}
-        camera_data: NDArray[numpy.float_] = data["detector_data"]
+        camera_data: NDArray[numpy.floating[Any]] = data["detector_data"]
 
         # Mask the camera edges
         camera_data[camera_data.shape[0] // 2 - 1 : camera_data.shape[0] // 2 + 1] = 0
@@ -204,7 +204,7 @@ class XesProcessing(OmProcessingProtocol):
             camera_data.shape[1] // 2 - 1 : camera_data.shape[1] // 2 + 1,
         ] = 0
 
-        xes: dict[str, NDArray[numpy.float_]] = (
+        xes: dict[str, NDArray[numpy.floating[Any]]] = (
             self._energy_spectrum_retrieval.calculate_spectrum(data=camera_data)
         )
 
@@ -288,12 +288,14 @@ class XesProcessing(OmProcessingProtocol):
 
         spectrum_for_gui = received_data["spectrum"]
 
-        spectra_cumulative_sum: NDArray[numpy.float_ | numpy.int_] | None
-        spectra_cumulative_sum_smoothed: NDArray[numpy.float_] | None
-        cumulative_2d: NDArray[numpy.float_ | numpy.int_] | None
-        spectra_cumulative_sum_pumped: NDArray[numpy.float_] | None
-        spectra_cumulative_sum_dark: NDArray[numpy.float_] | None
-        spectra_cumulative_sum_difference: NDArray[numpy.float_] | None
+        spectra_cumulative_sum: (
+            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None
+        )
+        spectra_cumulative_sum_smoothed: NDArray[numpy.floating[Any]] | None
+        cumulative_2d: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None
+        spectra_cumulative_sum_pumped: NDArray[numpy.floating[Any]] | None
+        spectra_cumulative_sum_dark: NDArray[numpy.floating[Any]] | None
+        spectra_cumulative_sum_difference: NDArray[numpy.floating[Any]] | None
         (
             spectra_cumulative_sum,
             spectra_cumulative_sum_smoothed,

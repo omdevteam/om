@@ -45,9 +45,9 @@ def get_current_machine_ip() -> str:
     """
     ip: str = [
         (
-            s.connect(("8.8.8.8", 80)),  # type: ignore
+            s.connect(("8.8.8.8", 80)),
             s.getsockname()[0],
-            s.close(),  # type: ignore
+            s.close(),
         )
         for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
     ][0][1]
@@ -235,9 +235,7 @@ class ZmqResponder:
             else:
                 return None
 
-    def send_data(
-        self, *, identity: bytes, message: dict[str, Any] | bytes
-    ) -> None:
+    def send_data(self, *, identity: bytes, message: dict[str, Any] | bytes) -> None:
         """
         Send data from the ZMQ REP socket.
 

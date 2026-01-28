@@ -24,10 +24,10 @@ binning, etc.).
 """
 
 from pathlib import Path
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import numpy
-from numpy.typing import DTypeLike, NDArray
+from numpy.typing import NDArray
 
 from om.algorithms.common import PeakList
 from om.lib.files import load_hdf5_data
@@ -36,7 +36,7 @@ from om.lib.parameters import BinningParameters, RadialProfileParameters
 
 from ._generic_cython import bin_detector_data  # type: ignore
 
-A = TypeVar("A", numpy.float_, numpy.int_)
+A = TypeVar("A", bound=numpy.floating[Any] | numpy.signedinteger[Any])
 
 
 class RadialProfile:
@@ -47,7 +47,7 @@ class RadialProfile:
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float_],
+        radius_pixel_map: NDArray[numpy.floating[Any]],
         parameters: RadialProfileParameters,
     ) -> None:
         """
@@ -104,8 +104,8 @@ class RadialProfile:
             parameters.bad_pixel_map_filename is not None
             and parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: NDArray[numpy.int_] | None = cast(
-                NDArray[numpy.int_] | None,
+            bad_pixel_map: NDArray[numpy.signedinteger[Any]] | None = cast(
+                NDArray[numpy.signedinteger[Any]] | None,
                 load_hdf5_data(
                     hdf5_filename=(Path(parameters.bad_pixel_map_filename)),
                     hdf5_path=parameters.bad_pixel_map_hdf5_path,
@@ -122,7 +122,7 @@ class RadialProfile:
         # Calculates the radial bins
         self._num_bins: int = int(radius_pixel_map.max() / parameters.radius_bin_size)
 
-        radial_bins: NDArray[numpy.float_] = numpy.linspace(
+        radial_bins: NDArray[numpy.floating[Any]] = numpy.linspace(
             0,
             self._num_bins * parameters.radius_bin_size,
             self._num_bins + 1,
@@ -130,11 +130,11 @@ class RadialProfile:
 
         # Creates an array that labels each pixel according to the bin to which it
         # belongs.
-        self._radial_bin_labels: NDArray[numpy.int_] = (
+        self._radial_bin_labels: NDArray[numpy.signedinteger[Any]] = (
             numpy.searchsorted(radial_bins, radius_pixel_map, "right") - 1
         )
 
-    def get_radial_bin_labels(self) -> NDArray[numpy.int_]:
+    def get_radial_bin_labels(self) -> NDArray[numpy.signedinteger[Any]]:
         """
         Gets the radial bin label information.
 
@@ -170,8 +170,8 @@ class RadialProfile:
 
     def calculate_profile(
         self,
-        data: NDArray[numpy.float_ | numpy.int_],
-    ) -> NDArray[numpy.float_]:
+        data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
+    ) -> NDArray[numpy.floating[Any]]:
         """
         Calculates the radial profile for a detector data frame.
 
@@ -187,15 +187,15 @@ class RadialProfile:
             The radial profile.
         """
 
-        radius_sum: NDArray[numpy.int_] = numpy.bincount(
+        radius_sum: NDArray[numpy.signedinteger[Any]] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel(), data[self._mask].ravel()
         )
-        radius_count: NDArray[numpy.int_] = numpy.bincount(
+        radius_count: NDArray[numpy.signedinteger[Any]] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel()
         )
         with numpy.errstate(divide="ignore", invalid="ignore"):
             # numpy.errstate allows to ignore the divide by zero warning
-            radial_average: NDArray[numpy.float_] = numpy.nan_to_num(
+            radial_average: NDArray[numpy.floating[Any]] = numpy.nan_to_num(
                 radius_sum / radius_count
             )
 
@@ -284,8 +284,8 @@ class Binning:
             parameters.bad_pixel_map_filename is not None
             and parameters.bad_pixel_map_hdf5_path is not None
         ):
-            bad_pixel_map: NDArray[numpy.int_] | None = cast(
-                NDArray[numpy.int_] | None,
+            bad_pixel_map: NDArray[numpy.signedinteger[Any]] | None = cast(
+                NDArray[numpy.signedinteger[Any]] | None,
                 load_hdf5_data(
                     hdf5_filename=Path(parameters.bad_pixel_map_filename),
                     hdf5_path=parameters.bad_pixel_map_hdf5_path,
@@ -295,7 +295,7 @@ class Binning:
             bad_pixel_map = None
 
         if bad_pixel_map is None:
-            self._mask: NDArray[numpy.int_] = numpy.ones(
+            self._mask: NDArray[numpy.int8] = numpy.ones(
                 (self._original_nx, self._original_ny), dtype=numpy.int8
             )
         else:
@@ -320,12 +320,12 @@ class Binning:
         self._binned_ny: int = self._extended_ny // self._bin_size
 
         # # Binned mask = num good pixels per bin
-        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
+        self._binned_mask: NDArray[numpy.int8] = self._bin_data_array(data=self._mask)
 
-        self._float_data_array: NDArray[numpy.float_] = numpy.zeros(
+        self._float_data_array: NDArray[numpy.float64] = numpy.zeros(
             (self._original_nx, self._original_ny), dtype=numpy.float64
         )
-        self._binned_data_array: NDArray[numpy.float_] = numpy.zeros(
+        self._binned_data_array: NDArray[numpy.float64] = numpy.zeros(
             (self._binned_nx, self._binned_ny), dtype=numpy.float64
         )
         self._bad_pixel_value: int | float | None = parameters.bad_pixel_value
@@ -420,8 +420,8 @@ class Binning:
         )
 
     def bin_detector_data(
-        self, *, data: NDArray[numpy.float_ | numpy.int_]
-    ) -> NDArray[numpy.float_]:
+        self, *, data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
+    ) -> NDArray[numpy.floating[Any]]:
         """
         Computes a binned version of the detector data frame.
 
@@ -443,19 +443,23 @@ class Binning:
             A binned version of the detector data frame.
         """
 
-        data_type: DTypeLike = data.dtype
+        data_type: numpy.dtype[Any] = data.dtype
         if self._bad_pixel_value is None:
             if numpy.issubdtype(data_type, numpy.integer):
                 # TODO: is self._bad_pixel_value int or float?
-                bad_pixel_value: int | float = numpy.iinfo(data_type).max
+                bad_pixel_value: int | float = numpy.iinfo(
+                    cast(numpy.signedinteger[Any], data_type)
+                ).max
             else:
                 bad_pixel_value = -1.0e10
         else:
             bad_pixel_value = self._bad_pixel_value
         if numpy.issubdtype(data_type, numpy.integer):
-            self._saturation_value = float(numpy.iinfo(data_type).max)
+            self._saturation_value = float(
+                numpy.iinfo(cast(numpy.signedinteger[Any], data_type)).max
+            )
 
-        self._float_data_array[:] = data.astype(numpy.float_)
+        self._float_data_array[:] = data.astype(numpy.floating[Any])
         bin_detector_data(
             self._float_data_array,
             self._binned_data_array,
@@ -472,8 +476,8 @@ class Binning:
         return self._binned_data_array
 
     def bin_bad_pixel_map(
-        self, *, mask: NDArray[numpy.int_] | None
-    ) -> NDArray[numpy.int_] | None:
+        self, *, mask: NDArray[numpy.signedinteger[Any]] | None
+    ) -> NDArray[numpy.signedinteger[Any]] | None:
         """
         Computes a bad pixel map for a binned data frame.
 
@@ -653,8 +657,8 @@ class BinningPassthrough:
         return self._layout_info
 
     def bin_detector_data(
-        self, *, data: NDArray[numpy.float_ | numpy.int_]
-    ) -> NDArray[numpy.float_]:
+        self, *, data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
+    ) -> NDArray[numpy.floating[Any]]:
         """
         Computes a binned version of the detector data frame.
 
@@ -671,11 +675,11 @@ class BinningPassthrough:
 
             A binned version of the detector data frame.
         """
-        return data.astype(numpy.float_)
+        return data.astype(numpy.floating[Any])
 
     def bin_bad_pixel_map(
-        self, *, mask: NDArray[numpy.int_] | None
-    ) -> NDArray[numpy.int_] | None:
+        self, *, mask: NDArray[numpy.signedinteger[Any]] | None
+    ) -> NDArray[numpy.signedinteger[Any]] | None:
         """
         Computes a bad pixel map for the binned data frame.
 

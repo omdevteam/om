@@ -636,6 +636,8 @@ class OmPeakDetectionProtocol(Protocol):
         """ """
         ...
 
-    def find_peaks(self, *, data: NDArray[numpy.int_ | numpy.float_]) -> PeakList:
+    def find_peaks(
+        self, *, data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
+    ) -> PeakList:
         """ """
         ...

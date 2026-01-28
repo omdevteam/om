@@ -243,12 +243,14 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "value" not in extra_parameters:
-            log.error(
-                f"Entry 'value' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        self._value: float = extra_parameters["value"]
+        else:
+            if "value" not in extra_parameters:
+                log.error(
+                    f"Entry 'value' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._value: float = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -324,12 +326,14 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "value" not in extra_parameters:
-            log.error(
-                f"Entry 'value' is not defined for data source {data_source_name}"
-            )
-            sys.exit(1)
-        self._value: int = extra_parameters["value"]
+        else:
+            if "value" not in extra_parameters:
+                log.error(
+                    f"Entry 'value' is not defined for data source {data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._value: int = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -405,20 +409,22 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
             sys.exit(1)
-        if "hd5_filename" not in extra_parameters:
-            log.error(
-                "Entry 'hdf5_filename' is not defined for data source "
-                f"{data_source_name}"
-            )
-            sys.exit(1)
-        if "hd5_path" not in extra_parameters:
-            log.error(
-                "Entry 'hdf5_filename' is not defined for data source "
-                f"{data_source_name}"
-            )
-            sys.exit(1)
-        self._hdf5_filename: Path = Path(extra_parameters["hdf5_filename"])
-        self._hdf5_path: str = extra_parameters["hdf5_path"]
+        else:
+            if "hd5_filename" not in extra_parameters:
+                log.error(
+                    "Entry 'hdf5_filename' is not defined for data source "
+                    f"{data_source_name}"
+                )
+                sys.exit(1)
+            elif "hd5_path" not in extra_parameters:
+                log.error(
+                    "Entry 'hdf5_filename' is not defined for data source "
+                    f"{data_source_name}"
+                )
+                sys.exit(1)
+            else:
+                self._hdf5_filename: Path = Path(extra_parameters["hdf5_filename"])
+                self._hdf5_path: str = extra_parameters["hdf5_path"]
 
     def initialize_data_source(self) -> None:
         """
@@ -433,12 +439,16 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
         it raises an exception if the parameter is not available), and requires its
         value to be a float number.
         """
-        self._array: NDArray[numpy.float_ | numpy.int_] = load_hdf5_data(
-            hdf5_filename=self._hdf5_filename,
-            hdf5_path=self._hdf5_path,
+        self._array: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
+            load_hdf5_data(
+                hdf5_filename=self._hdf5_filename,
+                hdf5_path=self._hdf5_path,
+            )
         )
 
-    def get_data(self, *, event: dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(
+        self, *, event: dict[str, Any]
+    ) -> NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]:
         """
         Retrieves the numerical value of an OM's configuration parameter
 

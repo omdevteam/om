@@ -27,8 +27,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, TextIO, cast
 
-import h5py  # type: ignore
-import hdf5plugin  # type: ignore
+import h5py  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
+import hdf5plugin  ## type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 import numpy
 from numpy.typing import NDArray
 
@@ -51,10 +51,10 @@ class ClassSumData:
     num_frames: int
     """The number of detector frames belonging to the data class."""
 
-    sum_frames: NDArray[numpy.float_]
+    sum_frames: NDArray[numpy.floating[Any]]
     """The sum of the detector frames belonging to the class."""
 
-    peak_powder: NDArray[numpy.float_]
+    peak_powder: NDArray[numpy.floating[Any]]
     """The virtual powder pattern for the data class."""
 
 
@@ -66,7 +66,8 @@ class FramelistData:
     This named tuple is used to store the detector frame data which is later written
     into the `frames.txt` file.
     """
-    timestamp: numpy.float64
+
+    timestamp: numpy.floating[Any]
     """The timestamp of the frame."""
 
     event_id: str | None
@@ -85,7 +86,7 @@ class FramelistData:
     num_peaks: int
     """The number of peaks in the frame."""
 
-    average_intensity: numpy.float64
+    average_intensity: numpy.floating[Any]
     """The average intensity of the Bragg peaks detected in the frame."""
 
     def __post_init__(self) -> None:
@@ -109,10 +110,10 @@ class CheetahStatusFileWriter:
         the updated data processing information to a "status" file, which can then
         be inspected by external programs.
 
-        Arguments:
+            Arguments:
 
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group.
+                parameters: A set of OM configuration parameters collected together in a
+                    parameter group.
         """
         self._status_filename: pathlib.Path = (
             pathlib.Path(parameters.processed_directory).resolve() / "status.txt"
@@ -384,7 +385,7 @@ class CheetahClassSumsAccumulator:
         self,
         *,
         class_number: int,
-        frame_data: NDArray[numpy.float_ | numpy.int_],
+        frame_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
         peak_list: PeakList,
     ) -> None:
         """
@@ -640,7 +641,7 @@ class HDF5Writer:
                 name=self._cheetah_parameters.hdf5_fields["event_id"],
                 shape=(0,),
                 maxshape=(None,),
-                dtype=h5py.special_dtype(vlen=str),
+                dtype=h5py.special_dtype(vlen=str),  # pyright: ignore[reportUnknownMemberType]
             )
         if "optical_laser_active" in self._cheetah_parameters.hdf5_fields.keys():
             self._resizable_datasets["optical_laser_active"] = (
@@ -740,8 +741,11 @@ class HDF5Writer:
             if key in self._cheetah_parameters.hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
                     name=self._cheetah_parameters.hdf5_fields[key],
-                    shape=(0,3019),
-                    maxshape=(None,None,),
+                    shape=(0, 3019),
+                    maxshape=(
+                        None,
+                        None,
+                    ),
                     dtype=numpy.float64,
                 )
 
@@ -778,7 +782,7 @@ class HDF5Writer:
                     name=key,
                     shape=(0, *value.shape),
                     maxshape=(None, *value.shape),
-                    dtype=value.dtype,
+                    dtype=value.dtype,  # pyright: ignore[reportUnknownMemberType]
                 )
             elif isinstance(value, str):
                 self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
@@ -787,12 +791,12 @@ class HDF5Writer:
                     name=key,
                     shape=(0,),
                     maxshape=(None,),
-                    dtype=h5py.special_dtype(vlen=str),
+                    dtype=h5py.special_dtype(vlen=str),  # pyright: ignore[reportUnknownMemberType]
                 )
             elif (
-                numpy.issubdtype(type(value), numpy.int_)
-                or numpy.issubdtype(type(value), numpy.float_)
-                or numpy.issubdtype(type(value), numpy.bool_)
+                isinstance(value, int)
+                or isinstance(value, float)
+                or isinstance(value, bool)
             ):
                 self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
                     group_name

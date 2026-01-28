@@ -26,7 +26,7 @@ def listen(
     socket.connect(url)
 
     # Get first message, store timestamp and clock value
-    msg: list[str] = socket.recv_multipart()
+    msg: list[bytes] = socket.recv_multipart()
     timestamp_start: float = time.time()
     header: dict[str, Any] = json.loads(msg[0])
     clock_start: int = header["timestamp"]
@@ -41,7 +41,7 @@ def listen(
 
         # msg is a list of two strings: [header in json, data in binary]
         header = json.loads(msg[0])
-        data: str = msg[1]
+        data: bytes = msg[1]
 
         # internal clock value
         clock: int = header["timestamp"]
@@ -70,8 +70,8 @@ def listen(
         i += 1
         if i % 100 == 0:
             log.info(
-                f"Worker {panel_id}: {i} frames, {timestamp-timestamp_start}, s since"
-                f"start timestamp, {time.time()-timestamp} s delay"
+                f"Worker {panel_id}: {i} frames, {timestamp - timestamp_start}, s since"
+                f"start timestamp, {time.time() - timestamp} s delay"
             )
 
         # Receive next message
@@ -80,7 +80,7 @@ def listen(
 @app.command()
 def main(
     input_url: Annotated[list[Path], typer.Argument(help="input_url")],
-    output_url: Annotated[str, typer.Argument(help="output_url")],
+    output_url: Annotated[str | None, typer.Argument(help="output_url")],
 ) -> None:
     """
     JUNGFRAU 1M ZMQ receiver. This script reads data from two ZMQ streams at INPUT_URL0
@@ -130,8 +130,8 @@ def main(
                 ):
                     if i % 200 == 0:
                         log.info(
-                            f'Master: last matched frame id {fr0["acq_index"]}, '
-                            f'{time.time() - fr0["timestamp"]} s delay'
+                            f"Master: last matched frame id {fr0['acq_index']}, "
+                            f"{time.time() - fr0['timestamp']} s delay"
                         )
                     i += 1
                     matched.append(fr0["frame_number"])

@@ -20,11 +20,12 @@ This module contains algorithms that perform data processing operations for X-ra
 Emission Spectroscopy
 """
 
+from typing import Any, cast
+
 import numpy
 from numpy.typing import NDArray
-from typing import cast
-from scipy import ndimage  # type: ignore
-from scipy.ndimage import gaussian_filter1d  # type: ignore
+from scipy import ndimage
+from scipy.ndimage import gaussian_filter1d
 
 from om.lib.parameters import XesParameters
 
@@ -80,8 +81,8 @@ class EnergySpectrumRetrieval:
     # TODO: Enforce return dict content for the function below
 
     def calculate_spectrum(
-        self, *, data: NDArray[numpy.float_ | numpy.int_]
-    ) -> dict[str, NDArray[numpy.float_]]:
+        self, *, data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
+    ) -> dict[str, NDArray[numpy.floating[Any]]]:
         """
         Calculates beam energy spectrum information from a camera data frame.
 
@@ -120,8 +121,8 @@ class EnergySpectrumRetrieval:
         # TODO: Perhaps better type hints can be found for this
         if self._xes_parameters.intensity_threshold is not None:
             data[data < self._xes_parameters.intensity_threshold] = 0
-        imr: NDArray[numpy.float_ | numpy.int_] = cast(
-            DArray[numpy.float_ | numpy.int_],
+        imr: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = cast(
+            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
             ndimage.rotate(
                 data,
                 self._xes_parameters.rotation_in_degrees,
@@ -130,7 +131,7 @@ class EnergySpectrumRetrieval:
         )
         min_row: int = self._xes_parameters.min_row_in_pix_for_integration
         max_row: int = self._xes_parameters.max_row_in_pix_for_integration
-        spectrum: NDArray[numpy.float_] = numpy.mean(
+        spectrum: NDArray[numpy.floating[Any]] = numpy.mean(
             imr[
                 :,
                 min_row:max_row,
@@ -138,7 +139,7 @@ class EnergySpectrumRetrieval:
             axis=1,
         )
 
-        spectrum_smoothed: NDArray[numpy.float_] = gaussian_filter1d(spectrum, 2)
+        spectrum_smoothed: NDArray[numpy.floating[Any]] = gaussian_filter1d(spectrum, 2)
         return {
             "spectrum": spectrum,
             "spectrum_smoothed": spectrum_smoothed,
