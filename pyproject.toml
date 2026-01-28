@@ -32,7 +32,7 @@ classifiers = [
   "Natural Language :: English",
   "Intended Audience :: Science/Research",
 ]
-dependencies = [ "h5py", "numpy<2", "pillow", "pyzmq", "scipy", "cython>=3.1.2,<4", "fabio>=2024.9.0,<2025", "hdf5plugin>=5.1.0,<6", "msgpack>=1.1.1,<2", "msgpack-numpy>=0.4.8,<0.5", "pydantic>=2.11.7,<3", "pyyaml>=6.0.2,<7", "rich>=14.0.0,<15", "ruamel-yaml>=0.18.14,<0.19", "typer>=0.16.0,<0.17"]
+dependencies = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3", "mpi4py>=4.1.1,<5"]
 
 [project.urls]
 Homepage = "https://www.ondamonitor.com"
@@ -54,8 +54,7 @@ om_swaxs_gui = "om.graphical_interfaces.swaxs_gui:app"
 requires = ["setuptools", "numpy", "cython"]
 build-backend = "setuptools.build_meta"
 
-[tool.pyright]
-diagnosticMode = "workspace"
+[tool.basedpyright]
 typeCheckingMode = "strict"
 venvPath = "/sdf/group/lcls/ds/tools/om/conda"
 venv = "ps_20250819_miniom"
@@ -67,6 +66,47 @@ profile = "black"
 [tool.mypy]
 show_error_codes = true
 python_version = 3.11
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.feature.psana2]
+channels = ["lcls-ii"]
+
+[tool.pixi.feature.psana1]
+channels = ["lcls-i"]
+
+[tool.pixi.pypi-dependencies]
+ondamonitor = { path = ".", editable = true }
+
+[tool.pixi.environments]
+psana1 = ["psana1"]
+psana2 = ["psana2"]
+
+[tool.pixi.feature.psana2.activation]
+scripts = ["activation-psana2.sh"]
+
+[tool.pixi.feature.psana1.activation]
+scripts = ["activation-psana1.sh"]
+
+[tool.pixi.feature.psana2.dependencies]
+python = "3.13.*"
+psana = { version="==4.2.4", channel="lcls-ii" }
+openmpi = "*"
+mpi4py = "*"
+
+[tool.pixi.feature.psana1.dependencies]
+python = "3.11.*"
+psana = { version="==4.0.66", channel="lcls-i" }
+openmpi = "*"
+mpi4py = "*"
+
+[dependency-groups]
+psana2 = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3"]
+psana1 = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3"]
+
+[tool.pixi.tasks]
 
 [tool.ruff]
 exclude = [
