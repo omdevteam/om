@@ -21,11 +21,10 @@ OnDA Test Monitor.
 This module contains an OnDA Monitor that can be used for testing.
 """
 
-import sys
 import time
 from typing import Any
 
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_info
 from om.lib.parameters import CrystallographyParameters, MonitorParameters
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
@@ -53,11 +52,10 @@ class TestProcessing(OmProcessingProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         if parameters.crystallography is None:
-            log.error(
+            log_error_and_exit(
                 "'crystallography' section is not present in the configuration file"
             )
-            sys.exit(1)
-
+            return  # For the type checker
         self._crystallography_parameters: CrystallographyParameters = (
             parameters.crystallography
         )
@@ -81,7 +79,7 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -117,7 +115,7 @@ class TestProcessing(OmProcessingProtocol):
         self._old_time: float = time.time()
         self._time: float | None = None
 
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -157,8 +155,8 @@ class TestProcessing(OmProcessingProtocol):
         """
         processed_data: dict[str, Any] = {}
 
-        log.info("Processing Node - Retrieved data")
-        log.info(f"  Timestamp: {data['timestamp']}")
+        log_info("Processing Node - Retrieved data")
+        log_info(f"  Timestamp: {data['timestamp']}")
 
         processed_data["timestamp"] = data["timestamp"]
 
@@ -223,8 +221,8 @@ class TestProcessing(OmProcessingProtocol):
         received_data: dict[str, Any] = processed_data[0]
         self._num_events += 1
 
-        log.info("Collecting Node - Received data")
-        log.info(f"Timestamp: {received_data['timestamp']}")
+        log_info("Collecting Node - Received data")
+        log_info(f"Timestamp: {received_data['timestamp']}")
 
         if (
             self._num_events % self._crystallography_parameters.data_broadcast_interval
@@ -247,7 +245,7 @@ class TestProcessing(OmProcessingProtocol):
             events_per_second: float = float(
                 self._crystallography_parameters.speed_report_interval
             ) / float(now_time - self._old_time)
-            log.info(
+            log_info(
                 f"Processed: {self._num_events} in "
                 f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
@@ -280,7 +278,7 @@ class TestProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -302,6 +300,6 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all
                 the processing nodes and the collecting node.
         """
-        log.info(
+        log_info(
             f"Processing finished. OM has processed {self._num_events} events in total."
         )

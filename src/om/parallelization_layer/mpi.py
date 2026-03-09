@@ -341,7 +341,7 @@ class MpiParallelization(OmParallelizationProtocol):
                         _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=MpiTags.data)
                     mpi_status: Any = MPI.Status()
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.dead):
-                        _: None = MPI.COMM_WORLD.recv(
+                        __: None = MPI.COMM_WORLD.recv(
                             source=MPI.ANY_SOURCE, tag=MpiTags.dead, status=mpi_status
                         )
                         dead_source: int = mpi_status.Get_source()
@@ -364,7 +364,7 @@ class MpiParallelization(OmParallelizationProtocol):
             req = MPI.COMM_WORLD.Ibarrier()
             while req.Test() is False:
                 if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=MpiTags.feedback):
-                    _: tuple[dict[str, Any], int] = MPI.COMM_WORLD.recv(
+                    ___: tuple[dict[str, Any], int] = MPI.COMM_WORLD.recv(
                         source=MPI.ANY_SOURCE, tag=MpiTags.feedback
                     )
             if self._skip_rank_finalization is False:

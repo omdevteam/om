@@ -27,7 +27,7 @@ import time
 from io import BytesIO
 from typing import Any, Generator, Literal, cast
 
-import requests  # type: ignore
+import requests
 
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,

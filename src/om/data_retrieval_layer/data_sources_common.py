@@ -22,7 +22,6 @@ This module contains Data Source classes that deal with data whose origin is not
 to a specific facility or experiment.
 """
 
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -32,7 +31,7 @@ from numpy.typing import NDArray
 
 from om.algorithms.calibration import Jungfrau1MCalibration
 from om.lib.files import load_hdf5_data
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
@@ -95,23 +94,20 @@ class OmJungfrau1MDataSourceMixin:
 
         if self._calibration is True:
             if len(self._dark_filenames) == 0:
-                log.error(
+                log_error_and_exit(
                     f"The entry 'dark_filenames' needed by the {data_source_name} "
                     "data source is not defined"
                 )
-                sys.exit(1)
             if len(self._gain_filenames) == 0:
-                log.error(
+                log_error_and_exit(
                     f"The entry 'gain_filenames' needed by the {data_source_name} "
                     "data source is not defined"
                 )
-                sys.exit(1)
             if self._photon_energy_kev == 0:
-                log.error(
+                log_error_and_exit(
                     f"The entry 'photon_energy_kev' needed by the {data_source_name} "
                     "data source is not defined"
                 )
-                sys.exit(1)
 
     def initialize_data_source(self) -> None:
         """
@@ -239,18 +235,15 @@ class FloatValueFromConfiguration(OmDataSourceProtocol):
 
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "value" not in extra_parameters:
-                log.error(
-                    f"Entry 'value' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._value: float = extra_parameters["value"]
+            return  # Fot the type checker
+        if "value" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'value' is not defined for data source {data_source_name}"
+            )
+        self._value: float = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -322,18 +315,15 @@ class IntValueFromConfiguration(OmDataSourceProtocol):
 
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "value" not in extra_parameters:
-                log.error(
-                    f"Entry 'value' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._value: int = extra_parameters["value"]
+            return  # Fot the type checker
+        if "value" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'value' is not defined for data source {data_source_name}"
+            )
+        self._value: int = extra_parameters["value"]
 
     def initialize_data_source(self) -> None:
         """
@@ -405,26 +395,22 @@ class ArrayFromHdf5File(OmDataSourceProtocol):
 
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "hd5_filename" not in extra_parameters:
-                log.error(
-                    "Entry 'hdf5_filename' is not defined for data source "
-                    f"{data_source_name}"
-                )
-                sys.exit(1)
-            elif "hd5_path" not in extra_parameters:
-                log.error(
-                    "Entry 'hdf5_filename' is not defined for data source "
-                    f"{data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._hdf5_filename: Path = Path(extra_parameters["hdf5_filename"])
-                self._hdf5_path: str = extra_parameters["hdf5_path"]
+            return  # Fot the type checker
+        if "hd5_filename" not in extra_parameters:
+            log_error_and_exit(
+                "Entry 'hdf5_filename' is not defined for data source "
+                f"{data_source_name}"
+            )
+        if "hd5_path" not in extra_parameters:
+            log_error_and_exit(
+                "Entry 'hdf5_filename' is not defined for data source "
+                f"{data_source_name}"
+            )
+        self._hdf5_filename: Path = Path(extra_parameters["hdf5_filename"])
+        self._hdf5_path: str = extra_parameters["hdf5_path"]
 
     def initialize_data_source(self) -> None:
         """

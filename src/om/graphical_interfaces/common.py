@@ -31,6 +31,7 @@ from om.lib.zmq_qt import ZmqDataListener
 
 try:
     from PyQt5 import QtCore, QtWidgets  # type: ignore
+    from sip import wrappertype  # type: ignore
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -38,7 +39,7 @@ except ImportError:
 
 
 class _QtMetaclass(
-    type(QtCore.QObject),  # pyright: ignore [reportUnknownArgumentType, reportUnknownMemberType, reportUntypedBaseClass]
+    wrappertype,  # pyright: ignore [reportUntypedBaseClass]
     ABCMeta,
 ):
     # This metaclass is used internally to resolve an issue with classes that inherit

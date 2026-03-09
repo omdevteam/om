@@ -70,16 +70,10 @@ class XesAnalysisAndPlots:
             None
         )
 
-        self._cumulative_2d: (
-            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None
-        ) = None
-        self._cumulative_2d_pumped: (
-            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None
-        ) = None
+        self._cumulative_2d: NDArray[numpy.floating[Any]] | None = None
+        self._cumulative_2d_pumped: NDArray[numpy.floating[Any]] | None = None
 
-        self._cumulative_2d_dark: (
-            NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] | None
-        ) = None
+        self._cumulative_2d_dark: NDArray[numpy.floating[Any]] | None = None
 
         self._num_events_pumped: int = 0
         self._num_events_dark: int = 0
@@ -153,7 +147,7 @@ class XesAnalysisAndPlots:
                 self._num_events_dark += 1
 
         if self._cumulative_2d is None:
-            self._cumulative_2d = detector_data
+            self._cumulative_2d = detector_data.astype(numpy.float64)
         else:
             self._cumulative_2d += (
                 (detector_data - self._cumulative_2d * 1.0) / self._num_events * 1.0
@@ -183,9 +177,11 @@ class XesAnalysisAndPlots:
         if self._time_resolved:
             # Sum the spectra for pumped (optical_laser_active) and dark
             if self._cumulative_2d_pumped is None:
-                self._cumulative_2d_pumped = detector_data * 0
+                self._cumulative_2d_pumped = numpy.zeros_like(
+                    detector_data, dtype=float
+                )
             if self._cumulative_2d_dark is None:
-                self._cumulative_2d_dark = detector_data * 0
+                self._cumulative_2d_dark = numpy.zeros_like(detector_data, dtype=float)
 
             # Need to calculate a running average
             if optical_laser_active:

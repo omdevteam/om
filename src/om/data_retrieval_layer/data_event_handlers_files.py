@@ -34,7 +34,7 @@ from typing import (
     cast,
 )
 
-import h5py  # pyright: ignore[reportMissingTypeStubs]
+import h5py
 import numpy
 from numpy.typing import NDArray
 
@@ -51,7 +51,7 @@ from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
-    import fabio  # pyright: ignore[reportMissingTypeStubs]
+    import fabio  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: fabio"
@@ -370,7 +370,7 @@ class Jungfrau1MFilesDataEventHandler(
             if not re.match(r".+_master_.+\.h5", filename):
                 continue
 
-            h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
+            h5file: Any = h5py.File(str(pathlib.Path(filename).resolve()), "r")
             try:
                 file_timestamp: float = datetime.strptime(
                     h5file["/entry/instrument/detector/timestamp"][()]
@@ -552,7 +552,7 @@ class Jungfrau1MFilesDataEventHandler(
         event_id_parts: list[str] = event_id.split("//")
         filename: str = event_id_parts[0].strip()
         index: int = int(event_id_parts[1].strip())
-        h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
+        h5file: Any = h5py.File(str(pathlib.Path(filename).resolve()), "r")
         try:
             file_timestamp: float = datetime.strptime(
                 h5file["/entry/instrument/detector/timestamp"][()]

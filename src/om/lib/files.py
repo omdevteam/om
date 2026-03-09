@@ -25,7 +25,7 @@ HDF5 format.
 from pathlib import Path
 from typing import Any, TextIO
 
-import h5py  # pyright: ignore[reportMissingTypeStubs]
+import h5py
 import numpy
 from numpy.typing import NDArray
 from yaml import YAMLError, safe_load
@@ -69,7 +69,7 @@ def load_hdf5_data(
     hdf5_filename_path: Path = Path(hdf5_filename)
     try:
         hdf5_file_handle: Any
-        with h5py.File(hdf5_filename_path, "r") as hdf5_file_handle:
+        with h5py.File(str(hdf5_filename_path), "r") as hdf5_file_handle:
             data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
                 hdf5_file_handle[hdf5_path][:]
             )

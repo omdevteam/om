@@ -22,7 +22,6 @@ This module contains classes and functions that perform common data processing
 operations on radial profile information computed from detector data frames.
 """
 
-import sys
 from collections import deque
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -34,7 +33,7 @@ from scipy import constants, stats
 from om.algorithms.generic import RadialProfile
 from om.lib.files import load_hdf5_data
 from om.lib.geometry import GeometryInformation
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import MonitorParameters
 
 
@@ -381,73 +380,74 @@ class RadialProfileAnalysis:
                   parameter must be provided and cannot be None.
         """
         if parameters.radial_profile is None:
-            log.error("'swaxs' section must be present in the configuration file")
-            sys.exit(1)
-        else:
-            self._background_subtraction: bool = (
-                parameters.radial_profile.background_subtraction
+            log_error_and_exit(
+                "'swaxs' section must be present in the configuration file"
             )
-            if self._background_subtraction is True:
-                self._background_profile_vectors: NDArray[numpy.floating[Any]] = cast(
-                    NDArray[numpy.floating[Any]],
-                    load_hdf5_data(
-                        hdf5_filename=Path(
-                            parameters.radial_profile.background_profile_filename
-                        ),
-                        hdf5_path=parameters.radial_profile.background_profile_hdf5_path,
+            return  # For the type checker
+        self._background_subtraction: bool = (
+            parameters.radial_profile.background_subtraction
+        )
+        if self._background_subtraction is True:
+            self._background_profile_vectors: NDArray[numpy.floating[Any]] = cast(
+                NDArray[numpy.floating[Any]],
+                load_hdf5_data(
+                    hdf5_filename=Path(
+                        parameters.radial_profile.background_profile_filename
                     ),
-                )
-
-                self._background_subtraction_min_bin: int = (
-                    parameters.radial_profile.background_subtraction_min_fit_bin
-                )
-                self._background_subtraction_max_bin: int = (
-                    parameters.radial_profile.background_subtraction_max_fit_bin
-                )
-            # Sample detection
-            self._sample_detection: bool = parameters.radial_profile.sample_detection
-            if self._sample_detection is True:
-                self._total_intensity_jet_threshold: float = (
-                    parameters.radial_profile.total_intensity_jet_threshold
-                )
-                self._roi1_qmin: float = parameters.radial_profile.roi1_qmin
-                self._roi1_qmax: float = parameters.radial_profile.roi1_qmax
-                self._roi2_qmin: float = parameters.radial_profile.roi2_qmin
-                self._roi2_qmax: float = parameters.radial_profile.roi2_qmax
-
-                self._ratio_threshold_min: float = parameters.radial_profile.minimum_roi1_to_roi2_intensity_ratio_for_sample
-                self._ratio_threshold_max: float = parameters.radial_profile.maximum_roi1_to_roi2_intensity_ratio_for_sample
-
-            self._estimate_particle_size: bool = (
-                parameters.radial_profile.estimate_particle_size
-            )
-            if self._estimate_particle_size:
-                self._size_estimation_method: Literal["guinier", "sphere", "peak"] = (
-                    parameters.radial_profile.size_estimation_method
-                )
-                if self._size_estimation_method == "guinier":
-                    self._guinier_qmin: float = parameters.radial_profile.guinier_qmin
-                    self._guinier_qmax: float = parameters.radial_profile.guinier_qmax
-
-            self._coffset: float = geometry_information.get_detector_distance_offset()
-            self._pixel_size: float = geometry_information.get_pixel_size()
-
-            self._radial_profile = RadialProfile(
-                radius_pixel_map=geometry_information.get_pixel_maps().radius,
-                parameters=parameters.radial_profile,
+                    hdf5_path=parameters.radial_profile.background_profile_hdf5_path,
+                ),
             )
 
-            self._radial_bin_labels = self._radial_profile.get_radial_bin_labels()
-            self._radial_bin_centers = self._radial_profile.calculate_profile(
-                data=self._radial_bin_labels
+            self._background_subtraction_min_bin: int = (
+                parameters.radial_profile.background_subtraction_min_fit_bin
             )
-
-            self._radial_profile_bad_pixel_map: NDArray[numpy.bool_] | None = (
-                self._radial_profile.get_bad_pixel_map()
+            self._background_subtraction_max_bin: int = (
+                parameters.radial_profile.background_subtraction_max_fit_bin
             )
+        # Sample detection
+        self._sample_detection: bool = parameters.radial_profile.sample_detection
+        if self._sample_detection is True:
+            self._total_intensity_jet_threshold: float = (
+                parameters.radial_profile.total_intensity_jet_threshold
+            )
+            self._roi1_qmin: float = parameters.radial_profile.roi1_qmin
+            self._roi1_qmax: float = parameters.radial_profile.roi1_qmax
+            self._roi2_qmin: float = parameters.radial_profile.roi2_qmin
+            self._roi2_qmax: float = parameters.radial_profile.roi2_qmax
 
-            # initialize spherical droplets
-            self._spherical_droplets: _SphericalDroplets | None = None
+            self._ratio_threshold_min: float = parameters.radial_profile.minimum_roi1_to_roi2_intensity_ratio_for_sample
+            self._ratio_threshold_max: float = parameters.radial_profile.maximum_roi1_to_roi2_intensity_ratio_for_sample
+
+        self._estimate_particle_size: bool = (
+            parameters.radial_profile.estimate_particle_size
+        )
+        if self._estimate_particle_size:
+            self._size_estimation_method: Literal["guinier", "sphere", "peak"] = (
+                parameters.radial_profile.size_estimation_method
+            )
+            if self._size_estimation_method == "guinier":
+                self._guinier_qmin: float = parameters.radial_profile.guinier_qmin
+                self._guinier_qmax: float = parameters.radial_profile.guinier_qmax
+
+        self._coffset: float = geometry_information.get_detector_distance_offset()
+        self._pixel_size: float = geometry_information.get_pixel_size()
+
+        self._radial_profile = RadialProfile(
+            radius_pixel_map=geometry_information.get_pixel_maps().radius,
+            parameters=parameters.radial_profile,
+        )
+
+        self._radial_bin_labels = self._radial_profile.get_radial_bin_labels()
+        self._radial_bin_centers = self._radial_profile.calculate_profile(
+            data=self._radial_bin_labels
+        )
+
+        self._radial_profile_bad_pixel_map: NDArray[numpy.bool_] | None = (
+            self._radial_profile.get_bad_pixel_map()
+        )
+
+        # initialize spherical droplets
+        self._spherical_droplets: _SphericalDroplets | None = None
 
     def analyze_radial_profile(
         self,
@@ -640,44 +640,40 @@ class RadialProfileAnalysisPlots:
         """
 
         if parameters.radial_profile is None:
-            log.error(
+            log_error_and_exit(
                 "'radial_profile' section must be present in the configuration file"
             )
-            sys.exit(1)
+            return  # For the type checker
+        self._radius_bin_size: int = parameters.radial_profile.radius_bin_size
+        self._running_average_window_size: int = (
+            parameters.radial_profile.running_average_window_size
+        )
+        self._num_radials_to_send: int = parameters.radial_profile.num_radials_to_send
+        self._num_hits_in_cum_radial_avg: int = (
+            parameters.radial_profile.num_hits_in_cum_radial_avg
+        )
+        self._num_events_to_plot: int = 5000
 
-        else:
-            self._radius_bin_size: int = parameters.radial_profile.radius_bin_size
-            self._running_average_window_size: int = (
-                parameters.radial_profile.running_average_window_size
-            )
-            self._num_radials_to_send: int = (
-                parameters.radial_profile.num_radials_to_send
-            )
-            self._num_hits_in_cum_radial_avg: int = (
-                parameters.radial_profile.num_hits_in_cum_radial_avg
-            )
-            self._num_events_to_plot: int = 5000
+        self._hit_rate_running_window: deque[float] = deque(
+            [0.0] * self._running_average_window_size,
+            maxlen=self._running_average_window_size,
+        )
+        self._avg_hit_rate: int = 0
+        self._num_hits: int = 0
+        self._hit_rate_timestamp_history: deque[float] = deque(
+            self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot
+        )
+        # self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
 
-            self._hit_rate_running_window: deque[float] = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
-            )
-            self._avg_hit_rate: int = 0
-            self._num_hits: int = 0
-            self._hit_rate_timestamp_history: deque[float] = deque(
-                self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot
-            )
-            # self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
-
-            self._hit_rate_history: deque[float] = deque([])
-            self._q_history: deque[NDArray[numpy.floating[Any]]] = deque([])
-            self._radials_history: deque[NDArray[numpy.floating[Any]]] = deque([])
-            self._image_sum_history: deque[float] = deque([])
-            self._downstream_intensity_history: deque[float] = deque([])
-            self._roi1_intensity_history: deque[float] = deque([])
-            self._roi2_intensity_history: deque[float] = deque([])
-            self._rg_history: deque[float] = deque([])
-            self._cumulative_hits_radial: NDArray[numpy.floating[Any]] = numpy.array([])
+        self._hit_rate_history: deque[float] = deque([])
+        self._q_history: deque[NDArray[numpy.floating[Any]]] = deque([])
+        self._radials_history: deque[NDArray[numpy.floating[Any]]] = deque([])
+        self._image_sum_history: deque[float] = deque([])
+        self._downstream_intensity_history: deque[float] = deque([])
+        self._roi1_intensity_history: deque[float] = deque([])
+        self._roi2_intensity_history: deque[float] = deque([])
+        self._rg_history: deque[float] = deque([])
+        self._cumulative_hits_radial: NDArray[numpy.floating[Any]] = numpy.array([])
 
     def update_plots(
         self,

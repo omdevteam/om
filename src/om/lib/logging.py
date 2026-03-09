@@ -23,9 +23,23 @@ terminal console output, using the Rich python library.
 """
 
 import logging
-from typing import Any
+import sys
+from typing import Any, NoReturn
 
 from rich.logging import RichHandler
+
+
+def log_error_and_exit(error: str) -> NoReturn:
+    log.error(error)
+    sys.exit(1)
+
+
+def log_info(info: str) -> None:
+    log.info(info)
+
+
+def log_warning(warning: str) -> None:
+    log.warning(warning)
 
 
 class RichHandlerWithAggregation(RichHandler):

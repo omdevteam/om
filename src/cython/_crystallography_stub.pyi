@@ -21,7 +21,7 @@ Peakfinder8 extension.
 This module contains a peak-finding function based on Cheetah's 'peakfinder8' peak
 detection algorithm.
 """
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import numpy
 from numpy.typing import NDArray
@@ -30,9 +30,9 @@ from numpy.typing import NDArray
 def peakfinder_8(
     *,
     max_num_peaks: int,
-    data: NDArray[numpy.float_],
-    mask: NDArray[numpy.int_],
-    pix_r: NDArray[numpy.float_],
+    data: NDArray[numpy.floating[Any]],
+    mask: NDArray[numpy.signedinteger[Any]],
+    pix_r: NDArray[numpy.floating[Any]],
     asic_nx: int,
     asic_ny: int,
     nasics_x: int,

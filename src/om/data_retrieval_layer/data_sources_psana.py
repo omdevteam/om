@@ -25,7 +25,6 @@ This module contains Data Source classes that deal with data retrieved from  the
 software framework (used at the LCLS facility).
 """
 
-import sys
 from pathlib import Path
 from typing import (
     Any,
@@ -42,12 +41,12 @@ from om.lib.exceptions import (
 )
 from om.lib.files import load_hdf5_data
 from om.lib.layer_management import import_data_source_class
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
 try:
-    import psana  # type: ignore
+    import psana  # type: ignore[import-untyped]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
@@ -89,18 +88,15 @@ class OmDetectorInterfacePsanaDataSourceMixin:
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "psana_name" not in extra_parameters:
-                log.error(
-                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._psana_name: str = extra_parameters["psana_name"]
+            return  # For the type checker
+        if "psana_name" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+        self._psana_name: str = extra_parameters["psana_name"]
 
     def initialize_data_source(self) -> None:
         """
@@ -539,34 +535,29 @@ class AreaDetectorPsana(OmDataSourceProtocol):
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "psana_name" not in extra_parameters:
-                log.error(
-                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            return  # For the type checker
+        if "psana_name" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+        if "calibration" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'calibration' is not defined for data source {data_source_name}"
+            )
+        if "gain_map_filename" in extra_parameters:
+            if "gain_map_hdf5_path" not in extra_parameters:
+                log_error_and_exit(
+                    "Entry 'gain_map_filename' is defined for data source "
+                    f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
                 )
-                sys.exit(1)
-            elif "calibration" not in extra_parameters:
-                log.error(
-                    f"Entry 'calibration' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            elif "gain_map_filename" in extra_parameters:
-                if "gain_map_hdf5_path" not in extra_parameters:
-                    log.error(
-                        "Entry 'gain_map_filename' is defined for data source "
-                        f"{data_source_name}, but entry 'gain_map_hdf5_path' is not"
-                    )
-                    sys.exit(1)
-                else:
-                    self._gain_map_filename = extra_parameters["gain_map_filename"]
-                    self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
-            else:
-                self._psana_name: str = extra_parameters["psana_name"]
-                self._calibration: bool = extra_parameters["calibration"]
+            self._gain_map_filename = extra_parameters["gain_map_filename"]
+            self._gain_map_hdf5_path = extra_parameters["gain_map_hdf5_path"]
+
+        self._psana_name: str = extra_parameters["psana_name"]
+        self._calibration: bool = extra_parameters["calibration"]
 
         del additional_info
 
@@ -695,24 +686,20 @@ class CspadPsana(OmDataSourceProtocol):
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "psana_name" not in extra_parameters:
-                log.error(
-                    f"Entry 'psana_name' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            elif "calibration" not in extra_parameters:
-                log.error(
-                    f"Entry 'calibration' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._psana_name = extra_parameters["psana_name"]
-                self._calibration = extra_parameters["calibration"]
+            return  # For the type checker
+        if "psana_name" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'psana_name' is not defined for data source {data_source_name}"
+            )
+        if "calibration" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'calibration' is not defined for data source {data_source_name}"
+            )
+        self._psana_name = extra_parameters["psana_name"]
+        self._calibration = extra_parameters["calibration"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1053,24 +1040,20 @@ class EvrCodesPsana(OmDataSourceProtocol):
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "evr_source" not in extra_parameters:
-                log.error(
-                    f"Entry 'evr_source' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            elif "event_code" not in extra_parameters:
-                log.error(
-                    f"Entry 'event_code' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._evr_source: str = extra_parameters["evr_source"]
-                self._event_code: int = extra_parameters["event_code"]
+            return  # For the type checker
+        if "evr_source" not in extra_parameters:
+            log_error_and_exit(
+                "Entry 'evr_source' is not defined for data source {data_source_name}"
+            )
+        if "event_code" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'event_code' is not defined for data source {data_source_name}"
+            )
+        self._evr_source: str = extra_parameters["evr_source"]
+        self._event_code: int = extra_parameters["event_code"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1155,18 +1138,15 @@ class EvrCodelistPsana(OmDataSourceProtocol):
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "evr_source" not in extra_parameters:
-                log.error(
-                    f"Entry 'evr_source' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._evr_source: str = extra_parameters["evr_source"]
+            return  # For the type checker
+        if "evr_source" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'evr_source' is not defined for data source {data_source_name}"
+            )
+        self._evr_source: str = extra_parameters["evr_source"]
 
     def initialize_data_source(self) -> None:
         """
@@ -1260,20 +1240,17 @@ class LclsExtraPsana(OmDataSourceProtocol):
         extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
 
         if extra_parameters is None:
-            log.error(
+            log_error_and_exit(
                 f"Entries needed by the {data_source_name} data source are not defined"
             )
-            sys.exit(1)
-        else:
-            if "extra_data" not in extra_parameters:
-                log.error(
-                    f"Entry 'extra_data' is not defined for data source {data_source_name}"
-                )
-                sys.exit(1)
-            else:
-                self._extra_data: list[tuple[str, dict[str, Any], str]] = (
-                    extra_parameters["extra_data"]
-                )
+            return  # For the type checker
+        if "extra_data" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'extra_data' is not defined for data source {data_source_name}"
+            )
+        self._extra_data: list[tuple[str, dict[str, Any], str]] = extra_parameters[
+            "extra_data"
+        ]
 
     def initialize_data_source(self) -> None:
         """

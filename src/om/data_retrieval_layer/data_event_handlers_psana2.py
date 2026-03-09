@@ -33,12 +33,12 @@ from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDependencyError,
 )
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
-    import psana  # type: ignore
+    import psana  # type: ignore[import-untyped]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
@@ -138,9 +138,9 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                     item.split("max_events=")[1].strip().lstrip()
                 )
             else:
-                log.error("Part of the source string for psana2 cannot be parsed:")
-                log.error(f"{item}")
-                sys.exit(1)
+                log_error_and_exit(
+                    "Part of the source string for psana2 cannot be parsed: {item}"
+                )
         self._psana_source: Any = psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
             **(self._source_dict)
         )
@@ -321,21 +321,30 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        psana_source: Any = psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
-            **(self._source_dict)
+        psana_source: Any = (  # pyright: ignore[reportUnknownVariableType]
+            psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
+                **(self._source_dict)
+            )
         )
 
-        self._run: Any = next(psana_source.runs())
+        self._run: Any = next(
+            psana_source.runs()  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+        )
 
         self._instantiated_data_sources: dict[str, OmDataSourceProtocol] = (
             instantiate_data_sources(
                 data_sources=self._data_retrieval_parameters.data_sources,
                 modules=["data_sources_psana2", "data_sources_common"],
-                additional_info={"run": self._run},
+                additional_info={
+                    "run": self._run,  # pyright: ignore[reportUnknownMemberType]
+                },
             )
         )
 
-        self._context = cast(ContextManager[Any], self._run.build_table())
+        self._context = cast(
+            ContextManager[Any],
+            self._run.build_table(),  # pyright: ignore[reportUnknownMemberType]
+        )
         self._context.__enter__()
 
     def retrieve_event_data(self, event_id: str) -> dict[str, Any]:

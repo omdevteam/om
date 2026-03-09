@@ -45,14 +45,14 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
-
+    import pyqtgraph  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 app: typer.Typer = typer.Typer(add_completion=False)
+
 
 class CrystallographyGui(OmGuiBase):
     """
@@ -459,6 +459,7 @@ class CrystallographyGui(OmGuiBase):
             f"Estimated delay: {estimated_delay}"
         )
 
+
 @app.command()
 def main(
     *,
@@ -493,6 +494,7 @@ def main(
     sys.exit(
         app.exec_()  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
     )
+
 
 typer_click_object = typer.main.get_command(app)
 

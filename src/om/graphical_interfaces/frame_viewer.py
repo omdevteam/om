@@ -45,13 +45,14 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
+    import pyqtgraph  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 app: typer.Typer = typer.Typer(add_completion=False)
+
 
 class FrameViewer(OmGuiBase):
     """
@@ -358,6 +359,7 @@ class FrameViewer(OmGuiBase):
             self._stop_stream()
         else:
             self._start_stream()
+
 
 @app.command()
 def main(

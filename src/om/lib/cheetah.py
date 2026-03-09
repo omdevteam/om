@@ -600,7 +600,7 @@ class HDF5Writer:
             }
         elif parameters.hdf5_file_compression == Hdf5Compression.bitshuffle_with_zstd:
             self._compression_kwargs = dict(
-                hdf5plugin.Bitshuffle(
+                hdf5plugin.Bitshuffle(  # pyright: ignore[reportPrivaeImportUsage]
                     cname="zstd",
                     clevel=(parameters.hdf5_file_zstd_compression_level),
                 )
@@ -620,7 +620,7 @@ class HDF5Writer:
     def _create_file_and_datasets(self, *, processed_data: dict[str, Any]) -> None:
         # This function is called when the first data comes. It opens the output hdf5
         # file and creates all the requested datasets.
-        self._h5file = h5py.File(self._processed_filename, "w")
+        self._h5file = h5py.File(str(self._processed_filename), "w")
         if (
             "detector_data" in processed_data
             and "detector_data" in self._requested_datasets
@@ -641,7 +641,7 @@ class HDF5Writer:
                 name=self._cheetah_parameters.hdf5_fields["event_id"],
                 shape=(0,),
                 maxshape=(None,),
-                dtype=h5py.special_dtype(vlen=str),  # pyright: ignore[reportUnknownMemberType]
+                dtype=h5py.string_dtype(),
             )
         if "optical_laser_active" in self._cheetah_parameters.hdf5_fields.keys():
             self._resizable_datasets["optical_laser_active"] = (
@@ -780,8 +780,8 @@ class HDF5Writer:
                     group_name
                 ].create_dataset(
                     name=key,
-                    shape=(0, *value.shape),
-                    maxshape=(None, *value.shape),
+                    shape=(0, *value.shape),  # pyright: ignore[reportUnknownMemberType]
+                    maxshape=(None, *value.shape),  # pyright: ignore[reportUnknownMemberType]
                     dtype=value.dtype,  # pyright: ignore[reportUnknownMemberType]
                 )
             elif isinstance(value, str):
@@ -791,7 +791,7 @@ class HDF5Writer:
                     name=key,
                     shape=(0,),
                     maxshape=(None,),
-                    dtype=h5py.special_dtype(vlen=str),  # pyright: ignore[reportUnknownMemberType]
+                    dtype=h5py.string_dtype(),
                 )
             elif (
                 isinstance(value, int)
@@ -969,7 +969,7 @@ class SumHDF5Writer:
 
     def _create_hdf5_file_and_datasets(self, *, data_shape: tuple[int, ...]) -> None:
         # Creates the HDF5 file and all datasets.
-        self._h5file: Any = h5py.File(self._filename, "w")
+        self._h5file: Any = h5py.File(str(self._filename), "w")
         self._h5file.create_dataset(
             name="/data/nframes",
             shape=(1,),
@@ -1006,7 +1006,7 @@ class SumHDF5Writer:
         for _ in range(5):
             # If file is opened by someone else try 5 times during 10 seconds and exit
             try:
-                self._h5file = h5py.File(self._filename, "r+")
+                self._h5file = h5py.File(str(self._filename), "r+")
                 self._h5file["/data/nframes"][0] = data.num_frames
                 self._h5file["/data/data"][:] = data.sum_frames
                 self._h5file["/data/peakpowder"][:] = data.peak_powder

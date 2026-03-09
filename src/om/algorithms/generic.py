@@ -675,7 +675,7 @@ class BinningPassthrough:
 
             A binned version of the detector data frame.
         """
-        return data.astype(numpy.floating[Any])
+        return data.astype(numpy.float64)
 
     def bin_bad_pixel_map(
         self, *, mask: NDArray[numpy.signedinteger[Any]] | None

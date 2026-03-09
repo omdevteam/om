@@ -38,7 +38,7 @@ from om.lib.parameters import DataRetrievalLayerParameters
 from om.lib.protocols import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
-    import psana  # type: ignore
+    import psana  # type: ignore[import-untyped]  # ty ignore[unresolved-import]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"

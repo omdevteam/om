@@ -23,7 +23,6 @@ operations for Serial Crystallography (peak finding, radial profile analysis, pl
 generation, etc.).
 """
 
-import sys
 from collections import deque
 from typing import Any
 
@@ -38,7 +37,7 @@ from om.lib.geometry import (
     PixelMaps,
     VisualizationPixelMaps,
 )
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import (
     CrystallographyParameters,
     MonitorParameters,
@@ -94,16 +93,15 @@ class CrystallographyPeakFinding:
                   considered a hit.
         """
         if parameters.peakfinder8_peak_detection is None:
-            log.error(
+            log_error_and_exit(
                 "'crystallography' section must be present in the configuration file"
             )
-            sys.exit(1)
-        else:
-            self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-                parameters=parameters.peakfinder8_peak_detection,
-                radius_pixel_map=geometry_information.get_pixel_maps().radius,
-                layout_info=geometry_information.get_layout_info(),
-            )
+            return  # For the type checker
+        self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+            parameters=parameters.peakfinder8_peak_detection,
+            radius_pixel_map=geometry_information.get_pixel_maps().radius,
+            layout_info=geometry_information.get_layout_info(),
+        )
 
     def find_peaks(
         self, detector_data: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]]
@@ -172,82 +170,77 @@ class CrystallographyPlots:
                   history plot.
         """
         if parameters.crystallography is None:
-            log.error(
+            log_error_and_exit(
                 "'crystallography' section must be present in the configuration file"
             )
-            sys.exit(1)
-        else:
-            self._crystallography_parameters: CrystallographyParameters = (
-                parameters.crystallography
-            )
+            return  # For the type checker
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
 
-            self._bin_size = bin_size
+        self._bin_size = bin_size
 
-            pixel_maps: PixelMaps = data_visualizer.get_pixel_maps()
-            visualization_pixel_maps: VisualizationPixelMaps = (
-                data_visualizer.get_visualization_pixel_maps()
-            )
-            plot_shape: tuple[int, int] = (
-                data_visualizer.get_min_array_shape_for_visualization()
-            )
+        pixel_maps: PixelMaps = data_visualizer.get_pixel_maps()
+        visualization_pixel_maps: VisualizationPixelMaps = (
+            data_visualizer.get_visualization_pixel_maps()
+        )
+        plot_shape: tuple[int, int] = (
+            data_visualizer.get_min_array_shape_for_visualization()
+        )
 
-            self._flattened_visualization_pixel_map_y = (
-                visualization_pixel_maps.y.flatten()
-            )
-            self._flattened_visualization_pixel_map_x = (
-                visualization_pixel_maps.x.flatten()
-            )
-            self._radius_pixel_map = pixel_maps.radius
-            self._data_shape: tuple[int, ...] = self._radius_pixel_map.shape
+        self._flattened_visualization_pixel_map_y = visualization_pixel_maps.y.flatten()
+        self._flattened_visualization_pixel_map_x = visualization_pixel_maps.x.flatten()
+        self._radius_pixel_map = pixel_maps.radius
+        self._data_shape: tuple[int, ...] = self._radius_pixel_map.shape
 
-            peakogram_num_bins_intensity: int = 300
+        peakogram_num_bins_intensity: int = 300
 
-            peakogram_num_bins_radius: int = int(
-                self._radius_pixel_map.max()
-                * self._bin_size
-                / parameters.crystallography.peakogram_radius_bin_size
-            )
+        peakogram_num_bins_radius: int = int(
+            self._radius_pixel_map.max()
+            * self._bin_size
+            / parameters.crystallography.peakogram_radius_bin_size
+        )
 
-            self._peakogram: NDArray[numpy.floating[Any]] = numpy.zeros(
-                (peakogram_num_bins_radius, peakogram_num_bins_intensity)
-            )
-            self._running_average_window_size: int = (
-                parameters.crystallography.running_average_window_size
-            )
-            self._peakogram_intensity_bin_size: float = (
-                parameters.crystallography.peakogram_intensity_bin_size
-            )
-            self._peakogram_radius_bin_size: float = (
-                parameters.crystallography.peakogram_radius_bin_size
-            )
-            self._hit_rate_running_window: deque[float] = deque(
+        self._peakogram: NDArray[numpy.floating[Any]] = numpy.zeros(
+            (peakogram_num_bins_radius, peakogram_num_bins_intensity)
+        )
+        self._running_average_window_size: int = (
+            parameters.crystallography.running_average_window_size
+        )
+        self._peakogram_intensity_bin_size: float = (
+            parameters.crystallography.peakogram_intensity_bin_size
+        )
+        self._peakogram_radius_bin_size: float = (
+            parameters.crystallography.peakogram_radius_bin_size
+        )
+        self._hit_rate_running_window: deque[float] = deque(
+            [0.0] * self._running_average_window_size,
+            maxlen=self._running_average_window_size,
+        )
+        self._avg_hit_rate: int = 0
+        self._num_hits: int = 0
+        self._hit_rate_timestamp_history: deque[float] = deque(
+            5000 * [0.0], maxlen=5000
+        )
+        self._hit_rate_history: deque[float] = deque(5000 * [0.0], maxlen=5000)
+
+        self._hit_rate_running_window_dark: deque[float] = deque()
+        self._avg_hit_rate_dark: int = 0
+        self._hit_rate_timestamp_history_dark: deque[float] = deque()
+        self._hit_rate_history_dark: deque[float] = deque()
+
+        if self._crystallography_parameters.pump_probe_experiment:
+            self._hit_rate_running_window_dark = deque(
                 [0.0] * self._running_average_window_size,
                 maxlen=self._running_average_window_size,
             )
-            self._avg_hit_rate: int = 0
-            self._num_hits: int = 0
-            self._hit_rate_timestamp_history: deque[float] = deque(
-                5000 * [0.0], maxlen=5000
-            )
-            self._hit_rate_history: deque[float] = deque(5000 * [0.0], maxlen=5000)
+            self._avg_hit_rate_dark = 0
+            self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
+            self._hit_rate_history_dark = deque(5000 * [0.0], maxlen=5000)
 
-            self._hit_rate_running_window_dark: deque[float] = deque()
-            self._avg_hit_rate_dark: int = 0
-            self._hit_rate_timestamp_history_dark: deque[float] = deque()
-            self._hit_rate_history_dark: deque[float] = deque()
-
-            if self._crystallography_parameters.pump_probe_experiment:
-                self._hit_rate_running_window_dark = deque(
-                    [0.0] * self._running_average_window_size,
-                    maxlen=self._running_average_window_size,
-                )
-                self._avg_hit_rate_dark = 0
-                self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
-                self._hit_rate_history_dark = deque(5000 * [0.0], maxlen=5000)
-
-            self._virtual_powder_plot_img: NDArray[numpy.int_] = numpy.zeros(
-                plot_shape, dtype=numpy.int_
-            )
+        self._virtual_powder_plot_img: NDArray[numpy.int_] = numpy.zeros(
+            plot_shape, dtype=numpy.int_
+        )
 
     def update_plots(
         self,

@@ -41,13 +41,14 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
+    import pyqtgraph  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 app: typer.Typer = typer.Typer(add_completion=False)
+
 
 class XesGui(OmGuiBase):
     """
@@ -227,6 +228,7 @@ class XesGui(OmGuiBase):
         self.statusBar().showMessage(  # pyright: ignore[reportUnknownMemberType]
             f"Estimated delay: {estimated_delay} seconds"
         )
+
 
 @app.command()
 def main(

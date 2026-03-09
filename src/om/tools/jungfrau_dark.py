@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Any, TextIO
 
-import h5py  # pyright: ignore[reportMissingTypeStubs]
+import h5py
 import numpy
 import typer
 from numpy.typing import NDArray
@@ -18,7 +18,10 @@ app: typer.Typer = typer.Typer(add_completion=False)
 
 @app.command()
 def main(
-    input: Annotated[Path, typer.Argument(help="text file containing list of dark files for one panel \n")],
+    input: Annotated[
+        Path,
+        typer.Argument(help="text file containing list of dark files for one panel \n"),
+    ],
     output: Annotated[Path, typer.Argument(help="output .h5 file")],
     s: Annotated[
         int,
@@ -80,7 +83,7 @@ def main(
                 f"{len(where[0])} pixels in gain {i} are set to {const_dark[i]}",
             )
 
-    with h5py.File(output, "w") as f:
+    with h5py.File(str(output), "w") as f:
         f.create_dataset("/gain0", data=dark[0].reshape(512, 1024))
         f.create_dataset("/gain1", data=dark[1].reshape(512, 1024))
         f.create_dataset("/gain2", data=dark[2].reshape(512, 1024))

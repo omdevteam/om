@@ -22,14 +22,13 @@ This module contains Cheetah, a data-processing program for Serial X-ray
 Crystallography, based on OM but not designed to be run in real time.
 """
 
-import sys
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
-import msgpack  # pyright: ignore[reportMissingTypeStubs]
-import msgpack_numpy  # pyright: ignore[reportMissingTypeStubs]
+import msgpack
+import msgpack_numpy  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 import numpy
 from numpy.typing import NDArray
 
@@ -46,7 +45,7 @@ from om.lib.cheetah import (
 from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DetectorLayoutInformation, GeometryInformation
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_info, log_warning
 from om.lib.parameters import (
     BinningParameters,
     CheetahParameters,
@@ -56,14 +55,10 @@ from om.lib.parameters import (
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqResponder
 
-T = TypeVar("T")
-
-
 msgpack_numpy.patch()
 
 
 class OmCheetahMixin:
-
     def __init__(self, *, parameters: MonitorParameters) -> None:
         """
         Cheetah.
@@ -84,41 +79,39 @@ class OmCheetahMixin:
             monitor_parameters: An object storing OM's configuration parameters.
         """
         if parameters.cheetah is None:
-            log.error("'cheetah' section is not present in the configuration file")
-            sys.exit(1)
-        elif parameters.crystallography is None:
-            log.error(
+            log_error_and_exit(
+                "'cheetah' section is not present in the configuration file"
+            )
+            return  # For the type checker
+        if parameters.crystallography is None:
+            log_error_and_exit(
                 "'crystallography' section is not present in the configuration file"
             )
-            sys.exit(1)
-        else:
-            self._cheetah_parameters: CheetahParameters = parameters.cheetah
-            self._crystallography_parameters: CrystallographyParameters = (
-                parameters.crystallography
-            )
-            self._monitor_parameters: MonitorParameters = parameters
+            return  # For the type checker
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
+        self._monitor_parameters: MonitorParameters = parameters
 
-            # Processed data directory
-            Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
+        # Processed data directory
+        Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
 
-            # Geometry
-            self._geometry_information = GeometryInformation.from_file(
-                geometry_filename=self._crystallography_parameters.geometry_file
-            )
+        # Geometry
+        self._geometry_information = GeometryInformation.from_file(
+            geometry_filename=self._crystallography_parameters.geometry_file
+        )
 
-            self._post_processing_binning_enabled: bool = (
-                self._crystallography_parameters.post_processing_binning
-            )
-            if self._post_processing_binning_enabled:
-                if parameters.binning is None:
-                    log.error(
-                        "'binning' section is not present in the configuration file"
-                    )
-                    sys.exit(1)
-                else:
-                    self._monitor_parameters_binning: BinningParameters = (
-                        parameters.binning
-                    )
+        self._post_processing_binning_enabled: bool = (
+            self._crystallography_parameters.post_processing_binning
+        )
+        if self._post_processing_binning_enabled:
+            if parameters.binning is None:
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
+                )
+                return  # For the type checker
+            self._monitor_parameters_binning: BinningParameters = parameters.binning
 
     def _common_initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -149,8 +142,10 @@ class OmCheetahMixin:
         # Post-processing binning
         if self._post_processing_binning_enabled:
             if self._monitor_parameters.binning is None:
-                log.error("'binning' section is not present in the configuration file")
-                sys.exit(1)
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
+                )
+                return  # For the type checker
             self._post_processing_binning: Binning | BinningPassthrough = Binning(
                 parameters=self._monitor_parameters_binning,
                 layout_info=self._geometry_information.get_layout_info(),
@@ -415,7 +410,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_rank=node_rank,
         )
 
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -443,7 +438,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         )
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -644,7 +639,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         self._file_writer.close()
         return self._common_end_processing_on_processing_node(node_rank=node_rank)
 
@@ -681,7 +676,7 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             num_hits=self._event_counter.get_num_hits(),
         )
 
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
@@ -716,7 +711,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             node_rank=node_rank, node_pool_size=node_pool_size
         )
 
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -756,7 +751,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         self._configuration_file: Path = self._monitor_parameters.om.configuration_file
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -969,7 +964,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return self._common_end_processing_on_processing_node(node_rank=node_rank)
 
     def end_processing_on_collecting_node(
@@ -1005,7 +1000,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             num_hits=self._event_counter.get_num_hits(),
         )
 
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
@@ -1018,7 +1013,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             if request[1] == b"next":
                 self._request_list.append(request)
             else:
-                log.warning(
+                log_warning(
                     f"OM Warning: Could not understand request '{str(request[1])}'."
                 )
                 self._responding_socket.send_data(identity=request[0], message=b"What?")

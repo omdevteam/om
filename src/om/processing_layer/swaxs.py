@@ -21,7 +21,6 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
 
-import sys
 from collections import deque
 from itertools import islice
 from typing import Any
@@ -33,7 +32,7 @@ from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import HDF5Writer
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_info
 from om.lib.parameters import (
     CheetahParameters,
     MonitorParameters,
@@ -61,37 +60,33 @@ class SwaxsProcessing(OmProcessingProtocol):
         """
         # Parameters
         if parameters.radial_profile is None:
-            log.error("'swaxs' section must be present in the configuration file")
-            sys.exit(1)
-        else:
-            self._monitor_parameters: MonitorParameters = parameters
-            self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
-
-            # Geometry
-            self._geometry_information: GeometryInformation = (
-                GeometryInformation.from_file(
-                    geometry_filename=parameters.radial_profile.geometry_file
-                )
+            log_error_and_exit(
+                "'radial_profile' section must be present in the configuration file"
             )
+            return  # For the type checked
+        self._monitor_parameters: MonitorParameters = parameters
+        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
 
-            # Post-processing binning
-            if parameters.radial_profile.post_processing_binning:
-                if parameters.binning is None:
-                    log.error(
-                        "'binning' section is not present in the configuration file"
-                    )
-                    sys.exit(1)
-                else:
-                    self._post_processing_binning: Binning | BinningPassthrough = (
-                        Binning(
-                            parameters=parameters.binning,
-                            layout_info=self._geometry_information.get_layout_info(),
-                        )
-                    )
-            else:
-                self._post_processing_binning = BinningPassthrough(
-                    layout_info=self._geometry_information.get_layout_info()
+        # Geometry
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=parameters.radial_profile.geometry_file
+        )
+
+        # Post-processing binning
+        if parameters.radial_profile.post_processing_binning:
+            if parameters.binning is None:
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
                 )
+                return  # For the type checked
+            self._post_processing_binning: Binning | BinningPassthrough = Binning(
+                parameters=parameters.binning,
+                layout_info=self._geometry_information.get_layout_info(),
+            )
+        else:
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -124,7 +119,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         self._send_non_hit_frame: bool = False
 
         # Console
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -189,7 +184,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         )
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -483,7 +478,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -505,7 +500,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
@@ -530,24 +525,23 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         self._monitor_parameters: MonitorParameters = parameters
 
         if parameters.radial_profile is None:
-            log.error(
+            log_error_and_exit(
                 "'radial_profile' section must be present in the configuration file"
             )
-            sys.exit(1)
-        else:
-            self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
+            return  # For the type checker
+        self._swaxs_parameters: RadialProfileParameters = parameters.radial_profile
 
-            if parameters.cheetah is None:
-                log.error("'cheetah' section must be present in the configuration file")
-                sys.exit(1)
-            self._cheetah_parameters: CheetahParameters = parameters.cheetah
-
-            # Geometry
-            self._geometry_information: GeometryInformation = (
-                GeometryInformation.from_file(
-                    geometry_filename=parameters.radial_profile.geometry_file
-                )
+        if parameters.cheetah is None:
+            log_error_and_exit(
+                "'cheetah' section must be present in the configuration file"
             )
+            return  # For the type checker
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+
+        # Geometry
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=parameters.radial_profile.geometry_file
+        )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -587,7 +581,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         )
 
         # Console
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -626,7 +620,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         )
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -841,7 +835,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
                 the processing node.
         """
         self._file_writer.close()
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -866,7 +860,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         # Sort frames and write final list files
         # Write final status
         # self._writer.close()
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )

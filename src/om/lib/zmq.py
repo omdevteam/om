@@ -43,14 +43,10 @@ def get_current_machine_ip() -> str:
 
         A string storing the IP address of the machine where the function is invoked.
     """
-    ip: str = [
-        (
-            s.connect(("8.8.8.8", 80)),
-            s.getsockname()[0],
-            s.close(),
-        )
-        for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
-    ][0][1]
+    s: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip: str = s.getsockname()[0]
+    s.close()
 
     return ip
 

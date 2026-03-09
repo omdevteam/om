@@ -23,7 +23,6 @@ This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments
 
 from __future__ import absolute_import, division, print_function
 
-import sys
 from typing import Any
 
 import numpy
@@ -31,7 +30,7 @@ from numpy.typing import NDArray
 
 from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_info
 from om.lib.parameters import MonitorParameters, XesParameters
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.xes import XesAnalysisAndPlots
@@ -67,12 +66,12 @@ class XesProcessing(OmProcessingProtocol):
 
             parameters: An object storing OM's configuration parameters.
         """
+        self._monitor_parameters: MonitorParameters = parameters
+
         if parameters.xes is None:
-            log.error("'xes' section is not present in the configuration file")
-            sys.exit(1)
-        else:
-            self._xes_parameters: XesParameters = parameters.xes
-            self._monitor_parameters: MonitorParameters = parameters
+            log_error_and_exit("'xes' section is not present in the configuration file")
+            return  # For the type checker
+        self._xes_parameters: XesParameters = parameters.xes
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -104,7 +103,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Console
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -156,7 +155,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -357,7 +356,7 @@ class XesProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -379,7 +378,7 @@ class XesProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )

@@ -53,13 +53,14 @@ except ImportError:
     )
 
 try:
-    import pyqtgraph  # pyright: ignore[reportMissingTypeStubs]
+    import pyqtgraph  # type: ignore[import-untyped]  # ty: ignore[unused-ignore-comment]
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 app: typer.Typer = typer.Typer(add_completion=False)
+
 
 class _ParameterTweakerParameters(BaseModel):
     geometry_file: str
@@ -686,6 +687,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         else:
             self._start_stream()
 
+
 @app.command()
 def main(
     *,
@@ -735,6 +737,7 @@ def main(
     sys.exit(
         app.exec_()  # pyright: ignore[reportUnknownArgumentType,reportUnknownMemberType]
     )
+
 
 typer_click_object = typer.main.get_command(app)
 

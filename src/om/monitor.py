@@ -22,7 +22,6 @@ This module contains the main function that tarts an OnDA Monitor.
 """
 
 import signal
-import sys
 from pathlib import Path
 
 import typer
@@ -32,7 +31,7 @@ from om.data_retrieval_layer.event_retrieval import EventListDataEventHandler
 from om.lib.exceptions import OmConfigurationFileSyntaxError
 from om.lib.files import load_configuration_parameters
 from om.lib.layer_management import import_class_from_layer
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_warning
 from om.lib.parameters import MonitorParameters
 from om.lib.protocols import (
     OmDataEventHandlerProtocol,
@@ -114,27 +113,24 @@ def main(
 
             if node_pool_size != 0:
                 if mpi_rank == 0:
-                    log.warning(
+                    log_warning(
                         "OM Warning: ignoring --node-pool-size or -n option to this "
                         "script and using the number of nodes defined by MPI "
                         f"({mpi_size}).",
                     )
-
             node_pool_size = mpi_size
 
         except ImportError:
-            log.error(
+            log_error_and_exit(
                 "OM ERROR: mpi parallelization selected, but mpi4py failed to import.",
             )
-            sys.exit(1)
     else:
         if node_pool_size == 0:
-            log.error(
+            log_error_and_exit(
                 "OM ERROR: When not using the mpi parallelization layer, the "
                 "number of nodes must be specified using the --node-pool-size or "
                 "-n option to this script.",
             )
-            sys.exit(1)
 
     monitor_parameters.om.source = source
     monitor_parameters.om.configuration_file = config

@@ -17,11 +17,10 @@
 # a research centre of the Helmholtz Association.
 """ """
 
-import sys
 from typing import Any
 
 from om.lib.layer_management import import_data_source_class
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit
 from om.lib.parameters import DataSourceParameters
 from om.lib.protocols import OmDataSourceProtocol
 
@@ -33,12 +32,10 @@ def instantiate_data_sources(
 ) -> dict[str, OmDataSourceProtocol]:
     """ """
     if "timestamp" not in data_sources:
-        log.error(
+        log_error_and_exit(
             "Data source 'timestamp' (mandatory) is not defined in"
             "the configuration file"
         )
-        sys.exit(1)
-
     instantiated_data_sources: dict[str, OmDataSourceProtocol] = {}
     data_source_name: str
     for data_source_name in data_sources:

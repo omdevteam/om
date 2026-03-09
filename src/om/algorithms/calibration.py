@@ -24,7 +24,7 @@ for data extraction,
 
 from typing import Any, BinaryIO
 
-import h5py  # pyright: ignore[reportMissingTypeStubs]
+import h5py
 import numpy
 from numpy.typing import NDArray
 

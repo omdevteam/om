@@ -21,7 +21,6 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
 
-import sys
 from collections import deque
 from typing import Any
 
@@ -34,7 +33,7 @@ from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPl
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
-from om.lib.logging import log
+from om.lib.logging import log_error_and_exit, log_info, log_warning
 from om.lib.parameters import (
     CrystallographyParameters,
     MonitorParameters,
@@ -43,7 +42,7 @@ from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 
 try:
-    import msgpack  # pyright: ignore[reportMissingTypeStubs]
+    import msgpack
 except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: msgpack"
@@ -81,40 +80,34 @@ class CrystallographyProcessing(OmProcessingProtocol):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         if parameters.crystallography is None:
-            log.error(
+            log_error_and_exit(
                 "'crystallography' section is not present in the configuration file"
             )
-            sys.exit(1)
-        else:
-            self._crystallography_parameters: CrystallographyParameters = (
-                parameters.crystallography
-            )
-            self._monitor_parameters: MonitorParameters = parameters
-            # Geometry
-            self._geometry_information: GeometryInformation = (
-                GeometryInformation.from_file(
-                    geometry_filename=self._crystallography_parameters.geometry_file
-                )
-            )
+            return  # For the type checker
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
+        self._monitor_parameters: MonitorParameters = parameters
+        # Geometry
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=self._crystallography_parameters.geometry_file
+        )
 
-            # Post-processing binning
-            if parameters.crystallography.post_processing_binning:
-                if parameters.binning is None:
-                    log.error(
-                        "'binning' section is not present in the configuration file"
-                    )
-                    sys.exit(1)
-                else:
-                    self._post_processing_binning: Binning | BinningPassthrough = (
-                        Binning(
-                            parameters=parameters.binning,
-                            layout_info=self._geometry_information.get_layout_info(),
-                        )
-                    )
-            else:
-                self._post_processing_binning = BinningPassthrough(
-                    layout_info=self._geometry_information.get_layout_info()
+        # Post-processing binning
+        if parameters.crystallography.post_processing_binning:
+            if parameters.binning is None:
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
                 )
+                return  # For the type checker
+            self._post_processing_binning: Binning | BinningPassthrough = Binning(
+                parameters=parameters.binning,
+                layout_info=self._geometry_information.get_layout_info(),
+            )
+        else:
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -154,7 +147,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self._send_non_hit_frame: bool = False
 
         # Console
-        log.info(f"Processing node {node_rank} starting")
+        log_info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -242,7 +235,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         # Console
-        log.info("Starting the monitor...")
+        log_info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
@@ -558,7 +551,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        log.info(f"Processing node {node_rank} shutting down.")
+        log_info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -580,7 +573,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        log.info(
+        log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
@@ -595,12 +588,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
             if request[1] == b"next":
                 self._request_list.append(request)
             elif request[1] == b"resetplots":
-                log.warning("Resetting plots.")
+                log_warning("Resetting plots.")
                 self._plots.clear_plots()
 
                 self._responding_socket.send_data(identity=request[0], message=b"Ok")
             else:
-                log.warning(
+                log_warning(
                     f"Could not understand the following request: {str(request[1])}.",
                 )
                 self._responding_socket.send_data(identity=request[0], message=b"What?")
