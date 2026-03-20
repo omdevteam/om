@@ -804,6 +804,12 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             "peak_list": peak_list,
             "class_sums": self._class_sum_accumulator.get_sums_for_sending(),
         }
+
+        if "optical_laser_active" in data.keys():
+            processed_data["optical_laser_active"] = int(data["optical_laser_active"])
+        else:
+            processed_data["optical_laser_active"] = -1
+
         if frame_is_hit:
             # Convert processed data to float32 for streaming to CrystFEL
             self._float_detector_data[:] = binned_detector_data
@@ -899,6 +905,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                         "timestamp": received_data["timestamp"],
                         "source": self._source,
                         "configuration_file": str(self._configuration_file),
+                        "optical_laser_active": received_data["optical_laser_active"],
                     },
                     use_bin_type=True,
                 )
