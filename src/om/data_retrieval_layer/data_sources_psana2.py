@@ -603,6 +603,99 @@ class BeamEnergyPsana2(OmDataSourceProtocol):
         )
 
 
+class EvrCodesPsana2(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        parameters: DataSourceParameters,
+        additional_info: dict[str, Any],
+    ):
+        """
+        EVR event codes from psana2 at the LCLS facility.
+
+        This class deals with the retrieval of EVR event codes from the psana2
+        software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            parameters: An object storing OM's configuration parameters.
+
+            additional_info: A dictionary containing additional information required
+                by the data source. Must contain a 'run' key with the psana2 run
+                object.
+        """
+        self._run: Any = additional_info["run"]
+
+        extra_parameters: dict[str, Any] | None = parameters.__pydantic_extra__
+
+        if extra_parameters is None:
+            log_error_and_exit(
+                f"Entries needed by the {data_source_name} data source are not defined"
+            )
+            return  # For the type checker
+        if "event_code" not in extra_parameters:
+            log_error_and_exit(
+                f"Entry 'event_code' is not defined for data source {data_source_name}"
+            )
+        self._event_code: int = extra_parameters["event_code"]
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana2 EVR event code data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes the data retrieval for the EVR event code number
+        specified by the `event_code` entry in OM's `Data Retrieval Layer`
+        configuration parameter group.
+        """
+        self._detector_interface: Any = self._run.Detector("timing")
+
+    def get_data(self, *, event: dict[str, Any]) -> bool:
+        """
+        Retrieves EVR event code information from psana2.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function checks whether the event code attached to the Data Source has
+        been emitted for the provided event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            Whether the required event code has been emitted for the provided event.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana2.
+        """
+        current_event_code_flags: list[int] | None = (
+            self._detector_interface.raw.eventcodes(event["data"])
+        )
+        if current_event_code_flags is None:
+            raise OmDataExtractionError("Could not retrieve event codes from psana.")
+
+        return bool(current_event_code_flags[self._event_code])
+
+
 class EvrCodelistPsana2(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
