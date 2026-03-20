@@ -494,7 +494,9 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
                 "peak_list": peak_list,
             }
             if "optical_laser_active" in data.keys():
-                data_to_write["optical_laser_active"] = data["optical_laser_active"]
+                data_to_write["optical_laser_active"] = int(
+                    data["optical_laser_active"]
+                )
             if "lcls_extra" in data.keys():
                 data_to_write["lcls_extra"] = data["lcls_extra"]
             self._file_writer.write_frame(processed_data=data_to_write)
