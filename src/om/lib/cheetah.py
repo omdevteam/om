@@ -649,7 +649,7 @@ class HDF5Writer:
                     name=self._cheetah_parameters.hdf5_fields["optical_laser_active"],
                     shape=(0,),
                     maxshape=(None,),
-                    dtype=numpy.bool_,
+                    dtype=numpy.int8,
                 )
             )
 
@@ -781,7 +781,10 @@ class HDF5Writer:
                 ].create_dataset(
                     name=key,
                     shape=(0, *value.shape),  # pyright: ignore[reportUnknownMemberType]
-                    maxshape=(None, *value.shape),  # pyright: ignore[reportUnknownMemberType]
+                    maxshape=(
+                        None,
+                        *value.shape,
+                    ),  # pyright: ignore[reportUnknownMemberType]
                     dtype=value.dtype,  # pyright: ignore[reportUnknownMemberType]
                 )
             elif isinstance(value, str):
