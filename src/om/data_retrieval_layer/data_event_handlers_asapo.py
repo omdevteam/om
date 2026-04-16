@@ -116,7 +116,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 self._source.split(":")[0],
                 self._data_retrieval_parameters.asapo_data_source,
                 self._data_retrieval_parameters.asapo_token,
-                3000,
+                self._data_retrieval_parameters.asapo_request_timeout_ms,
                 instance_id="auto",
                 pipeline_step="onda_monitor",
             )
@@ -131,7 +131,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         while not stream_metadata:
             try:
                 stream_metadata = consumer.get_stream_meta(stream_name)
-            except asapo_consumer.AsapoNoDataError:  # pyright: ignore[reportUnknownMemberType]
+            except (
+                asapo_consumer.AsapoNoDataError
+            ):  # pyright: ignore[reportUnknownMemberType]
                 print(f"Stream {stream_name} doesn't exist.")
                 time.sleep(5)
 
@@ -143,7 +145,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 yield _AsapoEvent(
                     event_data, event_metadata, stream_name, stream_metadata
                 )
-            except asapo_consumer.AsapoNoDataError:  # pyright: ignore[reportUnknownMemberType]
+            except (
+                asapo_consumer.AsapoNoDataError
+            ):  # pyright: ignore[reportUnknownMemberType]
                 ...
             except (
                 asapo_consumer.AsapoEndOfStreamError,  # pyright: ignore[reportUnknownMemberType]
@@ -280,9 +284,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             data_event["data"] = asapo_event.event_data
             data_event["metadata"] = asapo_event.event_metadata
             data_event["additional_info"]["stream_name"] = asapo_event.stream_name
-            data_event["additional_info"]["stream_metadata"] = (
-                asapo_event.stream_metadata
-            )
+            data_event["additional_info"][
+                "stream_metadata"
+            ] = asapo_event.stream_metadata
 
             data_event["additional_info"]["timestamp"] = (
                 self._instantiated_data_sources["timestamp"].get_data(event=data_event)

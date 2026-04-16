@@ -38,6 +38,7 @@ class DataRetrievalLayerParameters(CustomBaseModel):
     asapo_has_filesystem: bool | None = None
     asapo_token: str | None = None
     asapo_group_id: str = "default_om_group"
+    asapo_request_timeout_ms: int = 3000
     # http
     buffer_size: int | None = None
     # psana
