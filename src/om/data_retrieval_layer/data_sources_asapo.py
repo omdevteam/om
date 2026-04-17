@@ -50,6 +50,7 @@ class OmBaseAsapoDataSourceMixin:
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
+        additional_info: dict[str, Any],
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -229,6 +230,7 @@ class TimestampAsapo(OmBaseAsapoDataSourceMixin, OmDataSourceProtocol):
         *,
         data_source_name: str,
         parameters: DataSourceParameters,
+        additional_info: dict[str, Any],
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
