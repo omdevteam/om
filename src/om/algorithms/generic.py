@@ -459,7 +459,7 @@ class Binning:
                 numpy.iinfo(cast(numpy.signedinteger[Any], data_type)).max
             )
 
-        self._float_data_array[:] = data.astype(numpy.floating[Any])
+        self._float_data_array[:] = data.astype(numpy.float64)
         bin_detector_data(
             self._float_data_array,
             self._binned_data_array,

@@ -179,7 +179,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self._pixel_size = self._geometry_information.get_pixel_size()
         pixel_maps: PixelMaps = self._geometry_information.get_pixel_maps()
 
-        self._pixel_size /= self._post_processing_binning.get_bin_size()
+        self._pixel_size *= self._post_processing_binning.get_bin_size()
         binned_pixel_maps = self._post_processing_binning.bin_pixel_maps(
             pixel_maps=pixel_maps
         )
