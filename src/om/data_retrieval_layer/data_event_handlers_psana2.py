@@ -26,11 +26,15 @@ import os
 import sys
 from typing import Any, ContextManager, Generator, Literal, cast
 
+import numpy
+from numpy.typing import NDArray
+
 from om.data_retrieval_layer.data_event_handlers_common import (
     instantiate_data_sources,
 )
 from om.lib.exceptions import (
     OmDataExtractionError,
+    OmInvalidSourceError,
     OmMissingDependencyError,
 )
 from om.lib.logging import log_error_and_exit
@@ -137,12 +141,27 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
                 self._source_dict["max_events"] = int(
                     item.split("max_events=")[1].strip().lstrip()
                 )
+            elif item.startswith("events="):
+                try:
+                    events_filename = item.split("events=")[1].strip().lstrip()
+                    timestamps: NDArray[numpy.uint64] = numpy.loadtxt(
+                        events_filename,
+                        dtype=numpy.uint64,
+                        unpack=True,
+                    )
+                except (IOError, OSError, ValueError) as exc:
+                    raise OmInvalidSourceError(
+                        f"Error reading the {events_filename} event list file."
+                    ) from exc
+                self._source_dict["timestamps"] = timestamps
             else:
                 log_error_and_exit(
                     "Part of the source string for psana2 cannot be parsed: {item}"
                 )
-        self._psana_source: Any = psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
-            **(self._source_dict)
+        self._psana_source: Any = (
+            psana.DataSource(  # pyright: ignore[reportUnknownMemberType]
+                **(self._source_dict)
+            )
         )
 
         if "exp" not in self._source_dict:
@@ -248,9 +267,9 @@ class Psana2DataEventHandler(OmDataEventHandlerProtocol):
             data_event["additional_info"]["timestamp"] = instantiated_data_sources[
                 "timestamp"
             ].get_data(event=data_event)
-            data_event["additional_info"]["instantiated_data_sources"] = (
-                instantiated_data_sources
-            )
+            data_event["additional_info"][
+                "instantiated_data_sources"
+            ] = instantiated_data_sources
 
             yield data_event
 

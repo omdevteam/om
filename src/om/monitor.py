@@ -143,6 +143,15 @@ def main(
         )
     )
 
+    # When using psana2, pass event list as part of the data source instead of using
+    # the EventListDataEventHandler, which is much slower.
+    if (
+        event_list is not None
+        and parameters.om.data_retrieval_layer == "Psana2DataEventHandler"
+    ):
+        source = f"{source},events={event_list}"
+        event_list = None
+
     if event_list is not None:
         data_retrieval_layer: OmDataEventHandlerProtocol = EventListDataEventHandler(
             data_event_handler_class=data_event_handler_class,
