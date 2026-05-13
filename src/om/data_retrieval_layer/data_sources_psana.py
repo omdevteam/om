@@ -853,9 +853,8 @@ class TimestampPsana(OmDataSourceProtocol):
         )
         timestamp_epoch_format: Any = psana_event_id.time()
         return numpy.float64(
-            str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
+            int((timestamp_epoch_format[0]<<32)|timestamp_epoch_format[1])/10e9
         )
-
 
 class EventIdPsana(OmDataSourceProtocol):
     """
