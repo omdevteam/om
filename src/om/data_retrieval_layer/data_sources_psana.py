@@ -345,10 +345,9 @@ class Wave8TotalIntensityPsana(
 
             The total intensity recorded by the Wave8 detector.
         """
-
-        wave8_total_intensity_data: float | None = self._detector_interface.image(
+        wave8_total_intensity_data: float | None = self._detector_interface.get(
             event["data"]
-        )
+        ).TotalIntensity()
         if wave8_total_intensity_data is None:
             raise OmDataExtractionError(
                 "Could not retrieve data from psana for the following data source: "
@@ -853,8 +852,9 @@ class TimestampPsana(OmDataSourceProtocol):
         )
         timestamp_epoch_format: Any = psana_event_id.time()
         return numpy.float64(
-            int((timestamp_epoch_format[0]<<32)|timestamp_epoch_format[1])/10e9
+            int((timestamp_epoch_format[0] << 32) | timestamp_epoch_format[1]) / 10e9
         )
+
 
 class EventIdPsana(OmDataSourceProtocol):
     """
