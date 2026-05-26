@@ -655,7 +655,13 @@ class HDF5Writer:
 
         # Creating all requested 1D float64 datasets:
         key: str
-        for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance"):
+        for key in (
+            "timestamp",
+            "beam_energy",
+            "pixel_size",
+            "detector_distance",
+            "image_sum",
+        ):
             if key in self._cheetah_parameters.hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
                     name=self._cheetah_parameters.hdf5_fields[key],
@@ -737,16 +743,15 @@ class HDF5Writer:
             )
 
         # SWAXS Cheetah writing
-        for key in ("q", "radial", "image_sum"):
+        for key in ("q", "radial"):
             if key in self._cheetah_parameters.hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
                     name=self._cheetah_parameters.hdf5_fields[key],
-                    shape=(0, 3019),
-                    maxshape=(
-                        None,
-                        None,
-                    ),
+                    shape=(0,) + processed_data[key].shape,
+                    maxshape=(None,) + processed_data[key].shape,
                     dtype=numpy.float64,
+                    chunks=(1,) + processed_data[key].shape,
+                    **self._compression_kwargs,
                 )
 
         for key in self._requested_datasets:
