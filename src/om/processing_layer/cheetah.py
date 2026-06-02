@@ -41,6 +41,7 @@ from om.lib.cheetah import (
     CheetahStatusFileWriter,
     FramelistData,
     HDF5Writer,
+    write_VDS_master_file,
 )
 from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
@@ -418,6 +419,11 @@ class CheetahNoProcessing(OmProcessingProtocol):
 
         # Sort frames and write final list files
         self._list_files_writer.sort_frames_and_close_files()
+
+        # Write master file with sorted frames
+        write_VDS_master_file(
+            parameters=self._cheetah_parameters,
+        )
 
         # Write final status
         self._status_file_writer.update_status(
@@ -1045,6 +1051,11 @@ class CheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
         # Sort frames and write final list files
         self._list_files_writer.sort_frames_and_close_files()
 
+        # Write master file with sorted frames
+        write_VDS_master_file(
+            parameters=self._cheetah_parameters,
+        )
+
         # Write final status
         self._status_file_writer.update_status(
             status="Finished",
@@ -1297,7 +1308,7 @@ class StreamingCheetahProcessing(OmCheetahMixin, OmProcessingProtocol):
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
-            "",
+            "---",
             -1,
             received_data["peak_list"].num_peaks,
             numpy.mean(cast(numpy.floating[Any], received_data["peak_list"].intensity)),
