@@ -212,6 +212,10 @@ class CheetahlistFilesWriter:
             parameters.processed_directory
         ).resolve()
 
+        self._processed_filename_extension: str = (
+            f".{parameters.processed_filename_extension}"
+        )
+
         self._frames_filename: pathlib.Path = processed_directory / "frames.txt"
         self._frames_file: TextIO = open(self._frames_filename, "w")
         self._frames_file.write(
@@ -329,6 +333,12 @@ class CheetahlistFilesWriter:
                 "ave_intensity\n"
             )
             for frame in frame_list:
+                if frame.filename:
+                    frame.filename = str(
+                        pathlib.Path(frame.filename).with_suffix(
+                            self._processed_filename_extension
+                        )
+                    )
                 fh.write(
                     f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
                     f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
