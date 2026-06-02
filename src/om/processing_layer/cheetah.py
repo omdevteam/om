@@ -58,6 +58,380 @@ from om.lib.zmq import ZmqResponder
 msgpack_numpy.patch()
 
 
+class CheetahNoProcessing(OmProcessingProtocol):
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(self, *, parameters: MonitorParameters) -> None:
+        """
+        Cheetah No Processing.
+
+        This Processing class implements the Cheetah software package, but without
+        performing any actual processing of the data. It only retrieves the data and
+        saves it to HDF5 files.
+
+        Arguments:
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        if parameters.cheetah is None:
+            log_error_and_exit(
+                "'cheetah' section is not present in the configuration file"
+            )
+            return  # For the type checker
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._monitor_parameters: MonitorParameters = parameters
+
+        # Processed data directory
+        Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
+
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the processing nodes for Cheetah No Processing.
+
+        This function initializes the HDF5 file writer and class sums accumulator.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # HDF5 file writer
+        self._file_writer: HDF5Writer = HDF5Writer(
+            parameters=self._cheetah_parameters,
+            node_rank=node_rank,
+        )
+
+        # Class sums accumulation
+        self._class_sum_accumulator: CheetahClassSumsAccumulator = (
+            CheetahClassSumsAccumulator(
+                parameters=self._cheetah_parameters,
+                num_classes=1,
+            )
+        )
+
+        log_info(f"Processing node {node_rank} starting")
+
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the collecting node for Cheetah No Processing.
+
+        This function initializes the data accumulation algorithms, the storage buffers
+        used to compute statistics on the processed data, and some internal counters.
+        Additionally, it prepares all the file writers.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+
+        # Status file
+        self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
+            parameters=self._cheetah_parameters
+        )
+        self._status_file_writer.update_status(status="Not finished")
+
+        # Event counting
+        self._event_counter: EventCounter = EventCounter(
+            speed_report_interval=(
+                self._cheetah_parameters.status_file_update_interval
+            ),
+            node_pool_size=node_pool_size,
+        )
+
+        # list files
+        self._list_files_writer: CheetahlistFilesWriter = CheetahlistFilesWriter(
+            parameters=self._cheetah_parameters,
+        )
+
+        # Class sums collection
+        self._class_sum_collector: CheetahClassSumsCollector = (
+            CheetahClassSumsCollector(
+                parameters=self._cheetah_parameters, num_classes=1
+            )
+        )
+
+        # Console
+        log_info("Starting the monitor...")
+
+    def process_data(  # noqa: C901
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
+        """
+        Processes a detector data frame.
+
+        This functions saves the retrieved data to HDF5 file, and adds the data to the
+        class sum.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
+
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
+
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
+
+        Returns:
+
+            A tuple with two entries. The first entry is a dictionary storing the
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
+        """
+
+        # Empty peak list
+        peak_list: PeakList = PeakList(
+            num_peaks=0,
+            fs=[],
+            ss=[],
+            intensity=[],
+            num_pixels=[],
+            max_pixel_intensity=[],
+            snr=[],
+        )
+
+        # Add data to the class sum
+        self._class_sum_accumulator.add_frame(
+            class_number=0,
+            frame_data=data["detector_data"],
+            peak_list=peak_list,
+        )
+
+        # Saving data to HDF5 file
+        data_to_write: dict[str, Any] = {
+            "detector_data": data["detector_data"],
+            "event_id": data["event_id"],
+            "timestamp": data["timestamp"],
+            "beam_energy": data["beam_energy"],
+            "detector_distance": data["detector_distance"],
+        }
+        if "optical_laser_active" in data.keys():
+            data_to_write["optical_laser_active"] = int(data["optical_laser_active"])
+        if "lcls_extra" in data.keys():
+            data_to_write["lcls_extra"] = data["lcls_extra"]
+        self._file_writer.write_frame(processed_data=data_to_write)
+
+        # Data to send to the collecting node
+        processed_data = {
+            "timestamp": data["timestamp"],
+            "event_id": data["event_id"],
+            "class_sums": self._class_sum_accumulator.get_sums_for_sending(),
+            "filename": self._file_writer.get_current_filename(),
+            "index": self._file_writer.get_num_written_frames(),
+            "peak_list": peak_list,
+        }
+
+        return (processed_data, node_rank)
+
+    def wait_for_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Receives and handles requests from external programs.
+
+        This function is not used in Cheetah, and therefore does nothing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        pass
+
+    def collect_data(  # noqa: C901
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
+        """
+        Computes statistics on aggregated data and saves them to files.
+
+        This function collects and accumulates frame- and peak-related information
+        received from the processing nodes.  Optionally, it computes the sums of hit
+        and non-hit detector frames and the corresponding virtual powder patterns, and
+        saves them to file. Additionally, this function writes information about the
+        processing statistics (number of processed events, number of found hits and the
+        elapsed time) to a status file at regular intervals. External programs can
+        inspect the file to determine the advancement of the data processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
+        """
+
+        received_data: dict[str, Any] = processed_data[0]
+
+        # Collect class sums
+        if received_data["class_sums"] is not None:
+            self._class_sum_collector.add_sums(class_sums=received_data["class_sums"])
+
+        # End processing
+        if "end_processing" in received_data:
+            return None
+
+        # Event counting
+        self._event_counter.add_hit_event()
+
+        # Write frame and peaks data to list files
+        frame_data: FramelistData = FramelistData(
+            received_data["timestamp"],
+            received_data["event_id"],
+            1,
+            received_data["filename"],
+            received_data["index"],
+            0,
+            0,
+        )
+        self._list_files_writer.add_frame(
+            frame_data=frame_data, peak_list=received_data["peak_list"]
+        )
+
+        # Update status file
+        num_events: int = self._event_counter.get_num_events()
+        if num_events % self._cheetah_parameters.status_file_update_interval == 0:
+            self._status_file_writer.update_status(
+                status="Not finished",
+                num_frames=num_events,
+                num_hits=self._event_counter.get_num_hits(),
+            )
+            self._list_files_writer.flush_files()
+
+        self._event_counter.report_speed()
+
+        return None
+
+    def end_processing_on_processing_node(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> dict[str, Any] | None:
+        """
+        Ends processing on the processing nodes for Cheetah No Processing.
+
+        This function prints a message on the console, closes the output HDF5 files
+        and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+                the processing node.
+        """
+
+        log_info(f"Processing node {node_rank} shutting down.")
+        self._file_writer.close()
+        # Send last class sums to the collecting node
+        return {
+            "class_sums": self._class_sum_accumulator.get_sums_for_sending(
+                disregard_counter=True
+            ),
+            "end_processing": True,
+        }
+
+    def end_processing_on_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Ends processing on the collecting node for Cheetah.
+
+        This function prints a message on the console, writes the final information in
+        the sum and status files, closes the files and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Save final accumulated class sums
+        self._class_sum_collector.save_sums()
+
+        # Sort frames and write final list files
+        self._list_files_writer.sort_frames_and_close_files()
+
+        # Write final status
+        self._status_file_writer.update_status(
+            status="Finished",
+            num_frames=self._event_counter.get_num_events(),
+            num_hits=self._event_counter.get_num_hits(),
+        )
+
+        log_info(
+            "Processing finished. OM has processed "
+            f"{self._event_counter.get_num_events()} events in total."
+        )
+
+
 class OmCheetahMixin:
     def __init__(self, *, parameters: MonitorParameters) -> None:
         """
