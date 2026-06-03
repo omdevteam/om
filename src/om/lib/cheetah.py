@@ -212,6 +212,10 @@ class CheetahlistFilesWriter:
             parameters.processed_directory
         ).resolve()
 
+        self._processed_filename_extension: str = (
+            f".{parameters.processed_filename_extension}"
+        )
+
         self._frames_filename: pathlib.Path = processed_directory / "frames.txt"
         self._frames_file: TextIO = open(self._frames_filename, "w")
         self._frames_file.write(
@@ -329,6 +333,12 @@ class CheetahlistFilesWriter:
                 "ave_intensity\n"
             )
             for frame in frame_list:
+                if frame.filename != "---":
+                    frame.filename = str(
+                        pathlib.Path(frame.filename).with_suffix(
+                            self._processed_filename_extension
+                        )
+                    )
                 fh.write(
                     f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
                     f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
@@ -1027,3 +1037,101 @@ class SumHDF5Writer:
             f'Another application is reading the file "{self._filename} exclusively. '
             "Five attempts to open the files failed. Cannot update the file."
         )
+
+
+def write_VDS_master_file(
+    *,
+    parameters: CheetahParameters,
+):
+    """
+    Writes the master HDF5 file.
+
+    This function creates an HDF5 file containing a virtual dataset that aggregates the
+    data stored in the HDF5 files created by the `HDF5Writer` class. The master file is
+    created in the same directory as the other files, and contains links to all the
+    data sorted by timestamp.
+
+    Arguments:
+        parameters: A set of OM configuration parameters collected together in a
+            parameter group.
+    """
+    processed_directory: pathlib.Path = pathlib.Path(
+        parameters.processed_directory
+    ).resolve()
+    master_filename: pathlib.Path = (
+        processed_directory / f"{parameters.processed_filename_prefix}-master."
+        f"{parameters.processed_filename_extension}"
+    )
+
+    cleaned_filename: pathlib.Path = processed_directory / "cleaned.txt"
+    if not cleaned_filename.exists():
+        log.warning(
+            f'Cannot create the master file: "{cleaned_filename}" file does not exist.'
+        )
+        return
+
+    fh: TextIO
+    frames: list[FramelistData] = []
+    with open(cleaned_filename, "r") as fh:
+        for line in fh:
+            if line.startswith("#") or line.strip() == "":
+                continue
+            items: list[str] = line.split(",")
+            filename: str = items[3].strip()
+            if filename == "---" or not pathlib.Path(filename).exists():
+                continue
+            frames.append(
+                FramelistData(
+                    timestamp=float(items[0].strip()),
+                    event_id=items[1].strip(),
+                    frame_is_hit=int(items[2].strip()),
+                    filename=filename,
+                    index_in_file=int(items[4].strip()),
+                    num_peaks=int(items[5].strip()),
+                    average_intensity=float(items[6].strip()),
+                )
+            )
+
+    # Sort by timestamp:
+    frames.sort(key=lambda frame: frame.timestamp)
+
+    # Copy all datasets from the individual files into the master file
+    source_file: Any = h5py.File(str(frames[0].filename), "r")
+    master_file: Any = h5py.File(str(master_filename), "w")
+
+    datasets: list[str] = []
+    source_file.visit(
+        lambda key: (
+            datasets.append(key) if isinstance(source_file[key], h5py.Dataset) else None
+        )
+    )
+
+    n_frames: int = len(frames)
+    virtual_layouts: dict[str, h5py.VirtualLayout] = {}
+    for dataset_name in datasets:
+        dataset_shape: tuple[int, ...] = source_file[dataset_name].shape[1:]
+        dataset_dtype: Any = source_file[dataset_name].dtype
+        virtual_layouts[dataset_name] = h5py.VirtualLayout(
+            shape=(n_frames,) + dataset_shape, dtype=dataset_dtype
+        )
+    source_file.close()
+
+    source_files: dict[str, Any] = {}
+    for dataset_name in datasets:
+        virtual_sources: dict[str, Any] = {}
+        for i, frame in enumerate(frames):
+            if frame.filename not in source_files:
+                source_files[frame.filename] = h5py.File(str(frame.filename), "r")
+            if frame.filename not in virtual_sources:
+                virtual_sources[frame.filename] = h5py.VirtualSource(
+                    source_files[frame.filename][dataset_name]
+                )
+            virtual_layouts[dataset_name][i] = virtual_sources[frame.filename][
+                frame.index_in_file
+            ]
+        master_file.create_virtual_dataset(dataset_name, virtual_layouts[dataset_name])
+    for source_file in source_files.values():
+        source_file.close()
+
+    log.info(f"Master file created: {master_filename}, containing {n_frames} frames.")
+    master_file.close()
