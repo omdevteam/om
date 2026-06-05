@@ -70,6 +70,9 @@ python_version = 3.11
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
+[tool.pixi.feature.psana2mfx101210926]
+channels = ["lcls-ii"]
+
 [tool.pixi.feature.psana2]
 channels = ["lcls-ii"]
 
@@ -77,17 +80,32 @@ channels = ["lcls-ii"]
 channels = ["lcls-i"]
 
 [tool.pixi.pypi-dependencies]
-ondamonitor = { path = ".", editable = true }
+ondamonitor = { path = ".", editable = false }
+cheetah = { path = "../cheetah-gui-20260318", editable = false }
+
+[tool.pixi.feature.psana2mfx101210926.pypi-dependencies]
+cbclib_v2 = { path = "../cbclib_v2-20260603", editable = false }
 
 [tool.pixi.environments]
 psana1 = ["psana1"]
 psana2 = ["psana2"]
+psana2mfx101210926 = ["psana2mfx101210926"]
+
+[tool.pixi.feature.psana2mfx101210926.activation]
+scripts = ["activation-psana2.sh"]
 
 [tool.pixi.feature.psana2.activation]
 scripts = ["activation-psana2.sh"]
 
 [tool.pixi.feature.psana1.activation]
 scripts = ["activation-psana1.sh"]
+
+[tool.pixi.feature.psana2mfx101210926.dependencies]
+python = "3.13.*"
+psana = { version="==4.2.4", channel="lcls-ii" }
+openmpi = "*"
+mpi4py = "*"
+gxx_linux-64  = "*"
 
 [tool.pixi.feature.psana2.dependencies]
 python = "3.13.*"
@@ -102,9 +120,9 @@ openmpi = "*"
 mpi4py = "*"
 
 [dependency-groups]
+psana2mfx101210926 = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3", "sphinx>=9.1.0,<10", "myst-parser>=5.0.0,<6", "pydata-sphinx-theme>=0.16.1,<0.17", "sphinx-click>=6.2.0,<7", "sphinxcontrib-images>=1.0.1,<2", "mypy>=1.19.1,<2", "h5py-stubs>=0.1.2,<0.2", "scipy-stubs>=1.17.0.2,<2", "types-pyyaml>=6.0.12.20250915,<7", "msgpack-types>=0.7.0,<0.8", "types-requests>=2.32.4.20260107,<3"]
 psana2 = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3", "sphinx>=9.1.0,<10", "myst-parser>=5.0.0,<6", "pydata-sphinx-theme>=0.16.1,<0.17", "sphinx-click>=6.2.0,<7", "sphinxcontrib-images>=1.0.1,<2", "mypy>=1.19.1,<2", "h5py-stubs>=0.1.2,<0.2", "scipy-stubs>=1.17.0.2,<2", "types-pyyaml>=6.0.12.20250915,<7", "msgpack-types>=0.7.0,<0.8", "types-requests>=2.32.4.20260107,<3"]
 psana1 = ["cython>=3.2.4,<4", "fabio>=2025.10.0,<2026", "hdf5plugin>=6.0.0,<7", "h5py", "msgpack-python>=0.5.6,<0.6", "msgpack-numpy>=0.4.8,<0.5", "pillow", "pydantic>=2.12.5,<3", "pyyaml>=6.0.3,<7", "pyzmq", "rich>=14.2.0,<15", "ruamel-yaml>=0.19.1,<0.20", "scipy", "typer>=0.21.1,<0.22", "jinja2>=3.1.6,<4", "typing-extensions", "ansi2html>=1.9.2,<2", "pyqtgraph>=0.14.0,<0.15", "ruamel-yaml-jinja2>=0.2.7,<0.3", "sortedcontainers>=2.4.0,<3", "sphinx>=9.0.4,<10", "myst-parser>=5.0.0,<6", "pydata-sphinx-theme>=0.16.1,<0.17", "sphinx-click>=6.2.0,<7", "sphinxcontrib-images>=1.0.1,<2", "mypy>=1.19.1,<2", "h5py-stubs>=0.1.2,<0.2", "scipy-stubs>=1.17.0.2,<2", "types-pyyaml>=6.0.12.20250915,<7", "msgpack-types>=0.7.0,<0.8", "types-requests>=2.32.4.20260107,<3"]
-psana3 = ["mypy"]
 
 [tool.pixi.tasks]
 
