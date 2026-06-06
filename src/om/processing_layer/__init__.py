@@ -29,6 +29,14 @@ from .cheetah import (
     CheetahNoProcessing,
 )  # noqa: F401
 from .crystallography import CrystallographyProcessing  # noqa: F401
+
+try:
+    from .crystallography_mfx101210926 import CbCrystallographyProcessing  # noqa: F401
+except Exception:
+    # cbclib_v2 is only available in the psana2mfx101210926 environment.
+    # In all other environments this import is silently skipped and the class
+    # will not be available.
+    pass
 from .swaxs import SwaxsCheetahProcessing, SwaxsProcessing  # noqa: F401
 from .testing import TestProcessing  # noqa: F401
 from .xes import XesProcessing  # noqa: F401

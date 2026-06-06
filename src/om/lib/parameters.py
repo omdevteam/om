@@ -269,6 +269,39 @@ class CrystallographyParameters(CustomBaseModel):
     non_hit_frame_sending_interval: int = 0
 
 
+class LineDetectionParameters(CustomBaseModel):
+    radii: list[int]
+    """Structuring element radii (one per image dimension) passed to Structure."""
+
+    connectivity: int
+    """Pixel connectivity used when labelling connected regions."""
+
+    vmin: float
+    """Minimum pixel value (SNR threshold) used to threshold the image before labelling."""
+
+    npts: int
+    """Minimum number of pixels required for a connected region to be kept."""
+
+    mask_filename: Path
+    """Path to an HDF5 file containing the 1-0 pixel mask stored at /data/data."""
+
+    background_subtraction: bool = False
+    """Whether to apply OLS background subtraction before line detection."""
+
+    background_filename: Path | None = None
+    """Path to an HDF5 file containing the background image stored at /data/data.
+    Required when background_subtraction is True."""
+
+    @model_validator(mode="after")
+    def check_background_filename(self) -> Self:
+        if self.background_subtraction and self.background_filename is None:
+            raise ValueError(
+                "background_filename must be provided when background_subtraction "
+                "is True"
+            )
+        return self
+
+
 class MonitorParameters(CustomBaseModel):
     om: OmParameters
     data_retrieval_layer: DataRetrievalLayerParameters
@@ -276,6 +309,7 @@ class MonitorParameters(CustomBaseModel):
     radial_profile: RadialProfileParameters | None = None
     binning: BinningParameters | None = None
     crystallography: CrystallographyParameters | None = None
+    line_detection: LineDetectionParameters | None = None
     xes: XesParameters | None = None
     cheetah: CheetahParameters | None = None
 
