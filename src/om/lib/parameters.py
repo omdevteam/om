@@ -270,27 +270,15 @@ class CrystallographyParameters(CustomBaseModel):
 
 
 class LineDetectionParameters(CustomBaseModel):
-    radii: list[int]
-    """Structuring element radii (one per image dimension) passed to Structure."""
-
-    connectivity: int
-    """Pixel connectivity used when labelling connected regions."""
-
-    vmin: float
-    """Minimum pixel value (SNR threshold) used to threshold the image before labelling."""
-
-    npts: int
-    """Minimum number of pixels required for a connected region to be kept."""
-
-    mask_filename: Path
-    """Path to an HDF5 file containing the 1-0 pixel mask stored at /data/data."""
-
+    structure_radii: list[int]
+    structure_connectivity: int
+    threshold: float
+    min_pixel_count: int
+    bad_pixel_map_filename: Path | None = None
+    bad_pixel_map_hdf5_path: str | None = None
     background_subtraction: bool = False
-    """Whether to apply OLS background subtraction before line detection."""
-
     background_filename: Path | None = None
-    """Path to an HDF5 file containing the background image stored at /data/data.
-    Required when background_subtraction is True."""
+    background_hdf5_path: str | None = None
 
     @model_validator(mode="after")
     def check_background_filename(self) -> Self:
@@ -298,6 +286,27 @@ class LineDetectionParameters(CustomBaseModel):
             raise ValueError(
                 "background_filename must be provided when background_subtraction "
                 "is True"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> Self:
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        if (
+            self.background_subtraction is True
+            and self.background_filename is not None
+            and self.background_hdf5_path is None
+        ):
+            raise ValueError(
+                "If background subtraction is requested and a background filename is "
+                "provided, the background_hdf5_path must also be provided"
             )
         return self
 

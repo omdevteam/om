@@ -18,13 +18,13 @@
 """
 OnDA Monitor for CBC Crystallography at MFX experiment mfx101210926.
 
-This module contains an OnDA Monitor for the MFX101210926 Serial Crystallography
-experiment. It replaces Bragg peak detection with diffraction streak (line) detection
-via cbclib_v2.
+This module contains an OnDA Monitor for Convergent Beam Crystallography experiments.
+It replaces Bragg peak detection with diffraction streak (line) detection via cbclib_v2.
 """
 
 from collections import deque
 from typing import Any, cast
+from pathlib import Path
 
 import numpy
 from numpy.typing import NDArray
@@ -36,9 +36,29 @@ from om.lib.crystallography import CrystallographyPlots
 from om.lib.files import load_hdf5_data
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
+from om.lib.geometry import (
+    DataVisualizer,
+    GeometryInformation,
+    PixelMaps,
+    DetectorLayoutInformation,
+)
+from om.lib.cheetah import (
+    CheetahClassSumsAccumulator,
+    CheetahClassSumsCollector,
+    CheetahlistFilesWriter,
+    CheetahStatusFileWriter,
+    FramelistData,
+    HDF5Writer,
+    write_VDS_master_file,
+)
 from om.lib.logging import log_error_and_exit, log_info
-from om.lib.parameters import CrystallographyParameters, MonitorParameters
+from om.lib.parameters import (
+    BinningParameters,
+    CheetahParameters,
+    CrystallographyParameters,
+    LineDetectionParameters,
+    MonitorParameters,
+)
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.zmq import ZmqDataBroadcaster
 
@@ -178,31 +198,33 @@ class CbCrystallographyProcessing(OmProcessingProtocol):
             )
             return  # For the type checker
 
-        self._line_detection_radii: list[int] = (
-            self._monitor_parameters.line_detection.radii
+        self._line_detection_parameters: LineDetectionParameters = (
+            self._monitor_parameters.line_detection
         )
-        self._line_detection_connectivity: int = (
-            self._monitor_parameters.line_detection.connectivity
-        )
-        self._line_detection_vmin: float = self._monitor_parameters.line_detection.vmin
-        self._line_detection_npts: int = self._monitor_parameters.line_detection.npts
 
-        # Mask (always loaded)
-        self._mask: NDArray[numpy.floating[Any]] = load_hdf5_data(
-            hdf5_filename=self._monitor_parameters.line_detection.mask_filename,
-            hdf5_path="/data/data",
-        ).astype(numpy.float64)
+        # Mask (loaded if a mask filename is provided in the configuration)
+        if self._line_detection_parameters.bad_pixel_map_filename is not None:
+            mask_data: NDArray[numpy.floating[Any]] = load_hdf5_data(
+                hdf5_filename=self._line_detection_parameters.bad_pixel_map_filename,  # type: ignore[arg-type]
+                hdf5_path=self._line_detection_parameters.bad_pixel_map_hdf5_path,  # type: ignore[arg-type]
+            )
+            self._mask: NDArray[numpy.int8] | None = mask_data.astype(numpy.int8)
+        else:
+            self._mask = None
 
         # Background (loaded only when background subtraction is enabled)
         self._background_subtraction: bool = (
-            self._monitor_parameters.line_detection.background_subtraction
+            self._line_detection_parameters.background_subtraction
         )
         self._background: NDArray[numpy.floating[Any]] | None = None
         if self._background_subtraction:
             self._background = load_hdf5_data(
-                hdf5_filename=self._monitor_parameters.line_detection.background_filename,  # type: ignore[arg-type]
-                hdf5_path="/data/data",
+                hdf5_filename=self._line_detection_parameters.background_filename,  # type: ignore[arg-type]
+                hdf5_path=self._line_detection_parameters.background_hdf5_path,  # type: ignore[arg-type]
             ).astype(numpy.float64)
+            if self._mask is not None:
+                self._background *= self._mask
+            self._background_norm: float = float(numpy.sum(self._background**2))
 
         self._min_num_peaks_for_hit = (
             self._crystallography_parameters.min_num_peaks_for_hit
@@ -331,32 +353,26 @@ class CbCrystallographyProcessing(OmProcessingProtocol):
         processed_data: dict[str, Any] = {}
 
         # Pre-processing: apply mask
-        masked_data: NDArray[numpy.floating[Any]] = (
-            data["detector_data"].astype(numpy.float64) * self._mask
-        )
+        data["detector_data"] *= self._mask if self._mask is not None else 1
 
         # OLS background subtraction (optional)
         if self._background_subtraction and self._background is not None:
-            masked_bg: NDArray[numpy.floating[Any]] = self._background * self._mask
-            bg_norm: float = float(numpy.sum(masked_bg**2))
             scale: float = (
-                float(numpy.sum(masked_data * masked_bg)) / bg_norm
-                if bg_norm > 0.0
+                float(numpy.sum(data["detector_data"] * self._background)) / self._background_norm
+                if self._background_norm > 0.0
                 else 0.0
             )
-            preprocessed: NDArray[numpy.floating[Any]] = masked_data - scale * masked_bg
-        else:
-            preprocessed = masked_data
+            data["detector_data"] -= scale * self._background
 
         # Line detection
         _, peaks = _detect_lines(
-            preprocessed,
-            self._line_detection_radii,
-            self._line_detection_connectivity,
-            self._line_detection_vmin,
-            self._line_detection_npts,
+            data["detector_data"],
+            self._line_detection_parameters.structure_radii,
+            self._line_detection_parameters.structure_connectivity,
+            self._line_detection_parameters.threshold,
+            self._line_detection_parameters.min_pixel_count,
         )
-        peak_list: PeakList = _peaks_to_peak_list(peaks, preprocessed)
+        peak_list: PeakList = _peaks_to_peak_list(peaks, data["detector_data"])
 
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
@@ -391,7 +407,7 @@ class CbCrystallographyProcessing(OmProcessingProtocol):
 
         if send_detector_data:
             data_to_send: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]] = (
-                preprocessed
+                data["detector_data"]
             )
             data_to_send = self._post_processing_binning.bin_detector_data(
                 data=data_to_send
@@ -608,6 +624,501 @@ class CbCrystallographyProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        log_info(
+            "Processing finished. OM has processed "
+            f"{self._event_counter.get_num_events()} events in total."
+        )
+
+
+class CbCheetahProcessing(OmProcessingProtocol):
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(self, *, parameters: MonitorParameters) -> None:
+        """
+        Cheetah Processing class for Convergent Beam Crystallography.
+
+        Arguments:
+
+            parameters: An object storing OM's configuration parameters.
+        """
+        if parameters.cheetah is None:
+            log_error_and_exit(
+                "'cheetah' section is not present in the configuration file"
+            )
+            return  # For the type checker
+        if parameters.crystallography is None:
+            log_error_and_exit(
+                "'crystallography' section is not present in the configuration file"
+            )
+            return  # For the type checker
+        if parameters.line_detection is None:
+            log_error_and_exit(
+                "'line_detection' section is not present in the configuration file"
+            )
+            return  # For the type checker
+
+        self._line_detection_parameters: LineDetectionParameters = (
+            parameters.line_detection
+        )
+        self._cheetah_parameters: CheetahParameters = parameters.cheetah
+        self._crystallography_parameters: CrystallographyParameters = (
+            parameters.crystallography
+        )
+        self._monitor_parameters: MonitorParameters = parameters
+
+        # Processed data directory
+        Path(parameters.cheetah.processed_directory).mkdir(exist_ok=True)
+
+        # Geometry
+        self._geometry_information: GeometryInformation = GeometryInformation.from_file(
+            geometry_filename=self._crystallography_parameters.geometry_file
+        )
+
+        self._post_processing_binning_enabled: bool = (
+            self._crystallography_parameters.post_processing_binning
+        )
+        if self._post_processing_binning_enabled:
+            if parameters.binning is None:
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
+                )
+                return  # For the type checker
+            self._monitor_parameters_binning: BinningParameters = parameters.binning
+
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the collecting node for the CBC Cheetah.
+
+        This function initializes the data accumulation algorithms, the storage buffers
+        used to compute statistics on the processed data, and some internal counters.
+        Additionally, it prepares all the file writers.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+
+        # Status file
+        self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
+            parameters=self._cheetah_parameters
+        )
+        self._status_file_writer.update_status(status="Not finished")
+
+        # Event counting
+        self._event_counter: EventCounter = EventCounter(
+            speed_report_interval=(
+                self._crystallography_parameters.speed_report_interval
+            ),
+            node_pool_size=node_pool_size,
+        )
+
+        # list files
+        self._list_files_writer: CheetahlistFilesWriter = CheetahlistFilesWriter(
+            parameters=self._cheetah_parameters,
+        )
+
+        # Class sums collection
+        self._class_sum_collector: CheetahClassSumsCollector = (
+            CheetahClassSumsCollector(
+                parameters=self._cheetah_parameters, num_classes=2
+            )
+        )
+
+        # Console
+        log_info("Starting the monitor...")
+
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the processing nodes for the CBC Cheetah.
+
+        This function initializes all the required algorithms (peak finding, binning,
+        etc.), plus some internal counters.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+
+        # Mask (loaded if a mask filename is provided in the configuration)
+        if self._line_detection_parameters.bad_pixel_map_filename is not None:
+            mask_data: NDArray[numpy.floating[Any]] = load_hdf5_data(
+                hdf5_filename=self._line_detection_parameters.bad_pixel_map_filename,  # type: ignore[arg-type]
+                hdf5_path=self._line_detection_parameters.bad_pixel_map_hdf5_path,  # type: ignore[arg-type]
+            )
+            self._mask: NDArray[numpy.int8] | None = mask_data.astype(numpy.int8)
+        else:
+            self._mask = None
+
+        # Background (loaded only when background subtraction is enabled)
+        self._background_subtraction: bool = (
+            self._line_detection_parameters.background_subtraction
+        )
+        self._background: NDArray[numpy.floating[Any]] | None = None
+        if self._background_subtraction:
+            self._background = load_hdf5_data(
+                hdf5_filename=self._line_detection_parameters.background_filename,  # type: ignore[arg-type]
+                hdf5_path=self._line_detection_parameters.background_hdf5_path,  # type: ignore[arg-type]
+            ).astype(numpy.float64)
+            if self._mask is not None:
+                self._background *= self._mask
+            self._background_norm: float = float(numpy.sum(self._background**2))
+
+        self._min_num_peaks_for_hit = (
+            self._crystallography_parameters.min_num_peaks_for_hit
+        )
+        self._max_num_peaks_for_hit = (
+            self._crystallography_parameters.max_num_peaks_for_hit
+        )
+
+        # Post-processing binning
+        if self._post_processing_binning_enabled:
+            if self._monitor_parameters.binning is None:
+                log_error_and_exit(
+                    "'binning' section is not present in the configuration file"
+                )
+                return  # For the type checker
+            self._post_processing_binning: Binning | BinningPassthrough = Binning(
+                parameters=self._monitor_parameters_binning,
+                layout_info=self._geometry_information.get_layout_info(),
+            )
+        else:
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
+
+        # Processed data shape
+        layout_info: DetectorLayoutInformation = (
+            self._post_processing_binning.get_binned_layout_info()
+        )
+        self._processed_data_shape: tuple[int, int] = (
+            layout_info.asic_ny * layout_info.nasics_y,
+            layout_info.asic_nx * layout_info.nasics_x,
+        )
+
+        # Class sums accumulation
+        self._class_sum_accumulator: CheetahClassSumsAccumulator = (
+            CheetahClassSumsAccumulator(
+                parameters=self._cheetah_parameters,
+                num_classes=2,
+            )
+        )
+
+        # HDF5 file writer
+        self._file_writer: HDF5Writer = HDF5Writer(
+            parameters=self._cheetah_parameters,
+            node_rank=node_rank,
+        )
+
+        log_info(f"Processing node {node_rank} starting")
+
+    def process_data(
+        self, *, node_rank: int, node_pool_size: int, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
+        """
+        Processes a detector data frame.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
+
+        Returns:
+
+            A tuple with two entries. The first entry is a dictionary storing the
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
+        """
+        processed_data: dict[str, Any] = {}
+
+        # Pre-processing: apply mask
+        preprocessed_data: NDArray[numpy.floating[Any]] = data["detector_data"] * self._mask
+
+        # OLS background subtraction (optional)
+        if self._background_subtraction and self._background is not None:
+            scale: float = (
+                float(numpy.sum(preprocessed_data * self._background)) / self._background_norm
+                if self._background_norm > 0.0
+                else 0.0
+            )
+            preprocessed_data -= scale * self._background
+
+        # Line detection
+        _, peaks = _detect_lines(
+            preprocessed_data,
+            self._line_detection_parameters.structure_radii,
+            self._line_detection_parameters.structure_connectivity,
+            self._line_detection_parameters.threshold,
+            self._line_detection_parameters.min_pixel_count,
+        )
+        peak_list: PeakList = _peaks_to_peak_list(peaks, preprocessed_data)
+
+        peak_list = self._post_processing_binning.bin_peak_positions(
+            peak_list=peak_list
+        )
+
+        frame_is_hit: bool = (
+            self._min_num_peaks_for_hit
+            < len(peak_list.intensity)
+            < self._max_num_peaks_for_hit
+        )
+
+        binned_detector_data: NDArray[
+            numpy.floating[Any] | numpy.signedinteger[Any]
+        ] = self._post_processing_binning.bin_detector_data(data=data["detector_data"])
+
+        # Add data to the class sums
+        self._class_sum_accumulator.add_frame(
+            class_number=int(frame_is_hit),
+            frame_data=binned_detector_data,
+            peak_list=peak_list,
+        )
+
+        # Saving data to HDF5 file
+        if frame_is_hit:
+            data_to_write: dict[str, Any] = {
+                "detector_data": binned_detector_data,
+                "event_id": data["event_id"],
+                "timestamp": data["timestamp"],
+                "beam_energy": data["beam_energy"],
+                "detector_distance": data["detector_distance"],
+                "peak_list": peak_list,
+            }
+            if "optical_laser_active" in data.keys():
+                data_to_write["optical_laser_active"] = int(
+                    data["optical_laser_active"]
+                )
+            if "lcls_extra" in data.keys():
+                data_to_write["lcls_extra"] = data["lcls_extra"]
+            self._file_writer.write_frame(processed_data=data_to_write)
+
+        # Data to send to the collecting node
+        processed_data = {
+            "timestamp": data["timestamp"],
+            "frame_is_hit": frame_is_hit,
+            "event_id": data["event_id"],
+            "peak_list": peak_list,
+            "class_sums": self._class_sum_accumulator.get_sums_for_sending(),
+        }
+        if frame_is_hit:
+            processed_data["filename"] = self._file_writer.get_current_filename()
+            processed_data["index"] = self._file_writer.get_num_written_frames()
+        else:
+            processed_data["filename"] = "---"
+            processed_data["index"] = -1
+
+        return (processed_data, node_rank)
+
+    def wait_for_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Receives and handles requests from external programs.
+
+        This function is not used in Cheetah, and therefore does nothing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        pass
+
+    def collect_data(  # noqa: C901
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+        processed_data: tuple[dict[str, Any], int],
+    ) -> dict[str, dict[str, Any]] | None:
+        """
+        Computes statistics on aggregated data and saves them to files.
+
+        This function collects and accumulates frame- and peak-related information
+        received from the processing nodes.  Optionally, it computes the sums of hit
+        and non-hit detector frames and the corresponding virtual powder patterns, and
+        saves them to file. Additionally, this function writes information about the
+        processing statistics (number of processed events, number of found hits and the
+        elapsed time) to a status file at regular intervals. External programs can
+        inspect the file to determine the advancement of the data processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (tuple[dict, int]): A tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
+        """
+
+        received_data: dict[str, Any] = processed_data[0]
+
+        # Collect class sums
+        if received_data["class_sums"] is not None:
+            self._class_sum_collector.add_sums(class_sums=received_data["class_sums"])
+
+        # End processing
+        if "end_processing" in received_data:
+            return None
+
+        # Event counting
+        if received_data["frame_is_hit"] is True:
+            self._event_counter.add_hit_event()
+        else:
+            self._event_counter.add_non_hit_event()
+
+        if received_data is None:
+            return None
+
+        # Write frame and peaks data to list files
+        frame_data: FramelistData = FramelistData(
+            received_data["timestamp"],
+            received_data["event_id"],
+            int(received_data["frame_is_hit"]),
+            received_data["filename"],
+            received_data["index"],
+            received_data["peak_list"].num_peaks,
+            numpy.mean(cast(numpy.floating[Any], received_data["peak_list"].intensity)),
+        )
+        self._list_files_writer.add_frame(
+            frame_data=frame_data, peak_list=received_data["peak_list"]
+        )
+
+        # Update status file
+        num_events: int = self._event_counter.get_num_events()
+        if num_events % self._cheetah_parameters.status_file_update_interval == 0:
+            self._status_file_writer.update_status(
+                status="Not finished",
+                num_frames=num_events,
+                num_hits=self._event_counter.get_num_hits(),
+            )
+            self._list_files_writer.flush_files()
+
+        self._event_counter.report_speed()
+
+        return None
+
+    def end_processing_on_processing_node(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> dict[str, Any] | None:
+        """
+        Ends processing on the processing nodes for Cheetah.
+
+        This function prints a message on the console, closes the output HDF5 files
+        and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+                the processing node.
+        """
+        log_info(f"Processing node {node_rank} shutting down.")
+        self._file_writer.close()
+        return {
+            "class_sums": self._class_sum_accumulator.get_sums_for_sending(
+                disregard_counter=True
+            ),
+            "end_processing": True,
+        }
+    
+    def end_processing_on_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Ends processing on the collecting node for Cheetah.
+
+        This function prints a message on the console, writes the final information in
+        the sum and status files, closes the files and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Save final accumulated class sums
+        self._class_sum_collector.save_sums()
+
+        # Sort frames and write final list files
+        self._list_files_writer.sort_frames_and_close_files()
+
+        # Write master file with sorted frames
+        write_VDS_master_file(
+            parameters=self._cheetah_parameters,
+        )
+
+        # Write final status
+        self._status_file_writer.update_status(
+            status="Finished",
+            num_frames=self._event_counter.get_num_events(),
+            num_hits=self._event_counter.get_num_hits(),
+        )
+
         log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
