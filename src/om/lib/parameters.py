@@ -270,7 +270,7 @@ class CrystallographyParameters(CustomBaseModel):
 
 
 class LineDetectionParameters(CustomBaseModel):
-    structure_radii: list[int]
+    structure_radius: int = 1
     structure_connectivity: int
     threshold: float
     min_pixel_count: int

@@ -28,7 +28,7 @@ from pathlib import Path
 
 import numpy
 from numpy.typing import NDArray
-from scipy.ndimage import maximum_position
+from scipy.ndimage import generate_binary_structure, label, sum_labels
 
 from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
@@ -69,32 +69,65 @@ except ImportError:
         "The following required module cannot be imported: msgpack"
     )
 
-try:
-    from cbclib_v2.label import Structure, index, label, labels, line_fit
-except ImportError:
-    raise OmMissingDependencyError(
-        "The following required module cannot be imported: cbclib_v2"
+# try:
+#     from cbclib_v2.label import Structure, index, label, labels, line_fit
+# except ImportError:
+#     raise OmMissingDependencyError(
+#         "The following required module cannot be imported: cbclib_v2"
+#     )
+
+
+def _maximum_positions(
+    image: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
+    regions: NDArray[numpy.signedinteger[Any]],
+    index: NDArray[numpy.integer[Any]],
+    num_labels: int,
+) -> list[tuple[int, ...]]:
+    if index.size == 0:
+        return []
+
+    flat_regions = regions.ravel()
+    flat_image = image.ravel()
+    max_values = numpy.full(num_labels + 1, -numpy.inf, dtype=float)
+    numpy.maximum.at(max_values, flat_regions, flat_image)
+
+    selected = numpy.zeros(num_labels + 1, dtype=bool)
+    selected[index] = True
+    candidate_positions = numpy.flatnonzero(selected[flat_regions])
+    candidate_regions = flat_regions[candidate_positions]
+    candidate_positions = candidate_positions[
+        flat_image[candidate_positions] == max_values[candidate_regions]
+    ]
+
+    peak_positions = numpy.full(num_labels + 1, flat_image.size, dtype=numpy.intp)
+    numpy.minimum.at(
+        peak_positions, flat_regions[candidate_positions], candidate_positions
     )
+
+    coords = numpy.unravel_index(peak_positions[index], image.shape)
+    return [tuple(int(coord) for coord in point) for point in zip(*coords)]
 
 
 def _detect_lines(
     image: NDArray[numpy.floating[Any] | numpy.signedinteger[Any]],
-    radii: list[int],
+    radius: int,
     connectivity: int,
     vmin: float,
     npts: int,
-) -> tuple[Any, list[tuple[int, ...]]]:
-    # Detects diffraction streaks in a detector frame using cbclib_v2.
-    # Returns the fitted line parameters and the list of per-line peak positions
-    # (row, col) as reported by scipy.ndimage.maximum_position.
-    structure: Structure = Structure(radii, connectivity)
-    regions: Any = label(image > vmin, structure=structure, npts=npts)
-    lines: Any = line_fit(regions, image)
-    peaks: list[tuple[int, ...]] = cast(
-        list[tuple[int, ...]],
-        maximum_position(image, labels(regions), index(regions)),
+) -> list[tuple[int, ...]]:
+    # Detects diffraction streaks in a detector frame using scipy.ndimage.
+    # Returns the list of per-line peak positions (row, col).
+
+    if radius != 1:
+        raise ValueError("scipy.ndimage.label only supports radius=1 connectivity.")
+    structure = generate_binary_structure(image.ndim, connectivity)
+    regions, num_labels = label(image > vmin, structure=structure)
+    all_index = numpy.arange(1, num_labels + 1)
+    sizes = numpy.asarray(
+        sum_labels(numpy.ones(image.shape, dtype=int), regions, index=all_index)
     )
-    return lines, peaks
+    index = all_index[sizes >= npts]
+    return _maximum_positions(image, regions, index, num_labels)
 
 
 def _peaks_to_peak_list(
@@ -358,16 +391,17 @@ class CbCrystallographyProcessing(OmProcessingProtocol):
         # OLS background subtraction (optional)
         if self._background_subtraction and self._background is not None:
             scale: float = (
-                float(numpy.sum(data["detector_data"] * self._background)) / self._background_norm
+                float(numpy.sum(data["detector_data"] * self._background))
+                / self._background_norm
                 if self._background_norm > 0.0
                 else 0.0
             )
             data["detector_data"] -= scale * self._background
 
         # Line detection
-        _, peaks = _detect_lines(
+        peaks = _detect_lines(
             data["detector_data"],
-            self._line_detection_parameters.structure_radii,
+            self._line_detection_parameters.structure_radius,
             self._line_detection_parameters.structure_connectivity,
             self._line_detection_parameters.threshold,
             self._line_detection_parameters.min_pixel_count,
@@ -860,21 +894,24 @@ class CbCheetahProcessing(OmProcessingProtocol):
         processed_data: dict[str, Any] = {}
 
         # Pre-processing: apply mask
-        preprocessed_data: NDArray[numpy.floating[Any]] = data["detector_data"] * self._mask
+        preprocessed_data: NDArray[numpy.floating[Any]] = (
+            data["detector_data"] * self._mask
+        )
 
         # OLS background subtraction (optional)
         if self._background_subtraction and self._background is not None:
             scale: float = (
-                float(numpy.sum(preprocessed_data * self._background)) / self._background_norm
+                float(numpy.sum(preprocessed_data * self._background))
+                / self._background_norm
                 if self._background_norm > 0.0
                 else 0.0
             )
             preprocessed_data -= scale * self._background
 
         # Line detection
-        _, peaks = _detect_lines(
+        peaks = _detect_lines(
             preprocessed_data,
-            self._line_detection_parameters.structure_radii,
+            self._line_detection_parameters.structure_radius,
             self._line_detection_parameters.structure_connectivity,
             self._line_detection_parameters.threshold,
             self._line_detection_parameters.min_pixel_count,
@@ -1080,7 +1117,7 @@ class CbCheetahProcessing(OmProcessingProtocol):
             ),
             "end_processing": True,
         }
-    
+
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
