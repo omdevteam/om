@@ -25,7 +25,9 @@ This module contains Data Source classes that deal with data retrieved from  the
 software framework (used at the LCLS facility).
 """
 
+from datetime import datetime, timezone
 from pathlib import Path
+from sys import float_repr_style
 from typing import Any, TypeVar, cast
 
 import numpy
@@ -439,7 +441,7 @@ class TimestampPsana2(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: dict[str, Any]) -> float_repr_style:
         """
         Retrieves timestamp information from psana.
 
@@ -457,8 +459,10 @@ class TimestampPsana2(OmDataSourceProtocol):
 
             The timestamp for the data event.
         """
-        timestamp: numpy.float64 = event["data"].datetime().timestamp()
-        return timestamp
+        timestamp_datetime: datetime = (
+            event["data"].datetime().replace(tzinfo=timezone.utc)
+        )
+        return timestamp_datetime.timestamp()
 
 
 class EventIdPsana2(OmDataSourceProtocol):
