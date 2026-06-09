@@ -439,7 +439,7 @@ class TimestampPsana2(OmDataSourceProtocol):
         """
         pass
 
-    def get_data(self, *, event: dict[str, Any]) -> int:
+    def get_data(self, *, event: dict[str, Any]) -> numpy.float64:
         """
         Retrieves timestamp information from psana.
 
@@ -457,7 +457,7 @@ class TimestampPsana2(OmDataSourceProtocol):
 
             The timestamp for the data event.
         """
-        timestamp: int = event["data"].timestamp
+        timestamp: numpy.float64 = event["data"].datetime().timestamp()
         return timestamp
 
 
