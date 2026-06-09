@@ -32,7 +32,7 @@ classifiers = [
   "Natural Language :: English",
   "Intended Audience :: Science/Research",
 ]
-dependencies = ["cython", "fabio", "hdf5plugin", "h5py", "msgpack-python", "msgpack-numpy", "pillow", "pydantic", "pyyaml", "pyzmq", "rich", "ruamel-yaml", "scipy", "typer", "jinja2", "typing-extensions", "ansi2html", "pyqtgraph", "ruamel-yaml-jinja2", "sortedcontainers", "mpi4py", "sphinx", "myst-parser", "pydata-sphinx-theme", "sphinx-click", "sphinxcontrib-images", "mypy", "h5py-stubs", "scipy-stubs", "types-pyyaml", "msgpack-types", "types-requests"]
+dependencies = ["cython", "fabio", "hdf5plugin", "h5py", "msgpack-python", "msgpack-numpy", "pillow", "pydantic", "pyyaml", "pyzmq", "rich", "ruamel-yaml", "scipy", "typer", "jinja2", "typing-extensions", "ansi2html", "PyQt5", "pyqtgraph", "ruamel-yaml-jinja2", "sortedcontainers", "mpi4py", "sphinx", "myst-parser", "pydata-sphinx-theme", "sphinx-click", "sphinxcontrib-images", "mypy", "h5py-stubs", "scipy-stubs", "types-pyyaml", "msgpack-types", "types-requests"]
 
 [project.urls]
 Homepage = "https://www.ondamonitor.com"
