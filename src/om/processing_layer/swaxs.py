@@ -29,7 +29,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.generic import Binning, BinningPassthrough
-from om.lib.cheetah import HDF5Writer
+from om.lib.cheetah import HDF5Writer, write_VDS_master_file
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
 from om.lib.logging import log_error_and_exit, log_info
@@ -860,6 +860,11 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         # Sort frames and write final list files
         # Write final status
         # self._writer.close()
+
+        write_VDS_master_file(
+            parameters=self._cheetah_parameters,
+        )
+
         log_info(
             "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
