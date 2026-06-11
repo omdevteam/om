@@ -28,8 +28,14 @@ from typing import Any
 import numpy
 from numpy.typing import NDArray
 
+from om.algorithms.common import PeakList
 from om.algorithms.generic import Binning, BinningPassthrough
-from om.lib.cheetah import HDF5Writer, write_VDS_master_file
+from om.lib.cheetah import (
+    CheetahlistFilesWriter,
+    FramelistData,
+    HDF5Writer,
+    write_VDS_master_file,
+)
 from om.lib.event_management import EventCounter
 from om.lib.geometry import DataVisualizer, GeometryInformation, PixelMaps
 from om.lib.logging import log_error_and_exit, log_info
@@ -450,10 +456,6 @@ class SwaxsProcessing(OmProcessingProtocol):
 
         self._event_counter.report_speed()
 
-        if return_dict:
-            return return_dict
-        return None
-
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> dict[str, Any] | None:
@@ -604,11 +606,15 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # File Writing
-        # self._writer = HDF5Writer(
-        #     node_rank=node_rank,
-        #     parameters=self._cheetah_parameters,
-        # )
+
+        self._dummy_peak_list: PeakList = PeakList(
+            0, fs=[], ss=[], intensity=[], num_pixels=[], max_pixel_intensity=[], snr=[]
+        )
+
+        # Writing list files
+        self._list_files_writer: CheetahlistFilesWriter = CheetahlistFilesWriter(
+            parameters=self._cheetah_parameters,
+        )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
@@ -791,18 +797,19 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
         else:
             self._event_counter.add_non_hit_event()
 
-        # File writing
-        # data_to_write: dict[str, Any] = {
-        #     "q": received_data["q"],
-        #     "radial": received_data["radial_profile"],
-        #     "image_sum": received_data["detector_data_sum"],
-        #     "timestamp": received_data["timestamp"],
-        #     "sample_detected": received_data["sample_detected"],
-        #     "detector_distance": received_data["detector_distance"],
-        #     "beam_energy": received_data["beam_energy"],
-        #     "event_id": received_data["event_id"],
-        # }
-        # self._writer.write_frame(processed_data=data_to_write)
+        # Write frame and peaks data to list files
+        frame_data: FramelistData = FramelistData(
+            received_data["timestamp"],
+            received_data["event_id"],
+            1,
+            received_data["filename"],
+            received_data["index"],
+            0,
+            0.0,
+        )
+        self._list_files_writer.add_frame(
+            frame_data=frame_data, peak_list=self._dummy_peak_list
+        )
 
         self._event_counter.report_speed()
 
@@ -858,8 +865,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
                 processing nodes and the collecting node.
         """
         # Sort frames and write final list files
-        # Write final status
-        # self._writer.close()
+        self._list_files_writer.sort_frames_and_close_files()
 
         write_VDS_master_file(
             parameters=self._cheetah_parameters,
