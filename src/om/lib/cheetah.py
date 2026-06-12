@@ -1095,6 +1095,13 @@ def write_VDS_master_file(
     # Sort by timestamp:
     frames.sort(key=lambda frame: frame.timestamp)
 
+    if len(frames) == 0:
+        log.warning(
+            "Cannot create the master file: no valid frames found in the "
+            f'"{cleaned_filename}" file.'
+        )
+        return
+
     # Copy all datasets from the individual files into the master file
     source_file: Any = h5py.File(str(frames[0].filename), "r")
     master_file: Any = h5py.File(str(master_filename), "w")
