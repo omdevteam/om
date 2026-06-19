@@ -46,7 +46,7 @@ from om.lib.parameters import (
 )
 from om.lib.protocols import OmProcessingProtocol
 from om.lib.radial_profile import RadialProfileAnalysis, RadialProfileAnalysisPlots
-from om.lib.zmq import ZmqDataBroadcaster
+from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 
 
 class SwaxsProcessing(OmProcessingProtocol):
@@ -454,7 +454,30 @@ class SwaxsProcessing(OmProcessingProtocol):
         if self._event_counter.should_send_non_hit_frame():
             return_dict["random"] = {"requests": "non_hit_frame"}
 
+        # Data broadcast
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the
+            # processing node, it must be broadcasted to visualization programs.
+
+            self._frame_data_img = self._data_visualizer.visualize_data(
+                data=received_data["detector_data"],
+            )
+
+            self._data_broadcast_socket.send_data(
+                tag="omframedata",
+                message={
+                    "frame_data": self._frame_data_img,
+                    "timestamp": received_data["timestamp"],
+                    "peak_list_x_in_frame": [],
+                    "peak_list_y_in_frame": [],
+                },
+            )
+
         self._event_counter.report_speed()
+
+        if return_dict:
+            return return_dict
+        return None
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
