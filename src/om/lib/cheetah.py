@@ -671,6 +671,7 @@ class HDF5Writer:
             "pixel_size",
             "detector_distance",
             "image_sum",
+            "post_sample_intensity",
         ):
             if key in self._cheetah_parameters.hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
@@ -870,6 +871,7 @@ class HDF5Writer:
             "q",
             "radial",
             "image_sum",
+            "post_sample_intensity",
         ):
             if dataset_dict_key in fields:
                 self._resizable_datasets[dataset_dict_key][frame_num] = processed_data[

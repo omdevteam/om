@@ -725,6 +725,7 @@ class SwaxsCheetahProcessing(SwaxsProcessing, OmProcessingProtocol):
                 "timestamp": data["timestamp"],
                 "beam_energy": data["beam_energy"],
                 "detector_distance": data["detector_distance"],
+                "post_sample_intensity": data["post_sample_intensity"],
             }
             if "optical_laser_active" in data.keys():
                 data_to_write["optical_laser_active"] = data["optical_laser_active"]
