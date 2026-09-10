@@ -25,14 +25,48 @@ license-files = ["LICENSE"]
 description="Real-time monitoring of x-ray imaging experiments"
 readme="README.md"
 classifiers = [
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Operating System :: OS Independent",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Natural Language :: English",
-  "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Natural Language :: English",
+    "Intended Audience :: Science/Research",
 ]
-dependencies = ["cython", "fabio", "hdf5plugin", "h5py", "msgpack-python", "msgpack-numpy", "pillow", "pydantic", "pyyaml", "pyzmq", "rich", "ruamel-yaml", "scipy", "typer", "jinja2", "typing-extensions", "ansi2html", "PyQt5", "pyqtgraph", "ruamel-yaml-jinja2", "sortedcontainers", "mpi4py", "sphinx", "myst-parser", "pydata-sphinx-theme", "sphinx-click", "sphinxcontrib-images", "mypy", "h5py-stubs", "scipy-stubs", "types-pyyaml", "msgpack-types", "types-requests"]
+dependencies = [
+    "cython",
+    "fabio",
+    "hdf5plugin",
+    "h5py",
+    "msgpack-python",
+    "msgpack-numpy",
+    "pillow",
+    "pydantic",
+    "pyyaml",
+    "pyzmq",
+    "rich",
+    "ruamel-yaml",
+    "scipy",
+    "typer",
+    "jinja2",
+    "typing-extensions",
+    "ansi2html",
+    "PyQt5",
+    "pyqtgraph",
+    "ruamel-yaml-jinja2",
+    "sortedcontainers",
+    "mpi4py",
+    "sphinx",
+    "myst-parser",
+    "pydata-sphinx-theme",
+    "sphinx-click",
+    "sphinxcontrib-images",
+    "mypy",
+    "h5py-stubs",
+    "scipy-stubs",
+    "types-pyyaml",
+    "msgpack-types",
+    "types-requests"
+]
 
 [project.urls]
 Homepage = "https://www.ondamonitor.com"
@@ -68,22 +102,33 @@ python_version = 3.11
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-platforms = ["linux-64"]
+platforms = [
+   { name = "linux-64-pypi", platform = "linux-64", glibc="2.28" },
+   { name = "linux-64-cds", platform = "linux-64", glibc = "2.17" },
+]
+
+[tool.pixi.feature.xtcpp]
+channels = ["lcls-ii"]
+platforms = ["linux-64-pypi"]
 
 [tool.pixi.feature.psana2]
 channels = ["lcls-ii"]
+platforms = ["linux-64-pypi"]
 
 [tool.pixi.feature.psana1]
 channels = ["lcls-i"]
+platforms = ["linux-64-pypi"]
 
 [tool.pixi.feature.psana2cds]
 channels = ["lcls-ii"]
+platforms = ["linux-64-cds"]
 
 [tool.pixi.feature.psana1cds]
 channels = ["lcls-i"]
+platforms = ["linux-64-cds"]
 
 [tool.pixi.pypi-dependencies]
-ondamonitor = { path = ".", editable = false }
+ondamonitor = { path = ".", editable = true }
 
 [tool.pixi.feature.psana2cds.pypi-options]
 no-build-isolation = ["ondamonitor"]
@@ -96,6 +141,10 @@ psana1 = ["psana1"]
 psana2 = ["psana2"]
 psana1cds = ["psana1cds"]
 psana2cds = ["psana2cds"]
+xtcpp = ["xtcpp"]
+
+[tool.pixi.feature.xtcpp.activation]
+scripts = ["activation-xtcpp.sh"]
 
 [tool.pixi.feature.psana2.activation]
 scripts = ["activation-psana2.sh"]
@@ -109,27 +158,33 @@ scripts = ["activation-psana2-cds.sh"]
 [tool.pixi.feature.psana1cds.activation]
 scripts = ["activation-psana1-cds.sh"]
 
-[tool.pixi.feature.psana2cds.system-requirements]
-libc = { family = "glibc", version = "2.17" }
-
-[tool.pixi.feature.psana1cds.system-requirements]
-libc = { family = "glibc", version = "2.17" }
+[tool.pixi.feature.xtcpp.dependencies]
+python = "3.13.*"
+openmpi = { version = "5*", channel = "conda-forge" }
+mpi4py = { version = "*", channel = "conda-forge" }
+hdf5 = { version = "*", channel = "conda-forge" }
+h5py = { version = "*", channel = "conda-forge" }
+pip = { version = "*", channel = "conda-forge" }
+gxx_linux-64 = { version = "*", channel = "conda-forge" }
+zlib = { version = "*", channel = "conda-forge" }
+patchelf = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.psana2.dependencies]
 python = "3.13.*"
-psana = { version="==4.2.4", channel="lcls-ii" }
-openmpi = "*"
-mpi4py = "*"
+psana = { version="==4.3.1", channel="lcls-ii" }
+openmpi = { version = "4*", channel = "conda-forge" }
+mpi4py = { version = "*", channel = "conda-forge" }
+prometheus-cpp = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.psana1.dependencies]
 python = "3.11.*"
 psana = { version="==4.0.66", channel="lcls-i" }
-openmpi = "*"
-mpi4py = "*"
+openmpi = { version = "4*", channel = "conda-forge" }
+mpi4py = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.psana2cds.dependencies]
 python = "3.13.*"
-psana = { version = "==4.2.4", channel = "lcls-ii" }
+psana = { version = "==4.3.1", channel = "lcls-ii" }
 openmpi = { version = "4*", channel = "conda-forge" }
 mpi4py = { version = "*", channel = "conda-forge" }
 h5py = { version = "*", channel = "conda-forge" }
@@ -142,6 +197,7 @@ fabio = { version = "*", channel = "conda-forge" }
 hdf5plugin = { version = "*", channel = "conda-forge" }
 msgpack-python = { version = "*", channel = "conda-forge" }
 msgpack-numpy = { version = "*", channel = "conda-forge" }
+prometheus-cpp = { version = "*", channel = "conda-forge" }
 
 [tool.pixi.feature.psana1cds.dependencies]
 python = "3.11.*"

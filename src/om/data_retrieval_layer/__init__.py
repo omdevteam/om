@@ -71,3 +71,9 @@ if spec is not None:
     from .data_event_handlers_psana2 import (
         Psana2DataEventHandler as Psana2DataEventHandler,
     )
+
+spec = find_spec("_xtcpp")
+if spec is not None:
+    from .data_event_handlers_xtcpp import (
+        XtcppDataEventHandler as XtcppDataEventHandler,
+    )
